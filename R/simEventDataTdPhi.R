@@ -20,7 +20,7 @@
 #'
 #' @param N Integer. Number of individuals to simulate.
 #' @param beta Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). Default is a zero matrix.
-#' @param beta2 Numeric vector. Regression coefficients corresponding to the effect of time since last event on the events (N0, N1, ...).
+#' @param beta2 Numeric vector. Regression coefficients corresponding to the effect of time since last event on the events (N0, N1, ...). Default is 0 for all events (no time-decay effect).
 #' @param eta Numeric vector. Shape parameters of the Weibull baseline intensity for each event type. Default is 0.1 for all events.
 #' @param nu Numeric vector. Scale parameters of the Weibull baseline intensity for each event type. Default is 1.1 for all events.
 #' @param at_risk Function. Function determining if an individual is at risk for each event type, given their current event counts. Takes a numeric vector events and returns a binary vector. Default returns 1 for all events.
@@ -105,7 +105,7 @@ simEventDataTdPhi <- function(
   } else {
     matrix(0, nrow = N_stop, ncol = num_events)
   }
-  beta2 <- if (!is.null(beta2)) beta2 else rep(1, num_events)
+  beta2 <- if (!is.null(beta2)) beta2 else rep(0, num_events)
   colnames(beta) <- paste0("N", seq(0, num_events - 1))
 
   if ((N_stop) != nrow(beta)) {

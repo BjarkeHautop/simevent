@@ -29,7 +29,7 @@ simEventDataTdPhi(
 
 \item{beta}{Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). Default is a zero matrix.}
 
-\item{beta2}{Numeric vector. Regression coefficients corresponding to the effect of time since last event on the events (N0, N1, ...).}
+\item{beta2}{Numeric vector. Regression coefficients corresponding to the effect of time since last event on the events (N0, N1, ...). Default is 0 for all events (no time-decay effect).}
 
 \item{eta}{Numeric vector. Shape parameters of the Weibull baseline intensity for each event type. Default is 0.1 for all events.}
 
