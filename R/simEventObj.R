@@ -54,7 +54,7 @@ simEventObj <- function(
   ID <- predict2 <- NULL
 
   # Naming
-  if (is.null(colnames(old_vars)) & !is.null(old_vars)) {
+  if (is.null(colnames(old_vars)) && !is.null(old_vars)) {
     colnames(old_vars) <- paste0("L", seq_len(ncol(old_vars)))
   }
   # Number of covariates

@@ -49,7 +49,7 @@ intEffectAlpha <- function(
 
   # Generate large data set under the intervened intensity
   if (setting == "Disease") {
-    if (length(eta) != 3 | length(nu) != 3) {
+    if (length(eta) != 3 || length(nu) != 3) {
       stop("eta and nu must be of length 3 in the Disease setting")
     }
     data <- simDisease(
@@ -59,7 +59,7 @@ intEffectAlpha <- function(
       ...
     )
   } else if (setting == "Drop In") {
-    if (length(eta) != 4 | length(nu) != 4) {
+    if (length(eta) != 4 || length(nu) != 4) {
       stop("eta and nu must be of length 3 in the Drop In setting")
     }
     data <- simDropIn(
@@ -70,7 +70,7 @@ intEffectAlpha <- function(
       ...
     )
   } else if (setting == "Treatment") {
-    if (length(eta) != 4 | length(nu) != 4) {
+    if (length(eta) != 4 || length(nu) != 4) {
       stop("eta and nu must be of length 4 in the Treatment setting")
     }
     data <- simTreatment(
