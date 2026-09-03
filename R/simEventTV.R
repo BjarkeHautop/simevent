@@ -25,6 +25,7 @@
 #' @param lower Numeric. Lower bound for the root-finding algorithm used in inverse cumulative hazard computation.
 #' @param upper Numeric. Upper bound for the root-finding algorithm used in inverse cumulative hazard computation.
 #' @param gen_A0 Function. Generates baseline treatment assignment. Takes arguments `N` and `L0`.
+#' @param gen_L0 Function. Function to generate the baseline covariate L0. Takes N as input. Default is a Uniform(0,1) random variable.
 #' @param at_risk_cov Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a numeric vector covariates and returns a binary vector. Default returns 1 for all events.
 
 #'
@@ -59,6 +60,7 @@ simEventTV <- function(
   lower = 10^(-15), # Lower bound for ICH
   upper = 200, # Upper bound for ICH
   gen_A0 = NULL, # Generation of A0
+  gen_L0 = NULL, # Generation of L0
   at_risk_cov = NULL # At risk indicator as function of covariates
 ) {
   ID <- NULL
@@ -130,6 +132,11 @@ simEventTV <- function(
   # Default A0 generation
   if (is.null(gen_A0)) {
     gen_A0 <- function(N, L0) stats::rbinom(N, 1, 0.5)
+  }
+
+  # Default L0 generation
+  if (is.null(gen_L0)) {
+    gen_L0 <- function(N) stats::runif(N)
   }
 
   # Matrix for storing values
@@ -221,7 +228,7 @@ simEventTV <- function(
   ############################ Initializing Simulations ########################
 
   # Draw baseline covariates
-  simmatrix[, 1] <- stats::runif(N) # L0
+  simmatrix[, 1] <- gen_L0(N) # L0
   simmatrix[, 2] <- gen_A0(N, simmatrix[, 1]) # A0
 
   # Generate additional covariates if distributions are specified

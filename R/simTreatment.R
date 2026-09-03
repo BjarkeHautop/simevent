@@ -170,7 +170,7 @@ simTreatment <- function(
   }
 
   data[, c("N0", "N1", "A0") := NULL]
-  colnames(data)[c(5, 6)] <- c("A", "L")
+  setnames(data, c("N2", "N3"), c("A", "L"))
 
   return(data)
 }

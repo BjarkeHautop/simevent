@@ -130,7 +130,7 @@ simDisease <- function(
   data[, N0 := NULL]
   data[, N1 := NULL]
 
-  colnames(data)[6] <- c("L")
+  setnames(data, "N2", "L")
 
   return(data)
 }
