@@ -19,5 +19,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Michaela Lukacova \email{michaela.lukacova@sund.ku.dk}
 
+Authors:
+\itemize{
+  \item Michaela Lukacova \email{michaela.lukacova@sund.ku.dk}
+}
+
 }
 \keyword{internal}

@@ -22,12 +22,16 @@ export(simTreatment)
 import(data.table)
 import(survival)
 importFrom(Rcpp,sourceCpp)
-importFrom(data.table,":=")
-importFrom(data.table,.SD)
-importFrom(data.table,copy)
-importFrom(data.table,data.table)
-importFrom(data.table,setkey)
+importFrom(data.table,
+  ":=",
+  .SD,
+  copy,
+  data.table,
+  setkey
+)
 importFrom(stats,predict)
-importFrom(survival,Surv)
-importFrom(survival,survfit)
+importFrom(survival,
+  Surv,
+  survfit
+)
 useDynLib(simevent, .registration = TRUE)

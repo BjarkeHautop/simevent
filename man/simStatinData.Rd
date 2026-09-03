@@ -9,7 +9,6 @@ simStatinData(
   eta = NULL,
   nu = NULL,
   beta = NULL,
-  cens = 1,
   followup = 5,
   lower = 10^(-15),
   upper = 200,
@@ -30,8 +29,6 @@ simStatinData(
 
 \item{beta}{Numeric matrix. Of dimension p times 6. Regression coefficients matrix where columns correspond to event types (N0, ..., N5) and rows correspond to covariates (L0, A0, L1, L2, ...) followed by event counts (N0, ..., N5). Default is a zero matrix.}
 
-\item{cens}{Binary scalar. Indicates whether individuals are at risk of censoring (default \code{1}).}
-
 \item{followup}{Numeric scalar. Maximum follow-up (censoring) time. Defaults to \code{Inf}.}
 
 \item{lower}{Numeric scalar. Lower bound for root-finding (inverse cumulative hazard) (default \code{1e-15}).}
@@ -43,6 +40,8 @@ simStatinData(
 \item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as input. Default is a N(0,1) random variable.}
 
 \item{add_cov}{Named list of functions. Functions generating additional baseline covariates. Each function takes integer N and returns a numeric vector of length N. Default is NULL.}
+
+\item{at_risk}{Function. Function determining if an individual is at risk for each event type, given their current event counts. Takes a numeric vector of event counts and returns a binary vector. Default returns 1 for all events.}
 
 \item{...}{Additional arguments passed to \code{simEventData}}
 }
