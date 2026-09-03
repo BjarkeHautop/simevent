@@ -25,34 +25,43 @@
 #'
 #' @export
 #'
-simSurvData <- function(N,
-                        beta = NULL,
-                        eta = rep(0.1,2),
-                        nu = rep(1.1,2),
-                        cens = 1,
-                        ...
-                        ){
-    at_risk <- function(events) c(cens,1)
+simSurvData <- function(
+  N,
+  beta = NULL,
+  eta = rep(0.1, 2),
+  nu = rep(1.1, 2),
+  cens = 1,
+  ...
+) {
+  at_risk <- function(events) c(cens, 1)
 
-    # Set default beta matrix if NULL
-    if(is.null(beta)){
-        beta <- matrix(0, ncol = 2, nrow = 2)
-    }
+  # Set default beta matrix if NULL
+  if (is.null(beta)) {
+    beta <- matrix(0, ncol = 2, nrow = 2)
+  }
 
-    # Pad beta matrix for simEventData function
-    beta <- rbind(beta, matrix(0, nrow = 2, ncol = 2))
+  # Pad beta matrix for simEventData function
+  beta <- rbind(beta, matrix(0, nrow = 2, ncol = 2))
 
-    # If additional covariates specified, add rows to beta accordingly
-    dots <- list(...)
-    has_add_cov <- "add_cov" %in% names(dots)
-    if (has_add_cov) beta <- rbind(beta, matrix(c(rep(0, length(dots$add_cov)), rep(0.1, length(dots$add_cov))), nrow = length(dots$add_cov), ncol = ncol(beta)))
+  # If additional covariates specified, add rows to beta accordingly
+  dots <- list(...)
+  has_add_cov <- "add_cov" %in% names(dots)
+  if (has_add_cov) {
+    beta <- rbind(
+      beta,
+      matrix(
+        c(rep(0, length(dots$add_cov)), rep(0.1, length(dots$add_cov))),
+        nrow = length(dots$add_cov),
+        ncol = ncol(beta)
+      )
+    )
+  }
 
-    # Simulate data using underlying simEventData function
-    results <- simEventData(N, beta, eta = eta, nu = nu, at_risk = at_risk, ...)
+  # Simulate data using underlying simEventData function
+  results <- simEventData(N, beta, eta = eta, nu = nu, at_risk = at_risk, ...)
 
-    # Remove terminal event indicator columns
-    results <- results[, !c("N0", "N1")]
+  # Remove terminal event indicator columns
+  results <- results[, !c("N0", "N1")]
 
-    return(results)
+  return(results)
 }
-

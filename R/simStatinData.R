@@ -26,52 +26,60 @@
 #' simDisease(10)
 #'
 #' @export
-simStatinData <- function(N,
-                          eta = NULL,
-                          nu = NULL,
-                          beta = NULL,
-                          followup = 5,
-                          lower = 10^(-15),
-                          upper = 200,
-                          gen_A0 = function(N, L0) pmin(stats::rexp(N, 0.3) + 70, 100),
-                          gen_L0 = function(N) stats::rbinom(N, 1, 0.4),
-                          add_cov = NULL,
-                          at_risk = NULL,
-                          ...){
+simStatinData <- function(
+  N,
+  eta = NULL,
+  nu = NULL,
+  beta = NULL,
+  followup = 5,
+  lower = 10^(-15),
+  upper = 200,
+  gen_A0 = function(N, L0) pmin(stats::rexp(N, 0.3) + 70, 100),
+  gen_L0 = function(N) stats::rbinom(N, 1, 0.4),
+  add_cov = NULL,
+  at_risk = NULL,
+  ...
+) {
   # Default values
-  if(!is.null(beta)){
+  if (!is.null(beta)) {
     n_proc <- ncol(beta)
-  } else if(!is.null(eta)){
+  } else if (!is.null(eta)) {
     n_proc <- length(eta)
-  } else if(!is.null(nu)){
+  } else if (!is.null(nu)) {
     n_proc <- length(nu)
   } else {
     n_proc <- 12
     beta <- matrix(0, nrow = n_proc + 2 + length(add_cov), ncol = n_proc)
   }
 
-  if(is.null(eta)) eta <- rep(0.1, n_proc)
-  if(is.null(nu)) nu <- rep(1.1, n_proc)
+  if (is.null(eta)) {
+    eta <- rep(0.1, n_proc)
+  }
+  if (is.null(nu)) {
+    nu <- rep(1.1, n_proc)
+  }
 
-  if(is.null(at_risk)) {
+  if (is.null(at_risk)) {
     at_risk <- function(events) {
       return(rep(1, n_proc))
     }
   }
 
-  data <- simEventData(N,
-                       beta = beta,
-                       eta = eta,
-                       nu = nu,
-                       at_risk = at_risk,
-                       max_cens = followup,
-                       lower = lower,
-                       upper = upper,
-                       term_deltas = c(0,1,2),
-                       gen_A0 = gen_A0,
-                       gen_L0 = gen_L0,
-                       add_cov = add_cov,
-                       ...)
+  data <- simEventData(
+    N,
+    beta = beta,
+    eta = eta,
+    nu = nu,
+    at_risk = at_risk,
+    max_cens = followup,
+    lower = lower,
+    upper = upper,
+    term_deltas = c(0, 1, 2),
+    gen_A0 = gen_A0,
+    gen_L0 = gen_L0,
+    add_cov = add_cov,
+    ...
+  )
 
   return(data)
 }

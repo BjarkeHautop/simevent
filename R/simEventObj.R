@@ -44,25 +44,32 @@
 #' @import data.table
 #'
 #' @export
-simEventObj <- function(N,
-                        obj,
-                        event_names = NULL,
-                        old_vars = NULL,
-                        useOldVars = FALSE) {
-
+simEventObj <- function(
+  N,
+  obj,
+  event_names = NULL,
+  old_vars = NULL,
+  useOldVars = FALSE
+) {
   ID <- predict2 <- NULL
 
   # Naming
-  if(is.null(colnames(old_vars)) & !is.null(old_vars)) colnames(old_vars) <- paste0("L", 1:ncol(old_vars))
+  if (is.null(colnames(old_vars)) & !is.null(old_vars)) {
+    colnames(old_vars) <- paste0("L", 1:ncol(old_vars))
+  }
   # Number of covariates
   num_cov <- ncol(old_vars)
 
   # Simulation matrix
-  if(useOldVars){
+  if (useOldVars) {
     sim_data <- old_vars
     N <- nrow(sim_data)
-  } else if(!is.null(old_vars)){
-    sim_data <- data.frame(old_vars[sample(1:nrow(old_vars), N, TRUE),, drop = FALSE])
+  } else if (!is.null(old_vars)) {
+    sim_data <- data.frame(old_vars[
+      sample(1:nrow(old_vars), N, TRUE),
+      ,
+      drop = FALSE
+    ])
     colnames(sim_data) <- colnames(old_vars)
   } else {
     sim_data <- data.frame(matrix(ncol = 0, nrow = N))
@@ -88,20 +95,29 @@ simEventObj <- function(N,
   chf_mat[, -1, ] <- chf_raw
 
   # Creating columns for event counts
-  if(!is.null(event_names)) for (name in event_names) sim_data[[name]] <- 0 else
-    for (name in paste0("N", 0:(num_events-1))) sim_data[[name]] <- 0
+  if (!is.null(event_names)) {
+    for (name in event_names) {
+      sim_data[[name]] <- 0
+    }
+  } else {
+    for (name in paste0("N", 0:(num_events - 1))) {
+      sim_data[[name]] <- 0
+    }
+  }
 
   # Defining the cumulativ hazard and the inverse cumulative hazard
-  cumhaz_fn <- function(t, i, j){
+  cumhaz_fn <- function(t, i, j) {
     idx <- findInterval(t, times)
-    t1 <- times[idx]; t2 <- times[idx + 1]
-    y1 <- chf_mat[cbind(i,idx, j)]; y2 <- chf_mat[cbind(i,(idx + 1), j)]
+    t1 <- times[idx]
+    t2 <- times[idx + 1]
+    y1 <- chf_mat[cbind(i, idx, j)]
+    y2 <- chf_mat[cbind(i, (idx + 1), j)]
     y1 + (t - t1) * (y2 - y1) / (t2 - t1)
   }
 
-  invcumhaz_fn <- function(p, i, j){
+  invcumhaz_fn <- function(p, i, j) {
     # We select the relevant chf
-    H <-  chf_mat[,,j]
+    H <- chf_mat[,, j]
 
     # If the simulated value is larger than any observed value
     H_max <- H[cbind(seq_along(i), rep(ncol(H), length(i)))]
@@ -109,7 +125,7 @@ simEventObj <- function(N,
     too_large <- p >= H_max[i]
 
     # We find the hazard intervals into which the simulated times fall
-    idx <- sapply(1:length(i), FUN = function(k) findInterval(p[k], H[i[k],]))
+    idx <- sapply(1:length(i), FUN = function(k) findInterval(p[k], H[i[k], ]))
     idx[idx == ncol(H)] <- ncol(H) - 1
 
     i_idx <- cbind(i, idx)
@@ -121,32 +137,32 @@ simEventObj <- function(N,
     t1 <- times[idx]
     t2 <- times[idx + 1]
 
-    out <- t1 + ifelse(
-      p2 == p1,
-      0,
-      (p - p1) * (t2 - t1) / (p2 - p1)
-    )
+    out <- t1 +
+      ifelse(
+        p2 == p1,
+        0,
+        (p - p1) * (t2 - t1) / (p2 - p1)
+      )
 
     out[too_large] <- Inf
     out
-
   }
 
   # Calculate the cumulative intensity per individual per event
   # this is kind of not necessary since we currently do not have recurrent events
   cum_int_Tk <- matrix(nrow = N, ncol = num_events)
-  for(j in seq_len(num_events)) {
-    cum_int_Tk[,j] <- cumhaz_fn(T0, 1:N, j)
+  for (j in seq_len(num_events)) {
+    cum_int_Tk[, j] <- cumhaz_fn(T0, 1:N, j)
   }
 
   # Simulate the uniform random variable
-  U <- matrix(-log(stats::runif(N * num_events)), ncol = num_events)  # matrix for the random draws
+  U <- matrix(-log(stats::runif(N * num_events)), ncol = num_events) # matrix for the random draws
   V <- U + cum_int_Tk
 
   # Find the event times
   event_times <- matrix(nrow = N, ncol = num_events)
-  for(j in seq_len(num_events)) {
-    event_times[,j] <- invcumhaz_fn(V[,j], 1:N, j)
+  for (j in seq_len(num_events)) {
+    event_times[, j] <- invcumhaz_fn(V[, j], 1:N, j)
   }
 
   # The next event is the minimum of these events
@@ -155,14 +171,13 @@ simEventObj <- function(N,
   Deltas[which(T_k == Inf)] <- 0
 
   # Update event counts
-  for(i in 1:num_events){
-    sim_data[seq_len(N), num_cov + i] <- sim_data[seq_len(N), num_cov + i] + ifelse(Deltas == i, 1, 0)
+  for (i in 1:num_events) {
+    sim_data[seq_len(N), num_cov + i] <- sim_data[seq_len(N), num_cov + i] +
+      ifelse(Deltas == i, 1, 0)
   }
 
   # Store data
-  kth_event <- data.table(ID = 1:N,
-                          Time = T_k,
-                          Delta = Deltas)
+  kth_event <- data.table(ID = 1:N, Time = T_k, Delta = Deltas)
 
   res <- cbind(kth_event, data.table::as.data.table(sim_data))
   data.table::setkey(res, ID)

@@ -58,20 +58,19 @@
 #'   at_risk = at_risk
 #' )
 inverseScHazPhiTd <- function(
-    p,
-    t,
-    T_star,
-    lower,
-    upper,
-    eta,
-    nu,
-    beta2,
-    phi0,
-    at_risk,
-    tol = 1e-9,
-    max_iter = 100
+  p,
+  t,
+  T_star,
+  lower,
+  upper,
+  eta,
+  nu,
+  beta2,
+  phi0,
+  at_risk,
+  tol = 1e-9,
+  max_iter = 100
 ) {
-
   inverseScHazPhiTdCpp(
     p = p,
     t = t,

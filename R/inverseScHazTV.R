@@ -28,18 +28,32 @@
 #' inverseScHazTV(p = 0.5, t= 1, t_prime = 2, eta = eta, nu = nu,
 #'                        phi = phi, phi_prime = phi_prime, at_risk = at_risk)
 #'
-inverseScHazTV <- function(p, t, lower = 1e-15, upper = 200, t_prime, eta, nu,
-                                   phi, phi_prime, at_risk, tol = 1e-9, max_iter = 100) {
-  inverseScHazTVCpp(p = p,
-                    t = t,
-                    lower = lower,
-                    upper = upper,
-                    t_prime = t_prime,
-                    eta = eta,
-                    nu = nu,
-                    phi = phi,
-                    phi_prime = phi_prime,
-                    at_risk = at_risk,
-                    tol = tol,
-                    max_iter = max_iter)
+inverseScHazTV <- function(
+  p,
+  t,
+  lower = 1e-15,
+  upper = 200,
+  t_prime,
+  eta,
+  nu,
+  phi,
+  phi_prime,
+  at_risk,
+  tol = 1e-9,
+  max_iter = 100
+) {
+  inverseScHazTVCpp(
+    p = p,
+    t = t,
+    lower = lower,
+    upper = upper,
+    t_prime = t_prime,
+    eta = eta,
+    nu = nu,
+    phi = phi,
+    phi_prime = phi_prime,
+    at_risk = at_risk,
+    tol = tol,
+    max_iter = max_iter
+  )
 }

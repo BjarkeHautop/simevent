@@ -27,14 +27,25 @@ plotEventData <- function(data, title = "Event Data") {
 
   # We add the start time to the data set
   data[, ID := factor(ID, levels = ordering$ID)]
-  plotdata <- rbind(data, data.table(ID = unique(data$ID),
-                                     Time = rep(0, n),
-                                     Delta = rep("start", n)))
+  plotdata <- rbind(
+    data,
+    data.table(ID = unique(data$ID), Time = rep(0, n), Delta = rep("start", n))
+  )
 
   # Shapes and color for the plot
   diff_events <- length(unique(plotdata$Delta))
-  cols <- c("green4", "blue1", "orange", "red2", "lightgreen", "purple1", "yellow", "hotpink", "darkgreen")
-  shapes <- c(20, 17, 15, 3, 7, 8, 13, 12, 11)  # varied shapes for clarity
+  cols <- c(
+    "green4",
+    "blue1",
+    "orange",
+    "red2",
+    "lightgreen",
+    "purple1",
+    "yellow",
+    "hotpink",
+    "darkgreen"
+  )
+  shapes <- c(20, 17, 15, 3, 7, 8, 13, 12, 11) # varied shapes for clarity
 
   # Make sure color and shape vectors are long enough
   if (diff_events > length(cols)) {
@@ -47,9 +58,22 @@ plotEventData <- function(data, title = "Event Data") {
   }
 
   p <- ggplot2::ggplot(plotdata) +
-    ggplot2::geom_line(ggplot2::aes(x = Time, y = ID, group = ID), color = "grey60", size = 0.7) +
-    ggplot2::geom_point(ggplot2::aes(x = Time, y = ID, shape = factor(Delta), color = factor(Delta)),
-                        size = 2.5, data = data, alpha = 0.8) +
+    ggplot2::geom_line(
+      ggplot2::aes(x = Time, y = ID, group = ID),
+      color = "grey60",
+      size = 0.7
+    ) +
+    ggplot2::geom_point(
+      ggplot2::aes(
+        x = Time,
+        y = ID,
+        shape = factor(Delta),
+        color = factor(Delta)
+      ),
+      size = 2.5,
+      data = data,
+      alpha = 0.8
+    ) +
     ggplot2::theme_minimal(base_size = 15) +
     ggplot2::scale_shape_manual(values = shapes[1:diff_events]) +
     ggplot2::scale_color_manual(values = cols[1:diff_events]) +
@@ -58,7 +82,8 @@ plotEventData <- function(data, title = "Event Data") {
       x = "Time",
       y = "Patient ID",
       shape = "Event Type",
-      color = "Event Type") +
+      color = "Event Type"
+    ) +
     ggplot2::theme(
       plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"),
       axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 10)),

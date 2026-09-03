@@ -62,80 +62,113 @@
 #' new_data <- simEventCox(100, cox_fits = cox_fits, old_vars = old_vars)
 #'
 #' @export
-simEventCox <- function(N,
-                        cox_fits,
-                        old_vars = NULL,
-                        useOldVars = FALSE,
-                        n_event_max = c(1,1),
-                        term_events = 1,
-                        intervention1 = NULL,
-                        intervention2 = NULL,
-                        at_risk = NULL) {
-
+simEventCox <- function(
+  N,
+  cox_fits,
+  old_vars = NULL,
+  useOldVars = FALSE,
+  n_event_max = c(1, 1),
+  term_events = 1,
+  intervention1 = NULL,
+  intervention2 = NULL,
+  at_risk = NULL
+) {
   ID <- NULL
 
   # Sampling new covariates
-  if(is.null(colnames(old_vars)) & !is.null(old_vars)) colnames(old_vars) <- paste0("L", 1:ncol(old_vars))
+  if (is.null(colnames(old_vars)) & !is.null(old_vars)) {
+    colnames(old_vars) <- paste0("L", 1:ncol(old_vars))
+  }
   num_cov <- ncol(old_vars)
   # Data frame for storing data containing covariates
-  if(useOldVars) {
+  if (useOldVars) {
     sim_data <- data.frame(old_vars)
     N <- nrow(sim_data)
-  } else if(!is.null(old_vars)){
-    sim_data <- data.frame(old_vars[sample(1:nrow(old_vars), N, TRUE),, drop = FALSE])
+  } else if (!is.null(old_vars)) {
+    sim_data <- data.frame(old_vars[
+      sample(1:nrow(old_vars), N, TRUE),
+      ,
+      drop = FALSE
+    ])
     colnames(sim_data) <- colnames(old_vars)
   } else {
     sim_data <- data.frame(matrix(ncol = 0, nrow = N))
   }
 
   # Initialize
-  num_events <- length(cox_fits)                          # Number of events
-  alive <- 1:N                                            # Vector for keeping track of who is alive
-  num_alive <- N                                          # Number of alive individuals
-  T_k <- rep(0, N)                                        # Last event time
+  num_events <- length(cox_fits) # Number of events
+  alive <- 1:N # Vector for keeping track of who is alive
+  num_alive <- N # Number of alive individuals
+  T_k <- rep(0, N) # Last event time
 
   # Default at_risk
-  if(is.null(at_risk)){
+  if (is.null(at_risk)) {
     riskss <- rep(1, num_events)
     at_risk <- function(events) return(riskss)
   }
 
-  for (name in names(cox_fits)) sim_data[[name]] <- 0L
+  for (name in names(cox_fits)) {
+    sim_data[[name]] <- 0L
+  }
 
   # List for results
-  res_list <- vector("list", sum(n_event_max))            # For results
-  idx <- 1                                                # Index
+  res_list <- vector("list", sum(n_event_max)) # For results
+  idx <- 1 # Index
 
   # Base hazard
-  basehazz_list <- lapply(cox_fits, function(model) basehaz(model, centered = FALSE))
+  basehazz_list <- lapply(cox_fits, function(model) {
+    basehaz(model, centered = FALSE)
+  })
 
   # The cumulative hazard and inverse cumulative hazard
   cumhaz_fn <- vector("list", num_events)
   invhaz_fn <- vector("list", num_events)
-  for(j in seq_len(num_events)) {
+  for (j in seq_len(num_events)) {
     H_j <- c(0, basehazz_list[[j]][["hazard"]])
     t_j <- c(0, basehazz_list[[j]][["time"]])
-    if(!is.null(intervention2)) H_j <- intervention2(j, H_j)
-    cumhaz_fn[[j]] <- stats::approxfun(t_j,       H_j,
-                                       method="linear", yright = Inf)
+    if (!is.null(intervention2)) {
+      H_j <- intervention2(j, H_j)
+    }
+    cumhaz_fn[[j]] <- stats::approxfun(
+      t_j,
+      H_j,
+      method = "linear",
+      yright = Inf
+    )
     # We choose ties = max to ensure that event times are strictly increasing
-    invhaz_fn[[j]] <- stats::approxfun(H_j,       t_j,
-                                       method="linear", rule=2, ties = max)
+    invhaz_fn[[j]] <- stats::approxfun(
+      H_j,
+      t_j,
+      method = "linear",
+      rule = 2,
+      ties = max
+    )
   }
 
   # Loop
-  while(num_alive != 0){
+  while (num_alive != 0) {
     # Intervention Cox term
-    if(!is.null(intervention1)){
+    if (!is.null(intervention1)) {
       cox_term <- list()
-      for(j in seq_len(num_events)){
+      for (j in seq_len(num_events)) {
         sim_data_cox <- intervention1(j, sim_data)
-        cox_term[[j]] <- exp(stats::predict(cox_fits[[j]], newdata = sim_data_cox, type="lp", reference = "zero"))
-        }
+        cox_term[[j]] <- exp(stats::predict(
+          cox_fits[[j]],
+          newdata = sim_data_cox,
+          type = "lp",
+          reference = "zero"
+        ))
+      }
       # Calculate the non intervention Cox term
-      } else{
-      cox_term <- lapply(cox_fits, function(model)
-        exp(stats::predict(model, newdata = sim_data, type="lp", reference = "zero")))
+    } else {
+      cox_term <- lapply(cox_fits, function(model) {
+        exp(stats::predict(
+          model,
+          newdata = sim_data,
+          type = "lp",
+          reference = "zero"
+        ))
+      })
     }
 
     # Calculate the cumulative intensity per individual per event
@@ -144,24 +177,30 @@ simEventCox <- function(N,
     })
 
     # Simulate the uniform random variable
-    U <- matrix(-log(stats::runif(num_alive * num_events)), ncol = num_events)  # matrix for the random draws
+    U <- matrix(-log(stats::runif(num_alive * num_events)), ncol = num_events) # matrix for the random draws
     V <- U + cum_int_Tk
 
     # Find the event times
     event_times <- sapply(seq_len(num_events), function(j) {
-      invhaz_fn[[j]](V[,j] / cox_term[[j]])
+      invhaz_fn[[j]](V[, j] / cox_term[[j]])
     })
 
     # If we only have one individual, the matrix collapses to a vector
-    if(num_alive == 1) event_times <- matrix(event_times, nrow = 1, ncol = num_events)
+    if (num_alive == 1) {
+      event_times <- matrix(event_times, nrow = 1, ncol = num_events)
+    }
 
     # Are you at risk for the particular event?
-    atriskss <- t(apply(sim_data[, (num_cov+1):(num_cov+num_events)], MARGIN = 1, FUN = function(events) at_risk(events)))
+    atriskss <- t(apply(
+      sim_data[, (num_cov + 1):(num_cov + num_events)],
+      MARGIN = 1,
+      FUN = function(events) at_risk(events)
+    ))
     event_times[atriskss == 0] <- Inf
 
     # How many times can you experience the various events?
-    for(j in seq_len(num_events)){
-      event_times[sim_data[, (num_cov+j)] == n_event_max[j], j] <- Inf
+    for (j in seq_len(num_events)) {
+      event_times[sim_data[, (num_cov + j)] == n_event_max[j], j] <- Inf
     }
 
     # The next event is the minimum of these events
@@ -169,12 +208,14 @@ simEventCox <- function(N,
     Deltas <- apply(event_times, 1, which.min)
 
     # Update event counts
-    sim_data[cbind(seq_len(num_alive), Deltas + num_cov)] <- sim_data[cbind(seq_len(num_alive), Deltas + num_cov)] + 1
+    sim_data[cbind(seq_len(num_alive), Deltas + num_cov)] <- sim_data[cbind(
+      seq_len(num_alive),
+      Deltas + num_cov
+    )] +
+      1
 
     # Store data
-    kth_event <- data.table(ID = alive,
-                            Time = T_k,
-                            Delta = Deltas - 1)
+    kth_event <- data.table(ID = alive, Time = T_k, Delta = Deltas - 1)
 
     res_list[[idx]] <- cbind(kth_event, data.table::as.data.table(sim_data))
     idx <- idx + 1

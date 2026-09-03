@@ -49,63 +49,86 @@
 #' simDisease(10)
 #'
 #' @export
-simDisease <- function(N,
-                       eta = rep(0.1,3),
-                       nu = rep(1.1,3),
-                       cens = 1,
-                       beta_L0_D = 1,
-                       beta_L0_L = 1,
-                       beta_L_D = 1,
-                       beta_A0_D = 0,
-                       beta_A0_L = 0,
-                       beta_L0_C = 0,
-                       beta_A0_C = 0,
-                       beta_L_C = 0,
-                       followup = Inf,
-                       lower = 10^(-15),
-                       upper = 200,
-                       beta_L_D_t_prime = NULL,
-                       t_prime = NULL,
-                       gen_A0 = NULL,
-                       at_risk_cov = NULL,
-                       ...){
-
+simDisease <- function(
+  N,
+  eta = rep(0.1, 3),
+  nu = rep(1.1, 3),
+  cens = 1,
+  beta_L0_D = 1,
+  beta_L0_L = 1,
+  beta_L_D = 1,
+  beta_A0_D = 0,
+  beta_A0_L = 0,
+  beta_L0_C = 0,
+  beta_A0_C = 0,
+  beta_L_C = 0,
+  followup = Inf,
+  lower = 10^(-15),
+  upper = 200,
+  beta_L_D_t_prime = NULL,
+  t_prime = NULL,
+  gen_A0 = NULL,
+  at_risk_cov = NULL,
+  ...
+) {
   at_risk <- function(events) {
     return(c(
-      cens,                                 # If you have not yet  been censored you are at risk
-      1,                                    # If you have not died yet you are at risk
-      as.numeric(events[3] == 0)))          # Only at risk for the covariate process if you have not experienced one yet
+      cens, # If you have not yet  been censored you are at risk
+      1, # If you have not died yet you are at risk
+      as.numeric(events[3] == 0)
+    )) # Only at risk for the covariate process if you have not experienced one yet
   }
 
   Time <- ID <- N0 <- N1 <- NULL
   beta <- matrix(ncol = 3, nrow = 5) # Three events and two baseline covariates
 
   # The effect of L0 on C, D, L
-  beta[1,] <- c(beta_L0_C, beta_L0_D, beta_L0_L)
+  beta[1, ] <- c(beta_L0_C, beta_L0_D, beta_L0_L)
   # The effect of A0 on C, D, L
-  beta[2,] <- c(beta_A0_C, beta_A0_D, beta_A0_L)
+  beta[2, ] <- c(beta_A0_C, beta_A0_D, beta_A0_L)
   # Censoring process is a terminal process
-  beta[3,] <- 0;
+  beta[3, ] <- 0
   # Death process is a terminal process
-  beta[4,] <- 0;
+  beta[4, ] <- 0
   # The effect of L on C, D, L
-  beta[5,] <- c(beta_L_C, beta_L_D, 0)
+  beta[5, ] <- c(beta_L_C, beta_L_D, 0)
 
-  if(!is.null(beta_L_D_t_prime) & !is.null(t_prime)){
+  if (!is.null(beta_L_D_t_prime) & !is.null(t_prime)) {
     tv_eff <- matrix(0, ncol = 3, nrow = 5)
-    tv_eff[5,2] <- beta_L_D_t_prime
-    data <- simEventTV(N, beta = beta, eta = eta, nu = nu, at_risk = at_risk,
-                         max_cens = followup, lower = lower, upper = upper,
-                         t_prime = t_prime, tv_eff = tv_eff, gen_A0 = gen_A0, ...)
-  }
-  else{
-    data <- simEventData(N, beta = beta, eta = eta, nu = nu, at_risk = at_risk,
-                         max_cens = followup, lower = lower, upper = upper,
-                         gen_A0 = gen_A0, at_risk_cov = at_risk_cov, ...)
+    tv_eff[5, 2] <- beta_L_D_t_prime
+    data <- simEventTV(
+      N,
+      beta = beta,
+      eta = eta,
+      nu = nu,
+      at_risk = at_risk,
+      max_cens = followup,
+      lower = lower,
+      upper = upper,
+      t_prime = t_prime,
+      tv_eff = tv_eff,
+      gen_A0 = gen_A0,
+      ...
+    )
+  } else {
+    data <- simEventData(
+      N,
+      beta = beta,
+      eta = eta,
+      nu = nu,
+      at_risk = at_risk,
+      max_cens = followup,
+      lower = lower,
+      upper = upper,
+      gen_A0 = gen_A0,
+      at_risk_cov = at_risk_cov,
+      ...
+    )
   }
 
   # We don't need columns for terminal events
-  data[, N0 := NULL]; data[, N1 := NULL]
+  data[, N0 := NULL]
+  data[, N1 := NULL]
 
   colnames(data)[6] <- c("L")
 

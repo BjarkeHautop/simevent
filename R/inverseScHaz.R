@@ -23,8 +23,18 @@
 #' phi <- c(1, 1)
 #' at_risk <- c(1, 1)
 #' inverseScHaz(0.5, t = 0, lower = 1e-15, upper = 200, eta, nu, phi, at_risk)
-inverseScHaz <- function(p, t, lower, upper, eta, nu, phi, at_risk,
-                              tol = 1e-9, max_iter = 100) {
+inverseScHaz <- function(
+  p,
+  t,
+  lower,
+  upper,
+  eta,
+  nu,
+  phi,
+  at_risk,
+  tol = 1e-9,
+  max_iter = 100
+) {
   inverseScHazCpp(
     p = p,
     t = t,
