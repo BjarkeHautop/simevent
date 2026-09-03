@@ -20,6 +20,7 @@ simEventTV(
   lower = 10^(-15),
   upper = 200,
   gen_A0 = NULL,
+  gen_L0 = NULL,
   at_risk_cov = NULL
 )
 }
@@ -56,6 +57,8 @@ Each function takes one argument \code{N} and returns a vector of length \code{N
 \item{upper}{Numeric. Upper bound for the root-finding algorithm used in inverse cumulative hazard computation.}
 
 \item{gen_A0}{Function. Generates baseline treatment assignment. Takes arguments \code{N} and \code{L0}.}
+
+\item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as input. Default is a Uniform(0,1) random variable.}
 
 \item{at_risk_cov}{Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a numeric vector covariates and returns a binary vector. Default returns 1 for all events.}
 }

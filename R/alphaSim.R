@@ -52,51 +52,16 @@ alphaSim <- function(
   Delta <- Time <- A0 <- tmp <- V1 <- NULL
 
   # Generate large data set under the intervened intensity
-  if (setting == "Disease") {
-    if (length(eta) != 3 || length(nu) != 3) {
-      stop("eta and nu must be of length 3 in the Disease setting")
-    }
-    data <- simDisease(
-      N = N,
-      eta = c(eta[1:2], eta[3] * alpha),
-      cens = cens,
-      ...
-    )
-  } else if (setting == "Drop In") {
-    if (length(eta) != 4 || length(nu) != 4) {
-      stop("eta and nu must be of length 4 in the Drop In setting")
-    }
-    data <- simDropIn(
-      N = N,
-      eta = c(eta[1:2], eta[3] * alpha, eta[4]),
-      nu = nu,
-      cens = cens,
-      ...
-    )
-  } else if (setting == "Statin") {
-    if (length(eta) != 12 || length(nu) != 12) {
-      stop("eta and nu must be of length 12 in the Statin setting")
-    }
-    data <- simStatinData(
-      N = N,
-      eta = c(eta[1:3], eta[4] * alpha, eta[5:12]),
-      nu = nu,
-      ...
-    )
-  } else if (setting == "Treatment") {
-    if (length(eta) != 4 || length(nu) != 4) {
-      stop("eta and nu must be of length 4 in the Treatment setting")
-    }
-    data <- simTreatment(
-      N = N,
-      eta = c(eta[1:2], eta[3] * alpha, eta[4]),
-      cens = cens,
-      nu = nu,
-      ...
-    )
-  } else {
-    stop("Setting must be either Disease, Drop In, Treatment or Statin")
-  }
+  data <- .simAlphaData(
+    setting = setting,
+    N = N,
+    eta = eta,
+    nu = nu,
+    alpha = alpha,
+    cens = cens,
+    allow_statin = TRUE,
+    ...
+  )
 
   if (return_data) {
     return(data)
