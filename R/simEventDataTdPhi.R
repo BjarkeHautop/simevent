@@ -192,60 +192,6 @@ simEventDataTdPhi <- function(
     exp(effects)
   }
 
-  # Proportional hazard - Dynamic part
-  phi_t <- function(t, i, phi0_row) {
-    phi0_row *
-      exp(
-        -beta2 * (t - T_star[i, ])
-      )
-  }
-
-  # Intensities
-  lambda <- function(t, i) {
-    risk_vec <-
-      at_risk_cov[, i] *
-      at_risk(simmatrix[i, N_start:N_stop])
-
-    phi_now <- phi_t(t, i, phi0[i, ])
-
-    risk_vec *
-      eta *
-      nu *
-      t^(nu - 1) *
-      phi_now
-  }
-
-  # Inverse Summed Cumulative Hazard from CPP
-  inverse_sc_haz <- function(p, t, i) {
-    riskss <-
-      at_risk(simmatrix[i, N_start:N_stop]) *
-      at_risk_cov[, i]
-
-    inverseScHazPhiTd(
-      p = p,
-      t = t,
-      T_star = T_star[i, ],
-      lower = lower,
-      upper = upper,
-      eta = eta,
-      nu = nu,
-      beta2 = beta2,
-      phi0 = phi0[i, ],
-      at_risk = riskss,
-      ...
-    )
-  }
-
-  # Event probabilities
-  probs <- function(t, i) {
-    if (t >= max_cens) {
-      return(c(1, rep(0, (num_events - 1))))
-    }
-    probs <- lambda(t, i)
-    summ <- sum(probs)
-    probs / summ
-  }
-
   ############################ Initializing Simulations ########################
 
   # Draw baseline covariates
@@ -281,25 +227,65 @@ simEventDataTdPhi <- function(
   ############################ Simulations #####################################
 
   while (length(alive) != 0) {
+    n_alive <- length(alive)
+
     # Simulate time
     V <- -log(stats::runif(N))
     phi0 <- calculate_phi0(simmatrix)
-    W <- sapply(alive, function(i) inverse_sc_haz(V[i], T_k[i], i))
+    phi0_alive <- phi0[alive, , drop = FALSE] # n_alive x num_events
+    T_star_alive <- T_star[alive, , drop = FALSE] # n_alive x num_events
+
+    # At-risk indicator for every alive individual (num_events x n_alive)
+    risk_user <- vapply(
+      alive,
+      function(i) at_risk(simmatrix[i, N_start:N_stop]),
+      numeric(num_events)
+    )
+    riskss_mat <- risk_user * at_risk_cov[, alive, drop = FALSE]
+
+    W <- vapply(
+      seq_len(n_alive),
+      function(j) {
+        i <- alive[j]
+        inverseScHazPhiTd(
+          p = V[i],
+          t = T_k[i],
+          T_star = T_star[i, ],
+          lower = lower,
+          upper = upper,
+          eta = eta,
+          nu = nu,
+          beta2 = beta2,
+          phi0 = phi0[i, ],
+          at_risk = riskss_mat[, j],
+          ...
+        )
+      },
+      numeric(1)
+    )
     T_k[alive] <- T_k[alive] + W
 
     # Maximal censoring time
     T_k[T_k > max_cens] <- max_cens
+    t_alive <- T_k[alive]
 
-    # Simulate event
-    probs_mat <- sapply(alive, function(i) probs(T_k[i], i), simplify = "array")
+    # Simulate event: vectorized event intensities across all alive individuals
+    diff_mat <- t_alive - T_star_alive # n_alive x num_events
+    phi_now_mat <- phi0_alive * exp(-sweep(diff_mat, 2, beta2, "*"))
+
+    pow_mat <- outer(nu - 1, t_alive, FUN = function(p, tt) tt^p) # num_events x n_alive
+    lambda_mat <- riskss_mat * eta * nu * pow_mat * t(phi_now_mat)
+
+    censored <- t_alive >= max_cens
+    if (any(censored)) {
+      lambda_mat[, censored] <- c(1, rep(0, num_events - 1))
+    }
+    probs_mat <- lambda_mat / rep(colSums(lambda_mat), each = num_events)
+
     Deltas <- sampleEvents(probs_mat)
 
     # Update last event time
-    for (j in seq_along(alive)) {
-      i <- alive[j]
-      d <- Deltas[j]
-      T_star[i, d + 1] <- T_k[i]
-    }
+    T_star[cbind(alive, Deltas + 1)] <- T_k[alive]
 
     # Update event counts
     simmatrix[cbind(alive, 2 + num_add_cov + Deltas + 1)] <-

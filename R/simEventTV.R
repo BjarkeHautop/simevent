@@ -192,39 +192,6 @@ simEventTV <- function(
     }
   }
 
-  # Intensities
-  lambda <- function(t, i, phi) {
-    risk_vec <- at_risk_cov[, i] * at_risk(simmatrix[i, N_start:N_stop])
-    risk_vec * eta * nu * t^(nu - 1) * phi[i, ]
-  }
-
-  # We calculate the inverse numerically
-  inverse_sc_haz <- function(p, t, i) {
-    riskss <- at_risk(simmatrix[i, N_start:N_stop]) * at_risk_cov[, i]
-    inverseScHazTV(
-      p,
-      t,
-      lower = lower,
-      upper = upper,
-      t_prime = t_prime,
-      eta = eta,
-      nu = nu,
-      phi = phi[i, ],
-      phi_prime = phi_prime[i, ],
-      at_risk = riskss
-    )
-  }
-
-  # Event probabilities
-  probs <- function(t, i) {
-    if (t == max_cens) {
-      return(c(1, rep(0, (num_events - 1))))
-    }
-    probs <- if (t > t_prime) lambda(t, i, phi_prime) else lambda(t, i, phi)
-    summ <- sum(probs)
-    probs / summ
-  }
-
   ############################ Initializing Simulations ########################
 
   # Draw baseline covariates
@@ -255,18 +222,62 @@ simEventTV <- function(
   ############################ Simulations #####################################
 
   while (length(alive) != 0) {
+    n_alive <- length(alive)
+
     # Simulate time
     V <- -log(stats::runif(N))
     phi <- calculate_phi(simmatrix, beta)
     phi_prime <- calculate_phi(simmatrix, beta_prime)
-    W <- sapply(alive, function(i) inverse_sc_haz(V[i], T_k[i], i))
+    phi_alive <- phi[alive, , drop = FALSE] # n_alive x num_events
+    phi_prime_alive <- phi_prime[alive, , drop = FALSE]
+
+    # At-risk indicator for every alive individual (num_events x n_alive)
+    risk_user <- vapply(
+      alive,
+      function(i) at_risk(simmatrix[i, N_start:N_stop]),
+      numeric(num_events)
+    )
+    riskss_mat <- risk_user * at_risk_cov[, alive, drop = FALSE]
+
+    W <- vapply(
+      seq_len(n_alive),
+      function(j) {
+        i <- alive[j]
+        inverseScHazTV(
+          V[i],
+          T_k[i],
+          lower = lower,
+          upper = upper,
+          t_prime = t_prime,
+          eta = eta,
+          nu = nu,
+          phi = phi[i, ],
+          phi_prime = phi_prime[i, ],
+          at_risk = riskss_mat[, j]
+        )
+      },
+      numeric(1)
+    )
     T_k[alive] <- T_k[alive] + W
 
     # Maximal censoring time
     T_k[T_k > max_cens] <- max_cens
+    t_alive <- T_k[alive]
 
-    # Simulate event
-    probs_mat <- sapply(alive, function(i) probs(T_k[i], i), simplify = "array")
+    # Simulate event: vectorized event intensities across all alive individuals
+    use_prime <- t_alive > t_prime
+    phi_use <- phi_alive
+    phi_use[use_prime, ] <- phi_prime_alive[use_prime, ]
+
+    pow_mat <- outer(nu - 1, t_alive, FUN = function(p, tt) tt^p) # num_events x n_alive
+    lambda_mat <- riskss_mat * eta * nu * pow_mat * t(phi_use)
+
+    censored <- t_alive == max_cens
+    if (any(censored)) {
+      lambda_mat[, censored] <- c(1, rep(0, num_events - 1))
+    }
+    probs_mat <- lambda_mat / rep(colSums(lambda_mat), each = num_events)
+
     Deltas <- sampleEvents(probs_mat)
 
     # Update event counts
