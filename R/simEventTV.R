@@ -151,7 +151,7 @@ simEventTV <- function(
 
   # Filling out beta matrix
   if (!is.null(override_beta)) {
-    for (bb in 1:length(override_beta)) {
+    for (bb in seq_along(override_beta)) {
       if (names(override_beta)[bb] %in% rownames(beta)) {
         beta[
           names(override_beta)[bb],

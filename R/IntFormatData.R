@@ -54,7 +54,7 @@ IntFormatData <- function(data, N_cols = 6:9, timeVar = FALSE, t_prime = NULL) {
 
   res <- do.call(rbind, data_k)
 
-  if (timeVar == TRUE) {
+  if (timeVar) {
     # We select the rows we need to split
     rows_to_split <- res[tstart <= t_prime & tstop > t_prime]
 

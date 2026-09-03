@@ -55,7 +55,7 @@ simEventObj <- function(
 
   # Naming
   if (is.null(colnames(old_vars)) & !is.null(old_vars)) {
-    colnames(old_vars) <- paste0("L", 1:ncol(old_vars))
+    colnames(old_vars) <- paste0("L", seq_len(ncol(old_vars)))
   }
   # Number of covariates
   num_cov <- ncol(old_vars)
@@ -66,7 +66,7 @@ simEventObj <- function(
     N <- nrow(sim_data)
   } else if (!is.null(old_vars)) {
     sim_data <- data.frame(old_vars[
-      sample(1:nrow(old_vars), N, TRUE),
+      sample(seq_len(nrow(old_vars)), N, TRUE),
       ,
       drop = FALSE
     ])
@@ -125,7 +125,7 @@ simEventObj <- function(
     too_large <- p >= H_max[i]
 
     # We find the hazard intervals into which the simulated times fall
-    idx <- sapply(1:length(i), FUN = function(k) findInterval(p[k], H[i[k], ]))
+    idx <- sapply(seq_along(i), FUN = function(k) findInterval(p[k], H[i[k], ]))
     idx[idx == ncol(H)] <- ncol(H) - 1
 
     i_idx <- cbind(i, idx)

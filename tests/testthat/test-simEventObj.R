@@ -46,11 +46,11 @@ test_that("simEventObj simulates data in the right way", {
       })
 
       # Chf
-      chf_list <- lapply(1:length(obj), function(j) {
+      chf_list <- lapply(seq_along(obj), function(j) {
         cox_term[[j]] %*% t(basehazz_list[[j]][["hazard"]])
       })
       chf <- array(dim = c(c(dim(chf_list[[1]])), length(obj)))
-      for (j in 1:length(obj)) {
+      for (j in seq_along(obj)) {
         chf[,, j] <- chf_list[[j]]
       }
 

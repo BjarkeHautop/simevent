@@ -77,7 +77,7 @@ simEventCox <- function(
 
   # Sampling new covariates
   if (is.null(colnames(old_vars)) & !is.null(old_vars)) {
-    colnames(old_vars) <- paste0("L", 1:ncol(old_vars))
+    colnames(old_vars) <- paste0("L", seq_len(ncol(old_vars)))
   }
   num_cov <- ncol(old_vars)
   # Data frame for storing data containing covariates
@@ -86,7 +86,7 @@ simEventCox <- function(
     N <- nrow(sim_data)
   } else if (!is.null(old_vars)) {
     sim_data <- data.frame(old_vars[
-      sample(1:nrow(old_vars), N, TRUE),
+      sample(seq_len(nrow(old_vars)), N, TRUE),
       ,
       drop = FALSE
     ])
