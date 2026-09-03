@@ -2,16 +2,18 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-double inverseScHazCpp(double p,
-                       double t,
-                       double lower,
-                       double upper,
-                       NumericVector eta,
-                       NumericVector nu,
-                       NumericVector phi,
-                       NumericVector at_risk,
-                       double tol = 1e-9,
-                       int max_iter = 100) {
+double inverseScHazCpp(
+  double p,
+  double t,
+  double lower,
+  double upper,
+  NumericVector eta,
+  NumericVector nu,
+  NumericVector phi,
+  NumericVector at_risk,
+  double tol = 1e-9,
+  int max_iter = 100
+) {
 
   // Cumulative hazard of waiting time
   auto cum_haz = [&](double u) {

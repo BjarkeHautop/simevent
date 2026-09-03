@@ -2,18 +2,20 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-double inverseScHazTVCpp(double p,
-                         double t,
-                         double lower,
-                         double upper,
-                         double t_prime,
-                         NumericVector eta,
-                         NumericVector nu,
-                         NumericVector phi,
-                         NumericVector phi_prime,
-                         NumericVector at_risk,
-                         double tol = 1e-9,
-                         int max_iter = 100) {
+double inverseScHazTVCpp(
+  double p,
+  double t,
+  double lower,
+  double upper,
+  double t_prime,
+  NumericVector eta,
+  NumericVector nu,
+  NumericVector phi,
+  NumericVector phi_prime,
+  NumericVector at_risk,
+  double tol = 1e-9,
+  int max_iter = 100
+) {
 
   // Cumulative hazard function with time-varying components
   auto cum_haz = [&](double u) {

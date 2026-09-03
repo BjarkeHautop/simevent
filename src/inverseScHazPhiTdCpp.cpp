@@ -3,18 +3,19 @@ using namespace Rcpp;
 
 // [[Rcpp::export]]
 double inverseScHazPhiTdCpp(
-    double p,
-    double t,
-    NumericVector T_star,
-    double lower,
-    double upper,
-    NumericVector eta,
-    NumericVector nu,
-    NumericVector beta2,
-    NumericVector phi0,
-    NumericVector at_risk,
-    double tol = 1e-9,
-    int max_iter = 100) {
+  double p,
+  double t,
+  NumericVector T_star,
+  double lower,
+  double upper,
+  NumericVector eta,
+  NumericVector nu,
+  NumericVector beta2,
+  NumericVector phi0,
+  NumericVector at_risk,
+  double tol = 1e-9,
+  int max_iter = 100
+) {
 
   // Closed-form cumulative hazard
   auto cum_haz = [&](double u) {
