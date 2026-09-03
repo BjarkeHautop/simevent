@@ -3,3 +3,6 @@
 ^LICENSE\.md$
 ^README\.Rmd$
 ^\.git-blame-ignore-revs$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
