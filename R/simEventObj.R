@@ -53,28 +53,11 @@ simEventObj <- function(
 ) {
   ID <- predict2 <- NULL
 
-  # Naming
-  if (is.null(colnames(old_vars)) && !is.null(old_vars)) {
-    colnames(old_vars) <- paste0("L", seq_len(ncol(old_vars)))
-  }
-  # Number of covariates
-  num_cov <- ncol(old_vars)
-
   # Simulation matrix
-  if (useOldVars) {
-    sim_data <- old_vars
-    N <- nrow(sim_data)
-  } else if (!is.null(old_vars)) {
-    sim_data <- data.frame(old_vars[
-      sample(seq_len(nrow(old_vars)), N, TRUE),
-      ,
-      drop = FALSE
-    ])
-    colnames(sim_data) <- colnames(old_vars)
-  } else {
-    sim_data <- data.frame(matrix(ncol = 0, nrow = N))
-  }
-  colnames(sim_data) <- colnames(old_vars)
+  resampled <- .simEvent_resample_covariates(old_vars, N, useOldVars)
+  sim_data <- resampled$sim_data
+  N <- resampled$N
+  num_cov <- resampled$num_cov
 
   # Initialize last event time
   T0 <- rep(0, N)

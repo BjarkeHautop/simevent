@@ -1,9 +1,28 @@
-# Internal helpers shared by simEventData(), simEventTV(), and
-# simEventDataTdPhi(). Not exported; these factor out the setup,
-# initialization, and bookkeeping steps that are identical across the three
-# simulation drivers, leaving each driver's own file to hold only the parts
-# of the main loop that differ (hazard/phi computation and time-to-event
-# sampling).
+# Resample baseline covariates from old_vars, or pass them through as-is
+# (useOldVars = TRUE). Returns list(sim_data, N, num_cov); N is overridden to
+# nrow(old_vars) when useOldVars is TRUE.
+.simEvent_resample_covariates <- function(old_vars, N, useOldVars) {
+  if (is.null(colnames(old_vars)) && !is.null(old_vars)) {
+    colnames(old_vars) <- paste0("L", seq_len(ncol(old_vars)))
+  }
+  num_cov <- ncol(old_vars)
+
+  if (useOldVars) {
+    sim_data <- data.frame(old_vars)
+    N <- nrow(sim_data)
+  } else if (!is.null(old_vars)) {
+    sim_data <- data.frame(old_vars[
+      sample(seq_len(nrow(old_vars)), N, TRUE),
+      ,
+      drop = FALSE
+    ])
+    colnames(sim_data) <- colnames(old_vars)
+  } else {
+    sim_data <- data.frame(matrix(ncol = 0, nrow = N))
+  }
+
+  list(sim_data = sim_data, N = N, num_cov = num_cov)
+}
 
 .simEvent_validate_add_cov <- function(add_cov) {
   if (!(is.null(add_cov) | is.list(add_cov))) {
