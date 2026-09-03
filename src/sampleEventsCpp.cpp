@@ -22,14 +22,17 @@ IntegerVector sampleEventsCpp(NumericMatrix probs) {
 
     double u = R::runif(0.0, 1.0);
     double cumulative = 0.0;
+    int chosen = k - 1;
 
     for (int i = 0; i < k; ++i) {
       cumulative += p[i];
       if (u <= cumulative) {
-        result[j] = i;
+        chosen = i;
         break;
       }
     }
+
+    result[j] = chosen;
   }
 
   return result;
