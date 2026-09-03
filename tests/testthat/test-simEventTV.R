@@ -96,7 +96,7 @@ test_that("That the simEventTV simulates correctly when no time varrying effects
     beta = beta,
     lower = 10^(-20),
     upper = 10^2,
-    max_events = 5
+    max_events = 50
   )
 
   data <- IntFormatData(data, N_cols = 6:7)
@@ -121,7 +121,7 @@ test_that("That the simEventTV simulates correctly when no time varrying effects
     beta = beta,
     lower = 10^(-20),
     upper = 10^2,
-    max_events = 5
+    max_events = 50
   )
 
   data <- IntFormatData(data, N_cols = 6:7)
@@ -155,7 +155,7 @@ test_that("That the simEventTV simulates correctly when time varrying effects", 
     beta = beta,
     lower = 10^(-20),
     upper = 10^2,
-    max_events = 5
+    max_events = 50
   )
 
   data <- IntFormatData(data, timeVar = TRUE, t_prime = t_prime, N_cols = 6:7)
@@ -181,4 +181,19 @@ test_that("That the simEventTV simulates correctly when time varrying effects", 
     sum(abs(survfit0$coefficients[c(2, 4, 6)] - betap[c(1, 2, 4), 1])) +
     sum(abs(survfit1$coefficients[c(2, 4, 6)] - betap[c(1, 2, 4), 2]))
   expect_equal(errors, 0, tolerance = 0.1 * 12)
+})
+
+test_that("simEventTV errors when max_events is exceeded", {
+  set.seed(1)
+  expect_error(
+    simEventTV(5, term_deltas = integer(0), max_events = 3),
+    "max_events"
+  )
+})
+
+test_that("simEventTV does not error when max_events is sufficient", {
+  set.seed(1)
+  expect_no_error(
+    simEventTV(100, max_events = 1000)
+  )
 })

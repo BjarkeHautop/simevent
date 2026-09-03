@@ -94,3 +94,19 @@ test_that("simEventData simulates data in the right way", {
       beta[5, 4] <= confint(survfit_cov, level = 0.99)[3, 2]
   )
 })
+
+test_that("simEventData errors when max_events is exceeded", {
+  set.seed(1)
+  # No terminal event type, so individuals accumulate events forever
+  expect_error(
+    simEventData(5, term_deltas = integer(0), max_events = 3),
+    "max_events"
+  )
+})
+
+test_that("simEventData does not error when max_events is sufficient", {
+  set.seed(1)
+  expect_no_error(
+    simEventData(100, max_events = 1000)
+  )
+})
