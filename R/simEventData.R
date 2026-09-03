@@ -296,7 +296,9 @@ simEventData <- function(
 
     if (length(alive) != 0 && idx > max_events) {
       stop(
-        "max_events (", max_events, ") exceeded before a terminal event ",
+        "max_events (",
+        max_events,
+        ") exceeded before a terminal event ",
         "occurred for all individuals. Increase max_events or adjust ",
         "at_risk/beta so that a terminal event becomes certain."
       )
