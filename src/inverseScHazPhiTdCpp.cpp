@@ -30,16 +30,6 @@ double inverseScHazPhiTdCpp(
       double shape = nu[k];
       double rate  = beta2[k];
 
-      double a = rate * t;
-      double b = rate * (t + u);
-
-      // Lower incomplete gamma via pgamma
-      double G_b =
-        R::pgamma(b, shape, 1.0, 1, 0);
-
-      double G_a =
-        R::pgamma(a, shape, 1.0, 1, 0);
-
       double integral;
 
       if(std::abs(rate) < 1e-12) {
