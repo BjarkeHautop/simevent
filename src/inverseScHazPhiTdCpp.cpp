@@ -41,14 +41,14 @@ double inverseScHazPhiTdCpp(
 
       } else {
 
-        double a = rate * t;
-        double b = rate * (t + u);
+        double ra = rate * t;
+        double rb = rate * (t + u);
 
         double G_b =
-          R::pgamma(b, shape, 1.0, 1, 0);
+          R::pgamma(rb, shape, 1.0, 1, 0);
 
         double G_a =
-          R::pgamma(a, shape, 1.0, 1, 0);
+          R::pgamma(ra, shape, 1.0, 1, 0);
 
         integral =
           std::pow(rate, -shape) *

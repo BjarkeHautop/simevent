@@ -64,7 +64,7 @@ alphaSim <- function(
     )
   } else if (setting == "Drop In") {
     if (length(eta) != 4 || length(nu) != 4) {
-      stop("eta and nu must be of length 3 in the Drop In setting")
+      stop("eta and nu must be of length 4 in the Drop In setting")
     }
     data <- simDropIn(
       N = N,

@@ -43,7 +43,7 @@ IntFormatData <- function(data, N_cols = 6:9, timeVar = FALSE, t_prime = NULL) {
   data_k[[1]][, tstop := Time]
 
   # Going through all events
-  for (i in 2:max_k) {
+  for (i in seq_len(max_k)[-1]) {
     data_k[[i]] <- data[data$k == i, ]
 
     data_k[[i]][,
