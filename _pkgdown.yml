@@ -1,4 +1,4 @@
-url: ~
+url: https://github.com/miclukacova/simevent
 template:
   bootstrap: 5
-
+  math-rendering: katex
