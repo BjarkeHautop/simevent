@@ -1,7 +1,6 @@
 # Internal helper shared by alphaSim() and intEffectAlpha(): simulates data
 # from the requested setting with the shape parameter eta of the relevant
 # process multiplied by alpha.
-
 .simAlphaData <- function(setting, N, eta, nu, alpha, cens, allow_statin, ...) {
   if (setting == "Disease") {
     if (length(eta) != 3 || length(nu) != 3) {

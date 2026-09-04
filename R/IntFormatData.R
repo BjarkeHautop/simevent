@@ -19,7 +19,6 @@
 #' @examples
 #' data <- simEventData(10)
 #' IntFormatData(data)
-
 IntFormatData <- function(data, N_cols = 6:9, timeVar = FALSE, t_prime = NULL) {
   k <- ID <- tstart <- tstop <- Time <- t_group <- NULL
   data <- copy(data)

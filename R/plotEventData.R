@@ -12,7 +12,6 @@
 #' @examples
 #' data <- simEventData(10)
 #' plotEventData(data)
-
 plotEventData <- function(data, title = "Event Data") {
   max_time <- Time <- ID <- Delta <- NULL
 

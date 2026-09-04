@@ -13,3 +13,4 @@
 ^\.github$
 ^air\.toml$
 ^panache\.toml$
+^TODO.md$
