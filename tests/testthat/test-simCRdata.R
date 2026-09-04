@@ -1,6 +1,3 @@
-library(survival)
-library(testthat)
-
 test_that("simCRdata simulates data in the right way", {
   set.seed(857)
   beta <- matrix(rnorm(6, 0, 3), ncol = 3, nrow = 2)

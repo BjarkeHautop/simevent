@@ -1,6 +1,3 @@
-library(survival)
-library(testthat)
-
 test_that("override_beta works", {
   set.seed(857)
   # Generate data

@@ -1,6 +1,3 @@
-library(survival)
-library(testthat)
-
 test_that("simDisease simulates data in the right way", {
   set.seed(857)
   # Generate data

@@ -1,6 +1,3 @@
-library(survival)
-library(testthat)
-
 test_that("simSurvData simulates data in the right way", {
   set.seed(857)
   beta <- matrix(rnorm(4, 0, 3), ncol = 2, nrow = 2)

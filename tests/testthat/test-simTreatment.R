@@ -1,6 +1,3 @@
-library(survival)
-library(testthat)
-
 test_that("simTreatment simulates data in the right way", {
   set.seed(858)
   # Generate data

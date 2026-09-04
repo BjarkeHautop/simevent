@@ -1,6 +1,3 @@
-library(survival)
-library(testthat)
-
 test_that("simEventCox simulates data in the right way", {
   set.seed(92648)
   # The observed data

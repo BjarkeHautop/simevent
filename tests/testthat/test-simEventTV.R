@@ -1,6 +1,3 @@
-library(testthat)
-library(survival)
-
 test_that("That inverseScHaz and inverseScHazTimeVar are qual when no time varying effects", {
   eta <- c(0.1, 0.1)
   nu <- c(1.1, 1.1)
