@@ -61,7 +61,7 @@ plotEventData <- function(data, title = "Event Data") {
     ggplot2::geom_line(
       ggplot2::aes(x = Time, y = ID, group = ID),
       color = "grey60",
-      size = 0.7
+      linewidth = 0.7
     ) +
     ggplot2::geom_point(
       ggplot2::aes(
