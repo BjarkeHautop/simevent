@@ -1,12 +1,14 @@
 # Estimate Effect of Intervention: Modifying Eta Parameter of Process
 
-This function simulates data from the disease setting in two scenarios.
-Under intervention on the shape parameter \\\eta\\ of the disease
-process is multiplied by `alpha`, and a baseline (non-intervened)
-scenario. It computes the proportion of individuals who experience death
-or disease by a specified time \\\tau\\ in the group `A0 = a0`,
-optionally returning years_lost. The function can also plot a sample of
-the event data for each scenario for comparison.
+Simulates data from the Disease, Drop In, or Treatment setting under an
+intervention where the shape parameter \\\eta\\ of the disease, drop-in,
+or treatment process (respectively) is multiplied by `alpha`. It
+computes the proportion of individuals who experience death, and the
+proportion who experience disease/drop-in/treatment, by a specified time
+\\\tau\\ in the group `A0 = a0` (except in the Treatment setting, where
+all individuals are used), optionally returning years lost instead of
+proportions. The function can also plot a sample of the simulated
+(intervened) event data.
 
 ## Usage
 
@@ -41,18 +43,20 @@ intEffectAlpha(
 
 - eta:
 
-  Numeric vector of length 3. Shape parameters for Weibull hazards
-  (default `rep(0.1, 4)`).
+  Numeric vector. Shape parameters for Weibull hazards: length 3 for
+  setting "Disease", length 4 for "Drop In" or "Treatment" (default
+  `rep(0.1, 4)`).
 
 - nu:
 
-  Numeric vector of length 3. Scale parameters for Weibull hazards
-  (default `rep(1.1, 4)`).
+  Numeric vector. Scale parameters for Weibull hazards: length 3 for
+  setting "Disease", length 4 for "Drop In" or "Treatment" (default
+  `rep(1.1, 4)`).
 
 - alpha:
 
-  Numeric scalar. Multiplicative factor applied to the disease process
-  shape parameter \\\eta\\.
+  Numeric scalar. Multiplicative factor applied to the shape parameter
+  \\\eta\\ of the relevant process.
 
 - tau:
 
@@ -60,7 +64,7 @@ intEffectAlpha(
 
 - a0:
 
-  Binary (0/1). Specifies the group for comparison.Only relevant in
+  Binary (0/1). Specifies the group for comparison. Only relevant in
   setting "Drop In" and "Disease".
 
 - years_lost:
@@ -69,8 +73,7 @@ intEffectAlpha(
 
 - plot:
 
-  Logical. If `TRUE`, plots timelines for sample of intervention and non
-  intervention data.
+  Logical. If `TRUE`, plots a sample of the simulated event data.
 
 - lower:
 
@@ -96,24 +99,20 @@ intEffectAlpha(
 
 A list with two components:
 
-- `effect_L`:
+- `effect_2`:
 
-  Proportion (or years lost) of individuals diagnosed with disease by
-  time \\\tau\\ in group `A0 = a0`, under intervention.
+  Proportion (or years lost) of individuals experiencing
+  disease/drop-in/treatment by time \\\tau\\, under intervention.
 
 - `effect_death`:
 
-  Proportion (or years lost) of individuals who died by time \\\tau\\ in
-  group `A0 = a0`, under intervention.
+  Proportion (or years lost) of individuals who died by time \\\tau\\,
+  under intervention.
 
 ## Examples
 
 ``` r
 intEffectAlpha(N = 1000, alpha = 0.7, tau = 5, years_lost = FALSE, a0 = 1, setting = "Drop In")
-#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-#> ℹ Please use `linewidth` instead.
-#> ℹ The deprecated feature was likely used in the simevent package.
-#>   Please report the issue at <https://github.com/miclukacova/simevent/issues>.
 #> $effect_2
 #> [1] 0.527668
 #> 

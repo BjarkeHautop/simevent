@@ -94,7 +94,7 @@ be simulated by drawing rows from the old covariates with replacement.</p></dd>
 
 
 <dt id="arg-useoldvars">useOldVars<a class="anchor" aria-label="anchor" href="#arg-useoldvars"></a></dt>
-<dd><p>Logical. If True the simulations use the old_vars directly rather than draw rows from the matrix.</p></dd>
+<dd><p>Logical. If <code>TRUE</code> the simulations use <code>old_vars</code> directly, rather than draw rows from the matrix.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -114,6 +114,26 @@ be simulated by drawing rows from the old covariates with replacement.</p></dd>
 <li><p>Stopping simulation per individual after a terminal event or maximum events reached.</p></li>
 </ol></div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Fit a Cox model and equip it with a predict2 method</span></span></span>
+<span class="r-in"><span><span class="va">data_obs</span> <span class="op">&lt;-</span> <span class="fu"><a href="simCRdata.html">simCRdata</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">cox_fit</span> <span class="op">&lt;-</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">Time</span>, <span class="va">Delta</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">A0</span>, data <span class="op">=</span> <span class="va">data_obs</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">predict2</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">obj</span>, <span class="va">...</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/UseMethod.html" class="external-link">UseMethod</a></span><span class="op">(</span><span class="st">"predict2"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">predict2.coxph</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">obj</span>, <span class="va">sim_data</span>, <span class="va">...</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">preds</span> <span class="op">&lt;-</span> <span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/survfit.html" class="external-link">survfit</a></span><span class="op">(</span><span class="va">obj</span>, newdata <span class="op">=</span> <span class="va">sim_data</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="co"># preds$cumhaz is a times x individuals matrix; reshape to individuals x times x events</span></span></span>
+<span class="r-in"><span>  <span class="va">chf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">preds</span><span class="op">$</span><span class="va">cumhaz</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">preds</span><span class="op">$</span><span class="va">time</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>time <span class="op">=</span> <span class="va">preds</span><span class="op">$</span><span class="va">time</span>, chf <span class="op">=</span> <span class="va">chf</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">old_vars</span> <span class="op">&lt;-</span> <span class="va">data_obs</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"L0"</span>, <span class="st">"A0"</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">new_data</span> <span class="op">&lt;-</span> <span class="fu">simEventObj</span><span class="op">(</span><span class="fl">100</span>, <span class="va">cox_fit</span>, old_vars <span class="op">=</span> <span class="va">old_vars</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in predict2(obj, sim_data):</span> could not find function "predict2"</span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

@@ -1,6 +1,10 @@
-# Simulate Survival Data
+# Simulate Survival Data with Censoring and Event Times
 
-Simulate Survival Data with Censoring and Event Times
+Simulates survival data for \\N\\ individuals who are at risk for
+censoring (0) and an event (1). The hazard functions for censoring and
+event times follow Weibull distributions parameterized by shape
+parameters \\\eta\\ and scale parameters \\\nu\\. Covariate effects on
+censoring and event hazards are specified via a matrix `beta`.
 
 ## Usage
 
@@ -46,31 +50,23 @@ simSurvData(N, beta = NULL, eta = rep(0.1, 2), nu = rep(1.1, 2), cens = 1, ...)
 
 ## Value
 
-Data frame containing the simulated survival data
-
-## Details
-
-Simulates survival data for \\N\\ individuals who are at risk for
-censoring (0) and an event (1). The hazard functions for censoring and
-event times follow Weibull distributions parameterized by shape
-parameters \\\eta\\ and scale parameters \\\nu\\. Covariate effects on
-censoring and event hazards are specified via a matrix `beta`.
+A data frame containing the simulated survival data.
 
 ## Examples
 
 ``` r
 simSurvData(10)
 #> Key: <ID>
-#>        ID      Time Delta         L0    A0
-#>     <int>     <num> <int>      <num> <num>
-#>  1:     1 2.2648499     0 0.12745160     0
-#>  2:     2 2.2107698     1 0.65611683     1
-#>  3:     3 7.9994330     0 0.93855208     1
-#>  4:     4 0.1460284     1 0.05214674     1
-#>  5:     5 2.7266357     0 0.41839028     0
-#>  6:     6 5.8732474     0 0.18845429     1
-#>  7:     7 0.6810498     1 0.79408932     0
-#>  8:     8 4.9997653     1 0.99244952     0
-#>  9:     9 9.1992626     0 0.30924975     0
-#> 10:    10 6.1177175     0 0.01837322     1
+#>        ID      Time Delta          L0    A0
+#>     <int>     <num> <int>       <num> <num>
+#>  1:     1 3.8161597     1 0.646411285     0
+#>  2:     2 9.7445728     1 0.548612530     1
+#>  3:     3 6.7730454     0 0.381062445     1
+#>  4:     4 4.6586870     0 0.463444044     0
+#>  5:     5 5.9127216     1 0.002773173     1
+#>  6:     6 3.4665695     0 0.232408226     1
+#>  7:     7 1.3453667     1 0.396454289     0
+#>  8:     8 0.2687670     1 0.825148441     0
+#>  9:     9 0.1539439     1 0.396773600     0
+#> 10:    10 2.0148975     1 0.354466980     0
 ```

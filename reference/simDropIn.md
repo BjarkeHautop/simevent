@@ -1,6 +1,8 @@
-# `simDropIn`
+# Simulate Event Data from a "Drop In" Setting
 
-Simulate Event Data from a "Drop In" Setting
+`simDropIn` simulates data corresponding to `N` individuals that are at
+risk for 4 or 5 events: Censoring (C), Death (D), Drop In Initiation
+(Z), Change in Covariate Process (L), and optionally Treatment (A).
 
 ## Usage
 
@@ -137,75 +139,75 @@ simDropIn(
 
 - beta_A_L:
 
-  Numeric. Specifies how L affects A.
+  Numeric. Specifies how A affects L.
 
 - beta_A_Z:
 
-  Numeric. Specifies how L affects Z.
+  Numeric. Specifies how A affects Z.
 
 - beta_A_D:
 
-  Numeric. Specifies how L affects D.
+  Numeric. Specifies how A affects D.
 
 - beta_A_C:
 
-  Numeric. Specifies how L affects C.
+  Numeric. Specifies how A affects C.
 
 - beta_Z_L:
 
-  Numeric. Specifies how L affects A.
+  Numeric. Specifies how Z affects L.
 
 - beta_Z_A:
 
-  Numeric. Specifies how L affects Z.
+  Numeric. Specifies how Z affects A.
 
 - beta_Z_D:
 
-  Numeric. Specifies how L affects D.
+  Numeric. Specifies how Z affects D.
 
 - beta_Z_C:
 
-  Numeric. Specifies how L affects C.
+  Numeric. Specifies how Z affects C.
 
 - beta_L0_L:
 
-  Numeric. Specifies how L affects A.
+  Numeric. Specifies how L0 affects L.
 
 - beta_L0_A:
 
-  Numeric. Specifies how L affects Z.
+  Numeric. Specifies how L0 affects A.
 
 - beta_L0_Z:
 
-  Numeric. Specifies how L affects Z.
+  Numeric. Specifies how L0 affects Z.
 
 - beta_L0_D:
 
-  Numeric. Specifies how L affects D.
+  Numeric. Specifies how L0 affects D.
 
 - beta_L0_C:
 
-  Numeric. Specifies how L affects C.
+  Numeric. Specifies how L0 affects C.
 
 - beta_A0_L:
 
-  Numeric. Specifies how L affects A.
+  Numeric. Specifies how A0 affects L.
 
 - beta_A0_A:
 
-  Numeric. Specifies how L affects Z.
+  Numeric. Specifies how A0 affects A.
 
 - beta_A0_Z:
 
-  Numeric. Specifies how L affects Z.
+  Numeric. Specifies how A0 affects Z.
 
 - beta_A0_D:
 
-  Numeric. Specifies how L affects D.
+  Numeric. Specifies how A0 affects D.
 
 - beta_A0_C:
 
-  Numeric. Specifies how L affects C.
+  Numeric. Specifies how A0 affects C.
 
 - beta_L_A_prime:
 
@@ -225,90 +227,83 @@ simDropIn(
 
 - beta_A_L_prime:
 
-  Numeric. Specifies how L additionally affects A after time t_prime.
+  Numeric. Specifies how A additionally affects L after time t_prime.
 
 - beta_A_Z_prime:
 
-  Numeric. Specifies how L additionally affects Z after time t_prime.
+  Numeric. Specifies how A additionally affects Z after time t_prime.
 
 - beta_A_D_prime:
 
-  Numeric. Specifies how L additionally affects D after time t_prime.
+  Numeric. Specifies how A additionally affects D after time t_prime.
 
 - beta_A_C_prime:
 
-  Numeric. Specifies how L additionally affects C after time t_prime.
+  Numeric. Specifies how A additionally affects C after time t_prime.
 
 - beta_Z_L_prime:
 
-  Numeric. Specifies how L additionally affects A after time t_prime.
+  Numeric. Specifies how Z additionally affects L after time t_prime.
 
 - beta_Z_A_prime:
 
-  Numeric. Specifies how L additionally affects Z after time t_prime.
+  Numeric. Specifies how Z additionally affects A after time t_prime.
 
 - beta_Z_D_prime:
 
-  Numeric. Specifies how L additionally affects D after time t_prime.
+  Numeric. Specifies how Z additionally affects D after time t_prime.
 
 - beta_Z_C_prime:
 
-  Numeric. Specifies how L additionally affects C after time t_prime.
+  Numeric. Specifies how Z additionally affects C after time t_prime.
 
 - beta_L0_L_prime:
 
-  Numeric. Specifies how L additionally affects after time A.
+  Numeric. Specifies how L0 additionally affects L after time t_prime.
 
 - beta_L0_A_prime:
 
-  Numeric. Specifies how L additionally affects after time Z.
+  Numeric. Specifies how L0 additionally affects A after time t_prime.
 
 - beta_L0_Z_prime:
 
-  Numeric. Specifies how L additionally affects after time Z.
+  Numeric. Specifies how L0 additionally affects Z after time t_prime.
 
 - beta_L0_D_prime:
 
-  Numeric. Specifies how L additionally affects after time D.
+  Numeric. Specifies how L0 additionally affects D after time t_prime.
 
 - beta_L0_C_prime:
 
-  Numeric. Specifies how L additionally affects after time C.
+  Numeric. Specifies how L0 additionally affects C after time t_prime.
 
 - beta_A0_L_prime:
 
-  Numeric. Specifies how L additionally affects after time A.
+  Numeric. Specifies how A0 additionally affects L after time t_prime.
 
 - beta_A0_A_prime:
 
-  Numeric. Specifies how L additionally affects after time Z.
+  Numeric. Specifies how A0 additionally affects A after time t_prime.
 
 - beta_A0_Z_prime:
 
-  Numeric. Specifies how L additionally affects after time Z.
+  Numeric. Specifies how A0 additionally affects Z after time t_prime.
 
 - beta_A0_D_prime:
 
-  Numeric. Specifies how L additionally affects after time D.
+  Numeric. Specifies how A0 additionally affects D after time t_prime.
 
 - beta_A0_C_prime:
 
-  Numeric. Specifies how L additionally affects after time C.
+  Numeric. Specifies how A0 additionally affects C after time t_prime.
 
 - ...:
 
-  Additional arguments passed to `simEventData` or `simEventTV`
+  Additional arguments passed to `simEventData` or `simEventTV`.
 
 ## Value
 
-Data frame containing the simulated event history data
-
-## Details
-
-`simDropIn` is a function that simulates data corresponding to `N`
-individuals that are at risk for 4 or 5 events. Censoring (C), Death
-(D), Drop In Initiation (Z), Change in Covariate Process (L) and
-optionally Treatment (A).
+A data frame containing the simulated event history data.
 
 ## Examples
 

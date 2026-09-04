@@ -40,7 +40,7 @@ simEventCox(
 
 - useOldVars:
 
-  Logical. If True the simulations use the old_vars directly, rather
+  Logical. If `TRUE` the simulations use `old_vars` directly, rather
   than draw rows from the matrix.
 
 - n_event_max:

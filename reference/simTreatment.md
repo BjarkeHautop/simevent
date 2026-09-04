@@ -105,48 +105,53 @@ simTreatment(
 
 - beta_L_A_prime:
 
-  Numeric. Additional effect of covariate `L = 1` on treatment hazard.
-  Default 0.
+  Numeric. Additional effect of covariate `L = 1` on treatment hazard
+  after `t_prime`. Default 0.
 
 - beta_L_D_prime:
 
-  Numeric. Additionalffect of covariate `L = 1` on death hazard. Default
-  0.
+  Numeric. Additional effect of covariate `L = 1` on death hazard after
+  `t_prime`. Default 0.
 
 - beta_A_D_prime:
 
-  Numeric. Effect of treatment `A = 1` on death hazard. Default 0.
+  Numeric. Additional effect of treatment `A = 1` on death hazard after
+  `t_prime`. Default 0.
 
 - beta_A_L_prime:
 
-  Numeric. Effect of treatment `A = 1` on covariate hazard. Default 0.
+  Numeric. Additional effect of treatment `A = 1` on covariate hazard
+  after `t_prime`. Default 0.
 
 - beta_L0_A_prime:
 
-  Numeric. Effect of baseline covariate `L0` on treatment hazard.
-  Default 0.
+  Numeric. Additional effect of baseline covariate `L0` on treatment
+  hazard after `t_prime`. Default 0.
 
 - beta_L0_L_prime:
 
-  Numeric. Effect of baseline covariate `L0` on covariate hazard.
-  Default 0.
+  Numeric. Additional effect of baseline covariate `L0` on covariate
+  hazard after `t_prime`. Default 0.
 
 - beta_L0_D_prime:
 
-  Numeric. Effect of baseline covariate `L0` on death hazard. Default 0.
+  Numeric. Additional effect of baseline covariate `L0` on death hazard
+  after `t_prime`. Default 0.
 
 - beta_L0_C_prime:
 
-  Numeric. Effect of baseline covariate `L0` on censoring hazard.
-  Default 0.
+  Numeric. Additional effect of baseline covariate `L0` on censoring
+  hazard after `t_prime`. Default 0.
 
 - beta_L_C_prime:
 
-  Numeric. Effect of covariate `L = 1` on censoring hazard. Default 0.
+  Numeric. Additional effect of covariate `L = 1` on censoring hazard
+  after `t_prime`. Default 0.
 
 - beta_A_C_prime:
 
-  Numeric. Effect of treatment `A = 1` on censoring hazard. Default 0.
+  Numeric. Additional effect of treatment `A = 1` on censoring hazard
+  after `t_prime`. Default 0.
 
 - t_prime:
 
@@ -183,7 +188,7 @@ simTreatment(
 
 - ...:
 
-  Additional arguments passed to `simEventData` or `simEventTV`
+  Additional arguments passed to `simEventData` or `simEventTV`.
 
 ## Value
 
@@ -216,27 +221,23 @@ simTreatment(10)
 #> Key: <ID>
 #>        ID       Time Delta        L0     A     L
 #>     <int>      <num> <int>     <num> <num> <num>
-#>  1:     1 1.53256297     2 0.7580909     1     0
-#>  2:     1 6.98660338     0 0.7580909     1     0
-#>  3:     2 0.14018602     1 0.3821143     0     0
-#>  4:     3 3.56436629     3 0.4138130     0     1
-#>  5:     3 5.02476838     2 0.4138130     1     1
-#>  6:     3 6.16695688     1 0.4138130     1     1
-#>  7:     4 0.93354610     2 0.9349064     1     0
-#>  8:     4 3.08745012     3 0.9349064     1     1
-#>  9:     4 3.15668020     1 0.9349064     1     1
-#> 10:     5 0.09838135     2 0.3306358     1     0
-#> 11:     5 4.33650702     0 0.3306358     1     0
-#> 12:     6 3.07541193     2 0.4048474     1     0
-#> 13:     6 4.43555920     0 0.4048474     1     0
-#> 14:     7 1.38239335     2 0.9920628     1     0
-#> 15:     7 3.46659619     0 0.9920628     1     0
-#> 16:     8 0.47887780     0 0.5573049     0     0
-#> 17:     9 1.89601825     2 0.2076326     1     0
-#> 18:     9 2.67074072     3 0.2076326     1     1
-#> 19:     9 8.37313290     1 0.2076326     1     1
-#> 20:    10 1.44107185     3 0.8384938     0     1
-#> 21:    10 3.37496772     1 0.8384938     0     1
-#>        ID       Time Delta        L0     A     L
-#>     <int>      <num> <int>     <num> <num> <num>
+#>  1:     1 1.74522505     2 0.6369412     1     0
+#>  2:     1 2.95102859     3 0.6369412     1     1
+#>  3:     1 8.03530287     0 0.6369412     1     1
+#>  4:     2 0.96656873     0 0.8269983     0     0
+#>  5:     3 3.01052777     0 0.6959707     0     0
+#>  6:     4 2.30196568     2 0.4015605     1     0
+#>  7:     4 6.24327666     3 0.4015605     1     1
+#>  8:     4 8.17661420     0 0.4015605     1     1
+#>  9:     5 0.06978376     2 0.9964493     1     0
+#> 10:     5 0.17099191     3 0.9964493     1     1
+#> 11:     5 5.00649860     1 0.9964493     1     1
+#> 12:     6 2.14498551     2 0.8034955     1     0
+#> 13:     6 4.77570770     1 0.8034955     1     0
+#> 14:     7 0.63252858     3 0.4721267     0     1
+#> 15:     7 4.29389393     0 0.4721267     0     1
+#> 16:     8 0.52453649     1 0.9792471     0     0
+#> 17:     9 2.56599994     0 0.1035612     0     0
+#> 18:    10 0.44059940     2 0.3355462     1     0
+#> 19:    10 3.21423678     1 0.3355462     1     0
 ```

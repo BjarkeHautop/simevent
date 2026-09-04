@@ -5,7 +5,7 @@ into an interval (start-stop) format, suitable for classical survival
 analysis functions like `coxph`. Adds interval start and stop times
 (`tstart`, `tstop`) and a counting variable `k` indexing events.
 Optionally, the function can split intervals at a specified time point
-to accomadate estimation of time-varying effects.
+to accommodate estimation of time-varying effects.
 
 ## Usage
 

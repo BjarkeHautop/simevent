@@ -1,10 +1,10 @@
 # Simulation and Estimation with Modified Shape Parameter
 
-This function simulates event history data from either the Disease,
-Treatment or Drop In setting. See simDisease, simTreatment and
-simDropIn. The shape parameter \\\eta\\ of respectively the disease
-process, the Drop In process and the Treatment process is multiplied by
-`alpha`. The function either
+This function simulates event history data from the Disease, Treatment,
+Drop In, or Statin setting (see `simDisease`, `simTreatment`,
+`simDropIn`, and `simStatinData`). The shape parameter \\\eta\\ of the
+disease/treatment/drop-in/MACE process is multiplied by `alpha`. The
+function either
 
 - returns the proportion of individuals who experience death and the
   proportion of individuals who experience disease/drop in/treatment by
@@ -44,15 +44,15 @@ alphaSim(
 - eta:
 
   Numeric vector. Shape parameters for Weibull hazards. Length of the
-  vector should match number of events. For the Disease and Drop In
-  setting this is 4. For the Treatment setting, this is 3. (default
+  vector should match number of events: 3 for the Disease setting, 4 for
+  the Drop In or Treatment setting, 12 for the Statin setting (default
   `rep(0.1, 4)`).
 
 - nu:
 
   Numeric vector. Scale parameters for Weibull hazards. Length of the
-  vector should match number of events. For the Disease and Drop In
-  setting this is 4. For the Treatment setting, this is 3. (default
+  vector should match number of events: 3 for the Disease setting, 4 for
+  the Drop In or Treatment setting, 12 for the Statin setting (default
   `rep(1.1, 4)`).
 
 - alpha:
@@ -75,8 +75,8 @@ alphaSim(
 
 - setting:
 
-  Character string. Must be either "Disease", "Drop In" or "Treatment".
-  Depending on the simulation setting.
+  Character string. Must be "Disease", "Drop In", "Treatment", or
+  "Statin". Depending on the simulation setting.
 
 - return_data:
 
@@ -96,17 +96,17 @@ alphaSim(
 
 A list with two components:
 
-- `effect_L`:
+- `effectDeath`:
 
-  Proportion (or years lost) of individuals diagnosed with disease by
-  time \\\tau\\, under intervention.
-
-- `effect_death`:
-
-  Proportion (or years lost) of individuals who died by time \\\tau\\
+  Proportion (or years lost) of individuals who died by time \\\tau\\,
   under intervention.
 
-Or the simulated data.
+- `effectSetting`:
+
+  Proportion (or years lost) of individuals experiencing
+  disease/drop-in/treatment/MACE by time \\\tau\\, under intervention.
+
+Or the simulated data, if `return_data = TRUE`.
 
 ## Examples
 

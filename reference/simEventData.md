@@ -1,6 +1,9 @@
-# Simulate Event Data with Multiple Event Types and Covariates
+# Simulate Continuous Time-to-Event Data with Multiple Event Types
 
-Simulate Continuous Time-to-Event Data with Multiple Event Types
+`simEventData` simulates event times and types for a cohort of
+individuals in a counting process framework. It supports multiple event
+types (by default 4), including terminal events, with intensities
+influenced by baseline covariates and previous event history.
 
 ## Usage
 
@@ -100,18 +103,18 @@ simEventData(
 - gen_L0:
 
   Function. Function to generate the baseline covariate L0. Takes N as
-  inputs. Default is a N(0,1) random variable.
+  inputs. Default is a Uniform(0,1) random variable.
 
 - at_risk_cov:
 
   Function. Function determining if an individual is at risk for each
   event type, given their covariates. Takes a matrix of covariates and
-  returns a binary matrix vector. Default returns 1 for all events and
-  all individuals.
+  returns a binary matrix. Default returns 1 for all events and all
+  individuals.
 
 - ...:
 
-  Additional technical arguments
+  Additional technical arguments.
 
 ## Value
 
@@ -147,18 +150,19 @@ A `data.table` with columns:
 
 ## Details
 
-`simEventData` simulates event times and types for a cohort of
-individuals in a counting process framework. It supports multiple event
-types (by default 4), including terminal events, with intensities
-influenced by baseline covariates and previous event history.
-
 The event intensities for event type \\x\\ at time \\t\\ are given by
 \$\$ \lambda^x(t) = \lambda_0^x(t) \exp(\beta_x^T L), \$\$ where the
 baseline intensity follows a Weibull hazard function: \$\$
 \lambda_0^x(t) = \eta^x \nu^x t^{\nu^x - 1}. \$\$ Here, \\L\\ is the
-vector of covariates and event counts, and \\\beta^x\\ is the a vector
-of coefficients representing the effect of covariates and previous
-events on the intensity.
+vector of covariates and event counts, and \\\beta^x\\ is the vector of
+coefficients representing the effect of covariates and previous events
+on the intensity.
+
+Every simulated dataset includes two fixed baseline covariates, `L0` and
+`A0`, in addition to any covariates supplied via `add_cov`. `L0` is a
+baseline covariate and `A0` is a baseline treatment indicator whose
+generator can depend on `L0`. Their distributions can be changed via
+`gen_L0`/`gen_A0`.
 
 ## Examples
 

@@ -46,8 +46,8 @@ simEventObj(N, obj, event_names = NULL, old_vars = NULL, useOldVars = FALSE)
 
 - useOldVars:
 
-  Logical. If True the simulations use the old_vars directly rather than
-  draw rows from the matrix.
+  Logical. If `TRUE` the simulations use `old_vars` directly, rather
+  than draw rows from the matrix.
 
 ## Value
 
@@ -77,3 +77,23 @@ The function simulates individual event histories by:
 
 5.  Stopping simulation per individual after a terminal event or maximum
     events reached.
+
+## Examples
+
+``` r
+# Fit a Cox model and equip it with a predict2 method
+data_obs <- simCRdata(N = 200)
+cox_fit <- survival::coxph(survival::Surv(Time, Delta == 1) ~ L0 + A0, data = data_obs)
+
+predict2 <- function(obj, ...) UseMethod("predict2")
+predict2.coxph <- function(obj, sim_data, ...) {
+  preds <- survival::survfit(obj, newdata = sim_data)
+  # preds$cumhaz is a times x individuals matrix; reshape to individuals x times x events
+  chf <- array(t(preds$cumhaz), dim = c(nrow(sim_data), length(preds$time), 1))
+  list(time = preds$time, chf = chf)
+}
+
+old_vars <- data_obs[, c("L0", "A0")]
+new_data <- simEventObj(100, cox_fit, old_vars = old_vars)
+#> Error in predict2(obj, sim_data): could not find function "predict2"
+```

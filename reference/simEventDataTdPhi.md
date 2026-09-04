@@ -1,7 +1,9 @@
-# Simulate Event Data with Multiple Event Types and Covariates
+# Simulate Continuous Time-to-Event Data with Multiple Event Types and time dependent effects
 
-Simulate Continuous Time-to-Event Data with Multiple Event Types and
-time dependent effects
+`simEventDataTdPhi` simulates event times and types for a cohort of
+individuals in a counting process framework. It supports multiple event
+types (by default 4), including terminal events, with intensities
+influenced by baseline covariates and previous event history.
 
 ## Usage
 
@@ -60,7 +62,8 @@ simEventDataTdPhi(
 
   Function. Function determining if an individual is at risk for each
   event type, given their current event counts. Takes a numeric vector
-  events and returns a binary vector. Default returns 1 for all events.
+  of event counts and returns a binary vector. Default returns 1 for all
+  events.
 
 - term_deltas:
 
@@ -107,17 +110,18 @@ simEventDataTdPhi(
 - gen_L0:
 
   Function. Function to generate the baseline covariate L0. Takes N as
-  inputs. Default is a N(0,1) random variable.
+  inputs. Default is a Uniform(0,1) random variable.
 
 - at_risk_cov:
 
   Function. Function determining if an individual is at risk for each
-  event type, given their covariates. Takes a numeric vector covariates
-  and returns a binary vector. Default returns 1 for all events.
+  event type, given their covariates. Takes a matrix of covariates and
+  returns a binary matrix. Default returns 1 for all events and all
+  individuals.
 
 - ...:
 
-  Additional technical arguments
+  Additional technical arguments.
 
 ## Value
 
@@ -153,24 +157,27 @@ A `data.table` with columns:
 
 ## Details
 
-`simEventDataTdPhi` simulates event times and types for a cohort of
-individuals in a counting process framework. It supports multiple event
-types (by default 4), including terminal events, with intensities
-influenced by baseline covariates and previous event history.
-
 The event intensities for event type \\x\\ at time \\t\\ are given by
 \$\$ \lambda^x(t) = \lambda_0^x(t) \exp(\beta_x^T L), \$\$ where the
 baseline intensity follows a Weibull hazard function: \$\$
 \lambda_0^x(t) = \eta^x \nu^x t^{\nu^x - 1}. \$\$ Here, \\L\\ is the
-vector of covariates and event counts, and \\\beta^x\\ is the a vector
-of coefficients representing the effect of covariates and previous
-events on the intensity.
+vector of covariates and event counts, and \\\beta^x\\ is the vector of
+coefficients representing the effect of covariates and previous events
+on the intensity. Additionally, the intensity decays (or grows)
+exponentially with the time since the most recent occurrence of event
+\\x\\, controlled by `beta2`.
+
+Every simulated dataset includes two fixed baseline covariates, `L0` and
+`A0`, in addition to any covariates supplied via `add_cov`. `L0` is a
+baseline covariate and `A0` is a baseline treatment indicator whose
+generator can depend on `L0`. Their distributions can be changed via
+`gen_L0`/`gen_A0`.
 
 ## Examples
 
 ``` r
 # Simulate data for 10 individuals with default settings
-sim_data <- simEventDataTdPhi(N = 10, beta2 = c(0.01,0.01,0.01,0.01))
+sim_data <- simEventDataTdPhi(N = 10, beta2 = rep(0.01, 4))
 head(sim_data)
 #> Key: <ID>
 #>       ID      Time Delta        L0    A0    N0    N1    N2    N3

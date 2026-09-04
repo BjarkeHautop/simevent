@@ -78,7 +78,7 @@ be simulated by drawing rows from the old covariates with replacement.</p></dd>
 
 
 <dt id="arg-useoldvars">useOldVars<a class="anchor" aria-label="anchor" href="#arg-useoldvars"></a></dt>
-<dd><p>Logical. If True the simulations use the old_vars directly, rather than draw rows from the matrix.</p></dd>
+<dd><p>Logical. If <code>TRUE</code> the simulations use <code>old_vars</code> directly, rather than draw rows from the matrix.</p></dd>
 
 
 <dt id="arg-n-event-max">n_event_max<a class="anchor" aria-label="anchor" href="#arg-n-event-max"></a></dt>
@@ -104,8 +104,7 @@ performs an intervention where the baseline hazard of process 2 is multiplied by
 
 
 <dt id="arg-at-risk">at_risk<a class="anchor" aria-label="anchor" href="#arg-at-risk"></a></dt>
-<dd><p>Function. Function determining if an individual is at risk for each event type,
-given their current event counts. Takes a numeric vector of event counts and returns a binary vector. Default returns 1 for all events.</p></dd>
+<dd><p>Function. Function determining if an individual is at risk for each event type, given their current event counts. Takes a numeric vector of event counts and returns a binary vector. Default returns 1 for all events.</p></dd>
 
 </dl></div>
     <div class="section level2">

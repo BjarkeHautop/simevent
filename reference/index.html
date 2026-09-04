@@ -33,9 +33,9 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="package-overview">Package overview<a class="anchor" aria-label="anchor" href="#package-overview"></a></h2>
 
-
+      <div class="section-desc"><p>Overview of the simevent package.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -44,59 +44,47 @@
 
       <dl><dt>
 
-          <code><a href="IntFormatData.html">IntFormatData()</a></code>
+          <code><a href="simevent-package.html">simevent</a></code> <code><a href="simevent-package.html">simevent-package</a></code>
 
         </dt>
-        <dd>Transform Event Data into Interval Format for Classical Inference</dd>
+        <dd>simevent: Simulation and Analysis of Event History Data</dd>
+      </dl></div><div class="section level2">
+      <h2 id="core-simulation">Core simulation<a class="anchor" aria-label="anchor" href="#core-simulation"></a></h2>
+
+      <div class="section-desc"><p>Functions for simulating event history data, built on the general-purpose simEventData/simEventTV engine, plus ready-made wrappers for common settings.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="simEventData.html">simEventData()</a></code>
+
+        </dt>
+        <dd>Simulate Continuous Time-to-Event Data with Multiple Event Types</dd>
 
         <dt>
 
-          <code><a href="alphaSim.html">alphaSim()</a></code>
+          <code><a href="simEventTV.html">simEventTV()</a></code>
 
         </dt>
-        <dd>Simulation and Estimation with Modified Shape Parameter</dd>
+        <dd>Simulate Event Data with Time-Varying Effects</dd>
 
         <dt>
 
-          <code><a href="intEffectAlpha.html">intEffectAlpha()</a></code>
+          <code><a href="simEventDataTdPhi.html">simEventDataTdPhi()</a></code>
 
         </dt>
-        <dd>Estimate Effect of Intervention: Modifying Eta Parameter of Process</dd>
+        <dd>Simulate Continuous Time-to-Event Data with Multiple Event Types and time dependent effects</dd>
 
         <dt>
 
-          <code><a href="inverseScHaz.html">inverseScHaz()</a></code>
+          <code><a href="simSurvData.html">simSurvData()</a></code>
 
         </dt>
-        <dd>Wrapper for inverse cumulative hazard</dd>
-
-        <dt>
-
-          <code><a href="inverseScHazPhiTd.html">inverseScHazPhiTd()</a></code>
-
-        </dt>
-        <dd>Wrapper for inverse cumulative hazard with time-dependent phi</dd>
-
-        <dt>
-
-          <code><a href="inverseScHazTV.html">inverseScHazTV()</a></code>
-
-        </dt>
-        <dd>Wrapper for inverse cumulative hazard</dd>
-
-        <dt>
-
-          <code><a href="plotEventData.html">plotEventData()</a></code>
-
-        </dt>
-        <dd>Plot Simulated Event History Data</dd>
-
-        <dt>
-
-          <code><a href="sampleEvents.html">sampleEvents()</a></code>
-
-        </dt>
-        <dd>Sample event types from matrix of probabilities</dd>
+        <dd>Simulate Survival Data with Censoring and Event Times</dd>
 
         <dt>
 
@@ -114,12 +102,58 @@
 
         <dt>
 
+          <code><a href="simTreatment.html">simTreatment()</a></code>
+
+        </dt>
+        <dd>Simulate Event History Data with Treatment and Time-Dependent Covariate</dd>
+
+        <dt>
+
           <code><a href="simDropIn.html">simDropIn()</a></code>
 
         </dt>
-        <dd><code>simDropIn</code></dd>
+        <dd>Simulate Event Data from a "Drop In" Setting</dd>
 
         <dt>
+
+          <code><a href="simStatinData.html">simStatinData()</a></code>
+
+        </dt>
+        <dd>Simulate Data in a Statin Setting</dd>
+      </dl></div><div class="section level2">
+      <h2 id="treating-simulated-data">Treating simulated data<a class="anchor" aria-label="anchor" href="#treating-simulated-data"></a></h2>
+
+      <div class="section-desc"><p>Functions for formatting and plotting simulated event history data.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="IntFormatData.html">IntFormatData()</a></code>
+
+        </dt>
+        <dd>Transform Event Data into Interval Format for Classical Inference</dd>
+
+        <dt>
+
+          <code><a href="plotEventData.html">plotEventData()</a></code>
+
+        </dt>
+        <dd>Plot Simulated Event History Data</dd>
+      </dl></div><div class="section level2">
+      <h2 id="simulating-from-fitted-models">Simulating from fitted models<a class="anchor" aria-label="anchor" href="#simulating-from-fitted-models"></a></h2>
+
+      <div class="section-desc"><p>Functions for simulating new data from models fitted to observed data.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="simEventCox.html">simEventCox()</a></code>
 
@@ -128,54 +162,36 @@
 
         <dt>
 
-          <code><a href="simEventData.html">simEventData()</a></code>
-
-        </dt>
-        <dd>Simulate Event Data with Multiple Event Types and Covariates</dd>
-
-        <dt>
-
-          <code><a href="simEventDataTdPhi.html">simEventDataTdPhi()</a></code>
-
-        </dt>
-        <dd>Simulate Event Data with Multiple Event Types and Covariates</dd>
-
-        <dt>
-
           <code><a href="simEventObj.html">simEventObj()</a></code>
 
         </dt>
         <dd>Simulate Survival and Competing Risk Data Based on a General Model</dd>
+      </dl></div><div class="section level2">
+      <h2 id="interventions">Interventions<a class="anchor" aria-label="anchor" href="#interventions"></a></h2>
+
+      <div class="section-desc"><p>Functions for performing interventions on the shape parameter of a process, and estimating their effect.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="alphaSim.html">alphaSim()</a></code>
+
+        </dt>
+        <dd>Simulation and Estimation with Modified Shape Parameter</dd>
 
         <dt>
 
-          <code><a href="simEventTV.html">simEventTV()</a></code>
+          <code><a href="intEffectAlpha.html">intEffectAlpha()</a></code>
 
         </dt>
-        <dd>simEventTV</dd>
-
-        <dt>
-
-          <code><a href="simStatinData.html">simStatinData()</a></code>
-
-        </dt>
-        <dd>Simulate Data in a Statin Setting</dd>
-
-        <dt>
-
-          <code><a href="simSurvData.html">simSurvData()</a></code>
-
-        </dt>
-        <dd>Simulate Survival Data</dd>
-
-        <dt>
-
-          <code><a href="simTreatment.html">simTreatment()</a></code>
-
-        </dt>
-        <dd>Simulate Event History Data with Treatment and Time-Dependent Covariate</dd>
+        <dd>Estimate Effect of Intervention: Modifying Eta Parameter of Process</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

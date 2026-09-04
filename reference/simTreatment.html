@@ -136,43 +136,43 @@ Death and censoring are terminal events; treatment and covariate events can occu
 
 
 <dt id="arg-beta-l-a-prime">beta_L_A_prime<a class="anchor" aria-label="anchor" href="#arg-beta-l-a-prime"></a></dt>
-<dd><p>Numeric. Additional effect of covariate <code>L = 1</code> on treatment hazard. Default 0.</p></dd>
+<dd><p>Numeric. Additional effect of covariate <code>L = 1</code> on treatment hazard after <code>t_prime</code>. Default 0.</p></dd>
 
 
 <dt id="arg-beta-l-d-prime">beta_L_D_prime<a class="anchor" aria-label="anchor" href="#arg-beta-l-d-prime"></a></dt>
-<dd><p>Numeric. Additionalffect of covariate <code>L = 1</code> on death hazard. Default 0.</p></dd>
+<dd><p>Numeric. Additional effect of covariate <code>L = 1</code> on death hazard after <code>t_prime</code>. Default 0.</p></dd>
 
 
 <dt id="arg-beta-a-d-prime">beta_A_D_prime<a class="anchor" aria-label="anchor" href="#arg-beta-a-d-prime"></a></dt>
-<dd><p>Numeric. Effect of treatment <code>A = 1</code> on death hazard. Default 0.</p></dd>
+<dd><p>Numeric. Additional effect of treatment <code>A = 1</code> on death hazard after <code>t_prime</code>. Default 0.</p></dd>
 
 
 <dt id="arg-beta-a-l-prime">beta_A_L_prime<a class="anchor" aria-label="anchor" href="#arg-beta-a-l-prime"></a></dt>
-<dd><p>Numeric. Effect of treatment <code>A = 1</code> on covariate hazard. Default 0.</p></dd>
+<dd><p>Numeric. Additional effect of treatment <code>A = 1</code> on covariate hazard after <code>t_prime</code>. Default 0.</p></dd>
 
 
 <dt id="arg-beta-l-a-prime">beta_L0_A_prime<a class="anchor" aria-label="anchor" href="#arg-beta-l-a-prime"></a></dt>
-<dd><p>Numeric. Effect of baseline covariate <code>L0</code> on treatment hazard. Default 0.</p></dd>
+<dd><p>Numeric. Additional effect of baseline covariate <code>L0</code> on treatment hazard after <code>t_prime</code>. Default 0.</p></dd>
 
 
 <dt id="arg-beta-l-l-prime">beta_L0_L_prime<a class="anchor" aria-label="anchor" href="#arg-beta-l-l-prime"></a></dt>
-<dd><p>Numeric. Effect of baseline covariate <code>L0</code> on covariate hazard. Default 0.</p></dd>
+<dd><p>Numeric. Additional effect of baseline covariate <code>L0</code> on covariate hazard after <code>t_prime</code>. Default 0.</p></dd>
 
 
 <dt id="arg-beta-l-d-prime">beta_L0_D_prime<a class="anchor" aria-label="anchor" href="#arg-beta-l-d-prime"></a></dt>
-<dd><p>Numeric. Effect of baseline covariate <code>L0</code> on death hazard. Default 0.</p></dd>
+<dd><p>Numeric. Additional effect of baseline covariate <code>L0</code> on death hazard after <code>t_prime</code>. Default 0.</p></dd>
 
 
 <dt id="arg-beta-l-c-prime">beta_L0_C_prime<a class="anchor" aria-label="anchor" href="#arg-beta-l-c-prime"></a></dt>
-<dd><p>Numeric. Effect of baseline covariate <code>L0</code> on censoring hazard. Default 0.</p></dd>
+<dd><p>Numeric. Additional effect of baseline covariate <code>L0</code> on censoring hazard after <code>t_prime</code>. Default 0.</p></dd>
 
 
 <dt id="arg-beta-l-c-prime">beta_L_C_prime<a class="anchor" aria-label="anchor" href="#arg-beta-l-c-prime"></a></dt>
-<dd><p>Numeric. Effect of covariate <code>L = 1</code> on censoring hazard. Default 0.</p></dd>
+<dd><p>Numeric. Additional effect of covariate <code>L = 1</code> on censoring hazard after <code>t_prime</code>. Default 0.</p></dd>
 
 
 <dt id="arg-beta-a-c-prime">beta_A_C_prime<a class="anchor" aria-label="anchor" href="#arg-beta-a-c-prime"></a></dt>
-<dd><p>Numeric. Effect of treatment <code>A = 1</code> on censoring hazard. Default 0.</p></dd>
+<dd><p>Numeric. Additional effect of treatment <code>A = 1</code> on censoring hazard after <code>t_prime</code>. Default 0.</p></dd>
 
 
 <dt id="arg-t-prime">t_prime<a class="anchor" aria-label="anchor" href="#arg-t-prime"></a></dt>
@@ -205,7 +205,7 @@ given their covariates. Takes a numeric vector covariates and returns a binary v
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Additional arguments passed to <code>simEventData</code> or <code>simEventTV</code></p></dd>
+<dd><p>Additional arguments passed to <code>simEventData</code> or <code>simEventTV</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -230,29 +230,25 @@ the effect of covariate <code>L = 1</code> on the hazard of treatment.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;ID&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        ID       Time Delta        L0     A     L</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;      &lt;num&gt; &lt;int&gt;     &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 1.53256297     2 0.7580909     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1 6.98660338     0 0.7580909     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     2 0.14018602     1 0.3821143     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     3 3.56436629     3 0.4138130     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     3 5.02476838     2 0.4138130     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     3 6.16695688     1 0.4138130     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     4 0.93354610     2 0.9349064     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     4 3.08745012     3 0.9349064     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     4 3.15668020     1 0.9349064     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     5 0.09838135     2 0.3306358     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     5 4.33650702     0 0.3306358     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     6 3.07541193     2 0.4048474     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13:     6 4.43555920     0 0.4048474     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14:     7 1.38239335     2 0.9920628     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15:     7 3.46659619     0 0.9920628     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16:     8 0.47887780     0 0.5573049     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17:     9 1.89601825     2 0.2076326     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18:     9 2.67074072     3 0.2076326     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 19:     9 8.37313290     1 0.2076326     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20:    10 1.44107185     3 0.8384938     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 21:    10 3.37496772     1 0.8384938     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        ID       Time Delta        L0     A     L</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;      &lt;num&gt; &lt;int&gt;     &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 1.74522505     2 0.6369412     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1 2.95102859     3 0.6369412     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     1 8.03530287     0 0.6369412     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     2 0.96656873     0 0.8269983     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     3 3.01052777     0 0.6959707     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     4 2.30196568     2 0.4015605     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     4 6.24327666     3 0.4015605     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     4 8.17661420     0 0.4015605     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     5 0.06978376     2 0.9964493     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     5 0.17099191     3 0.9964493     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     5 5.00649860     1 0.9964493     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     6 2.14498551     2 0.8034955     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13:     6 4.77570770     1 0.8034955     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14:     7 0.63252858     3 0.4721267     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15:     7 4.29389393     0 0.4721267     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16:     8 0.52453649     1 0.9792471     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17:     9 2.56599994     0 0.1035612     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18:    10 0.44059940     2 0.3355462     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19:    10 3.21423678     1 0.3355462     1     0</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
