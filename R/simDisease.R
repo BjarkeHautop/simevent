@@ -1,17 +1,13 @@
-#' This function simulates event data representing three event types:
-#' Censoring (0), Death (1), and Change in Covariate Process (2). Death and Censoring are terminal events,
-#' while Change in Covariate Process can occur only once.
+#' Simulate Data in a Disease Setting
 #'
-#' Event intensities depend on previous events and predefined parameters \eqn{\nu} and \eqn{\eta}.
+#' Simulates event data representing three event types: Censoring (0), Death (1), and
+#' Change in Covariate Process (2). Death and Censoring are terminal events, while Change
+#' in Covariate Process can occur only once. Event intensities depend on covariates and
+#' previous events, following Weibull hazards with shape and scale parameters \eqn{\eta} and \eqn{\nu}.
 #'
-#' The arguments \code{beta_X_Y} control how the X affects Y. A positive value means that a higher value of X
-#' increases the intensity of Y, while a negative value decreases the intensity.
-#'
-#' The simulation uses an event history framework with terminal events (death, censoring) and a single recurrent covariate change.
-#' The event intensities depend on covariates and previous events according to user-specified parameters.
+#' The arguments \code{beta_X_Y} control how X affects Y. A positive value means that a higher
+#' value of X increases the intensity of Y, while a negative value decreases the intensity.
 #' Time-varying effects can be included via \code{beta_L_D_t_prime} and \code{t_prime}.
-#'
-#' @title Simulate Data in a Disease Setting
 #'
 #' @param N Numeric scalar. Number of individuals to simulate.
 #' @param eta Numeric vector of length 3. Shape parameters for Weibull intensities with parameterization
@@ -31,12 +27,8 @@
 #' @param upper Numeric scalar. Upper bound for root-finding (default 200).
 #' @param beta_L_D_t_prime Numeric scalar or NULL. Additional effect of covariate change on death risk after time \code{t_prime} (optional).
 #' @param t_prime Numeric scalar or NULL. Time point where effects change (optional).
-#' @param gen_A0 Function. Function to generate the baseline treatment covariate A0.
-#' Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.
-#' @param at_risk_cov Function. Function determining if an individual is at risk for
-#' each event type, given their covariates. Takes a numeric vector covariates and returns
-#' a binary vector. Default returns 1 for all events.
-#' @param ... Additional arguments passed to \code{simEventData} or \code{simEventTV}
+#' @inheritParams simEventData
+#' @param ... Additional arguments passed to \code{simEventData} or \code{simEventTV}.
 #'
 #' @return A data frame containing the simulated data with columns:
 #'  \item{ID}{Individual identifier}

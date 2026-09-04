@@ -1,33 +1,13 @@
 #' Simulate Event Data with Time-Varying Effects
 #'
-#' `simEventTV` is a function that simulates event data, with the option of
-#' adding time varying effects. The function is build up in the same way as `simEventData`,
-#' with the additional arguments `tv_eff` and `t_prime`, which specify the change
-#' of the beta matrix at time `t_prime`.
+#' `simEventTV` simulates event data with the option of adding time-varying effects.
+#' The function is built up in the same way as `simEventData`, with the additional
+#' arguments `tv_eff` and `t_prime`, which specify the change of the beta matrix at
+#' time `t_prime`.
 #'
-#' @title simEventTV
-#'
-#' @param N Integer. Number of individuals to simulate.
-#' @param beta Matrix. Coefficients for covariates and processes. Columns correspond to events (`N0`, `N1`, ...),
-#'             rows correspond to covariates (`L0`, `A0`, ..., and past event counts).
+#' @inheritParams simEventData
 #' @param tv_eff Matrix. Time-varying changes to `beta`, applied at time `t_prime`. Must have same dimensions as `beta`.
 #' @param t_prime Numeric. Time at which `tv_eff` is added to `beta`.
-#' @param eta Numeric vector. Shape parameters of Weibull intensities for each event.
-#' @param nu Numeric vector. Scale parameters of Weibull intensities for each event.
-#' @param at_risk Function. Determines which events an individual is at risk for, based on event history.
-#' @param term_deltas Integer vector. Event types considered terminal (e.g., death).
-#' @param max_cens Numeric. Maximum censoring time. Defaults to `Inf`.
-#' @param add_cov Named list of functions for generating additional baseline covariates.
-#'                Each function takes one argument `N` and returns a vector of length `N`.
-#' @param override_beta Named list to override elements of `beta`. Format:
-#'                      `list("covariate" = c("event" = value))`.
-#' @param max_events Integer. Maximum number of events allowed per individual.
-#' @param lower Numeric. Lower bound for the root-finding algorithm used in inverse cumulative hazard computation.
-#' @param upper Numeric. Upper bound for the root-finding algorithm used in inverse cumulative hazard computation.
-#' @param gen_A0 Function. Generates baseline treatment assignment. Takes arguments `N` and `L0`.
-#' @param gen_L0 Function. Function to generate the baseline covariate L0. Takes N as input. Default is a Uniform(0,1) random variable.
-#' @param at_risk_cov Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a numeric vector covariates and returns a binary vector. Default returns 1 for all events.
-
 #'
 #' @return A `data.table` with columns:
 #'   \item{ID:}{Individual identifier}

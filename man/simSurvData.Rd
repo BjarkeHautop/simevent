@@ -2,7 +2,7 @@
 % Please edit documentation in R/simSurvData.R
 \name{simSurvData}
 \alias{simSurvData}
-\title{Simulate Survival Data}
+\title{Simulate Survival Data with Censoring and Event Times}
 \usage{
 simSurvData(N, beta = NULL, eta = rep(0.1, 2), nu = rep(1.1, 2), cens = 1, ...)
 }
@@ -26,12 +26,9 @@ Defaults to \code{rep(0.1, 2)}.}
 \item{...}{Additional arguments passed to \code{simEventData}, including the argument \code{add_cov} to specify extra covariates.}
 }
 \value{
-Data frame containing the simulated survival data
+A data frame containing the simulated survival data.
 }
 \description{
-Simulate Survival Data with Censoring and Event Times
-}
-\details{
 Simulates survival data for \eqn{N} individuals who are at risk for censoring (0) and an event (1).
 The hazard functions for censoring and event times follow Weibull distributions parameterized by
 shape parameters \eqn{\eta} and scale parameters \eqn{\nu}. Covariate effects on censoring and event

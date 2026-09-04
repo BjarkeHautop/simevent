@@ -2,3 +2,48 @@ url: https://github.com/miclukacova/simevent
 template:
   bootstrap: 5
   math-rendering: katex
+
+reference:
+- title: Package overview
+  desc: >
+    Overview of the simevent package.
+  contents:
+  - simevent-package
+
+- title: Core simulation
+  desc: >
+    Functions for simulating event history data, built on the general-purpose
+    simEventData/simEventTV engine, plus ready-made wrappers for common settings.
+  contents:
+  - simEventData
+  - simEventTV
+  - simEventDataTdPhi
+  - simSurvData
+  - simCRdata
+  - simDisease
+  - simTreatment
+  - simDropIn
+  - simStatinData
+
+- title: Treating simulated data
+  desc: >
+    Functions for formatting and plotting simulated event history data.
+  contents:
+  - IntFormatData
+  - plotEventData
+
+- title: Simulating from fitted models
+  desc: >
+    Functions for simulating new data from models fitted to observed data.
+  contents:
+  - simEventCox
+  - simEventObj
+
+- title: Interventions
+  desc: >
+    Functions for performing interventions on the shape parameter of a process,
+    and estimating their effect.
+  contents:
+  - alphaSim
+  - intEffectAlpha
+

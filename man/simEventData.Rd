@@ -2,7 +2,7 @@
 % Please edit documentation in R/simEventData.R
 \name{simEventData}
 \alias{simEventData}
-\title{Simulate Event Data with Multiple Event Types and Covariates}
+\title{Simulate Continuous Time-to-Event Data with Multiple Event Types}
 \usage{
 simEventData(
   N,
@@ -50,11 +50,11 @@ simEventData(
 
 \item{gen_A0}{Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.}
 
-\item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a N(0,1) random variable.}
+\item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.}
 
-\item{at_risk_cov}{Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a matrix of covariates and returns a binary matrix vector. Default returns 1 for all events and all individuals.}
+\item{at_risk_cov}{Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a matrix of covariates and returns a binary matrix. Default returns 1 for all events and all individuals.}
 
-\item{...}{Additional technical arguments}
+\item{...}{Additional technical arguments.}
 }
 \value{
 A \code{data.table} with columns:
@@ -67,14 +67,12 @@ A \code{data.table} with columns:
 \item{N0, N1, ...}{Event counts up to the current event}
 }
 \description{
-Simulate Continuous Time-to-Event Data with Multiple Event Types
-}
-\details{
 \code{simEventData} simulates event times and types for a cohort of individuals in a
 counting process framework. It supports multiple event types (by default 4),
 including terminal events, with intensities influenced by baseline covariates
 and previous event history.
-
+}
+\details{
 The event intensities for event type \eqn{x} at time \eqn{t} are given by
 \deqn{
 \lambda^x(t) = \lambda_0^x(t) \exp(\beta_x^T L),
@@ -83,8 +81,8 @@ where the baseline intensity follows a Weibull hazard function:
 \deqn{
 \lambda_0^x(t) = \eta^x \nu^x t^{\nu^x - 1}.
 }
-Here, \eqn{L} is the vector of covariates and event counts, and \eqn{\beta^x} is the
-a vector of coefficients representing the effect of covariates and previous events on the intensity.
+Here, \eqn{L} is the vector of covariates and event counts, and \eqn{\beta^x} is
+the vector of coefficients representing the effect of covariates and previous events on the intensity.
 }
 \examples{
 # Simulate data for 10 individuals with default settings

@@ -2,7 +2,7 @@
 % Please edit documentation in R/simEventDataTdPhi.R
 \name{simEventDataTdPhi}
 \alias{simEventDataTdPhi}
-\title{Simulate Event Data with Multiple Event Types and Covariates}
+\title{Simulate Continuous Time-to-Event Data with Multiple Event Types and time dependent effects}
 \usage{
 simEventDataTdPhi(
   N,
@@ -57,7 +57,7 @@ simEventDataTdPhi(
 
 \item{at_risk_cov}{Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a numeric vector covariates and returns a binary vector. Default returns 1 for all events.}
 
-\item{...}{Additional technical arguments}
+\item{...}{Additional technical arguments.}
 }
 \value{
 A \code{data.table} with columns:
@@ -70,14 +70,12 @@ A \code{data.table} with columns:
 \item{N0, N1, ...}{Event counts up to the current event}
 }
 \description{
-Simulate Continuous Time-to-Event Data with Multiple Event Types and time dependent effects
-}
-\details{
 \code{simEventDataTdPhi} simulates event times and types for a cohort of individuals in a
 counting process framework. It supports multiple event types (by default 4),
 including terminal events, with intensities influenced by baseline covariates
 and previous event history.
-
+}
+\details{
 The event intensities for event type \eqn{x} at time \eqn{t} are given by
 \deqn{
 \lambda^x(t) = \lambda_0^x(t) \exp(\beta_x^T L),
@@ -86,8 +84,10 @@ where the baseline intensity follows a Weibull hazard function:
 \deqn{
 \lambda_0^x(t) = \eta^x \nu^x t^{\nu^x - 1}.
 }
-Here, \eqn{L} is the vector of covariates and event counts, and \eqn{\beta^x} is the
-a vector of coefficients representing the effect of covariates and previous events on the intensity.
+Here, \eqn{L} is the vector of covariates and event counts, and \eqn{\beta^x} is
+the vector of coefficients representing the effect of covariates and previous events on the intensity.
+Additionally, the intensity decays (or grows) exponentially with the time since the most
+recent occurrence of event \eqn{x}, controlled by \code{beta2}.
 }
 \examples{
 # Simulate data for 10 individuals with default settings

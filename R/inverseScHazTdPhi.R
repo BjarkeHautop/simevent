@@ -35,8 +35,6 @@
 #'
 #' @return A numeric scalar corresponding to the waiting time \(u\).
 #'
-#' @export
-#'
 #' @examples
 #' eta <- c(0.1, 0.2)
 #' nu <- c(1.2, 1.5)
@@ -45,7 +43,7 @@
 #' T_star <- c(0, 2)
 #' at_risk <- c(1, 1)
 #'
-#' inverseScHazPhiTd(
+#' simevent:::inverseScHazPhiTd(
 #'   p = 0.5,
 #'   t = 3,
 #'   T_star = T_star,
@@ -57,6 +55,9 @@
 #'   phi0 = phi0,
 #'   at_risk = at_risk
 #' )
+#'
+#' @keywords internal
+#' @noRd
 inverseScHazPhiTd <- function(
   p,
   t,

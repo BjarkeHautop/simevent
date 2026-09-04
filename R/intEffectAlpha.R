@@ -1,21 +1,22 @@
 #' Estimate Effect of Intervention: Modifying Eta Parameter of Process
 #'
-#' This function simulates data from the disease setting in two scenarios. Under
-#' intervention on the shape parameter \eqn{\eta} of the disease process is multiplied by
-#' \code{alpha}, and a baseline (non-intervened) scenario. It computes the proportion
-#' of individuals who experience death or disease by a specified time \eqn{\tau}
-#' in the group \code{A0 = a0}, optionally returning years_lost.
-#' The function can also plot a sample of the event data for each scenario for comparison.
+#' Simulates data from the Disease, Drop In, or Treatment setting under an intervention
+#' where the shape parameter \eqn{\eta} of the disease, drop-in, or treatment process
+#' (respectively) is multiplied by \code{alpha}. It computes the proportion of individuals
+#' who experience death, and the proportion who experience disease/drop-in/treatment, by a
+#' specified time \eqn{\tau} in the group \code{A0 = a0} (except in the Treatment setting,
+#' where all individuals are used), optionally returning years lost instead of proportions.
+#' The function can also plot a sample of the simulated (intervened) event data.
 #'
 #' @param N Integer. Number of individuals to simulate. Default is 10,000.
 #' @param setting Character string. Must be either "Disease", "Drop In" or "Treatment". Depending on the simulation setting.
-#' @param eta Numeric vector of length 3. Shape parameters for Weibull hazards (default \code{rep(0.1, 4)}).
-#' @param nu Numeric vector of length 3. Scale parameters for Weibull hazards (default \code{rep(1.1, 4)}).
-#' @param alpha Numeric scalar. Multiplicative factor applied to the disease process shape parameter \eqn{\eta}.
+#' @param eta Numeric vector. Shape parameters for Weibull hazards: length 3 for setting "Disease", length 4 for "Drop In" or "Treatment" (default \code{rep(0.1, 4)}).
+#' @param nu Numeric vector. Scale parameters for Weibull hazards: length 3 for setting "Disease", length 4 for "Drop In" or "Treatment" (default \code{rep(1.1, 4)}).
+#' @param alpha Numeric scalar. Multiplicative factor applied to the shape parameter \eqn{\eta} of the relevant process.
 #' @param tau Numeric scalar. Time horizon at which proportions are computed.
-#' @param a0 Binary (0/1). Specifies the group for comparison.Only relevant in setting "Drop In" and "Disease".
+#' @param a0 Binary (0/1). Specifies the group for comparison. Only relevant in setting "Drop In" and "Disease".
 #' @param years_lost Logical. If \code{TRUE}, computes years lost instead of proportions.
-#' @param plot Logical. If \code{TRUE}, plots timelines for sample of intervention and non intervention data.
+#' @param plot Logical. If \code{TRUE}, plots a sample of the simulated event data.
 #' @param lower Numeric scalar. Lower bound for root-finding in hazard inversion (default 1e-30).
 #' @param upper Numeric scalar. Upper bound for root-finding in hazard inversion (default 200).
 #' @param cens Binary scalar. Indicates whether individuals are at risk of censoring (default \code{0}).
@@ -23,8 +24,8 @@
 #'
 #' @return A list with two components:
 #' \describe{
-#'   \item{\code{effect_L}}{Proportion (or years lost) of individuals diagnosed with disease by time \eqn{\tau} in group \code{A0 = a0}, under intervention.}
-#'   \item{\code{effect_death}}{Proportion (or years lost) of individuals who died by time \eqn{\tau} in group \code{A0 = a0}, under intervention.}
+#'   \item{\code{effect_2}}{Proportion (or years lost) of individuals experiencing disease/drop-in/treatment by time \eqn{\tau}, under intervention.}
+#'   \item{\code{effect_death}}{Proportion (or years lost) of individuals who died by time \eqn{\tau}, under intervention.}
 #' }
 #' @export
 #'

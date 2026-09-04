@@ -1,10 +1,8 @@
 #' Simulate Event Data from a "Drop In" Setting
 #'
-#' `simDropIn` is a function that simulates data corresponding to \code{N} individuals
-#' that are at risk for 4 or 5 events. Censoring (C), Death (D), Drop In Initiation (Z),
-#' Change in Covariate Process (L) and optionally Treatment (A).
-#'
-#' @title `simDropIn`
+#' `simDropIn` simulates data corresponding to \code{N} individuals that are at risk
+#' for 4 or 5 events: Censoring (C), Death (D), Drop In Initiation (Z), Change in
+#' Covariate Process (L), and optionally Treatment (A).
 #'
 #' @param N Integer. Number of individuals to simulate.
 #' @param eta Numeric vector of length 4 (or 5). Shape parameters of the Weibull baseline intensity for each event type.
@@ -24,49 +22,49 @@
 #' @param beta_L_Z Numeric. Specifies how L affects Z.
 #' @param beta_L_D Numeric. Specifies how L affects D.
 #' @param beta_L_C Numeric. Specifies how L affects C.
-#' @param beta_A_L Numeric. Specifies how L affects A.
-#' @param beta_A_Z Numeric. Specifies how L affects Z.
-#' @param beta_A_D Numeric. Specifies how L affects D.
-#' @param beta_A_C Numeric. Specifies how L affects C.
-#' @param beta_Z_L Numeric. Specifies how L affects A.
-#' @param beta_Z_A Numeric. Specifies how L affects Z.
-#' @param beta_Z_D Numeric. Specifies how L affects D.
-#' @param beta_Z_C Numeric. Specifies how L affects C.
-#' @param beta_L0_L Numeric. Specifies how L affects A.
-#' @param beta_L0_A Numeric. Specifies how L affects Z.
-#' @param beta_L0_Z Numeric. Specifies how L affects Z.
-#' @param beta_L0_D Numeric. Specifies how L affects D.
-#' @param beta_L0_C Numeric. Specifies how L affects C.
-#' @param beta_A0_L Numeric. Specifies how L affects A.
-#' @param beta_A0_A Numeric. Specifies how L affects Z.
-#' @param beta_A0_Z Numeric. Specifies how L affects Z.
-#' @param beta_A0_D Numeric. Specifies how L affects D.
-#' @param beta_A0_C Numeric. Specifies how L affects C.
+#' @param beta_A_L Numeric. Specifies how A affects L.
+#' @param beta_A_Z Numeric. Specifies how A affects Z.
+#' @param beta_A_D Numeric. Specifies how A affects D.
+#' @param beta_A_C Numeric. Specifies how A affects C.
+#' @param beta_Z_L Numeric. Specifies how Z affects L.
+#' @param beta_Z_A Numeric. Specifies how Z affects A.
+#' @param beta_Z_D Numeric. Specifies how Z affects D.
+#' @param beta_Z_C Numeric. Specifies how Z affects C.
+#' @param beta_L0_L Numeric. Specifies how L0 affects L.
+#' @param beta_L0_A Numeric. Specifies how L0 affects A.
+#' @param beta_L0_Z Numeric. Specifies how L0 affects Z.
+#' @param beta_L0_D Numeric. Specifies how L0 affects D.
+#' @param beta_L0_C Numeric. Specifies how L0 affects C.
+#' @param beta_A0_L Numeric. Specifies how A0 affects L.
+#' @param beta_A0_A Numeric. Specifies how A0 affects A.
+#' @param beta_A0_Z Numeric. Specifies how A0 affects Z.
+#' @param beta_A0_D Numeric. Specifies how A0 affects D.
+#' @param beta_A0_C Numeric. Specifies how A0 affects C.
 #' @param beta_L_A_prime Numeric. Specifies how L additionally affects A after time t_prime.
 #' @param beta_L_Z_prime Numeric. Specifies how L additionally affects Z after time t_prime.
 #' @param beta_L_D_prime Numeric. Specifies how L additionally affects D after time t_prime.
 #' @param beta_L_C_prime Numeric. Specifies how L additionally affects C after time t_prime.
-#' @param beta_A_L_prime Numeric. Specifies how L additionally affects A after time t_prime.
-#' @param beta_A_Z_prime Numeric. Specifies how L additionally affects Z after time t_prime.
-#' @param beta_A_D_prime Numeric. Specifies how L additionally affects D after time t_prime.
-#' @param beta_A_C_prime Numeric. Specifies how L additionally affects C after time t_prime.
-#' @param beta_Z_L_prime Numeric. Specifies how L additionally affects A after time t_prime.
-#' @param beta_Z_A_prime Numeric. Specifies how L additionally affects Z after time t_prime.
-#' @param beta_Z_D_prime Numeric. Specifies how L additionally affects D after time t_prime.
-#' @param beta_Z_C_prime Numeric. Specifies how L additionally affects C after time t_prime.
-#' @param beta_L0_L_prime Numeric. Specifies how L additionally affects after time A.
-#' @param beta_L0_A_prime Numeric. Specifies how L additionally affects after time Z.
-#' @param beta_L0_Z_prime Numeric. Specifies how L additionally affects after time Z.
-#' @param beta_L0_D_prime Numeric. Specifies how L additionally affects after time D.
-#' @param beta_L0_C_prime Numeric. Specifies how L additionally affects after time C.
-#' @param beta_A0_L_prime Numeric. Specifies how L additionally affects after time A.
-#' @param beta_A0_A_prime Numeric. Specifies how L additionally affects after time Z.
-#' @param beta_A0_Z_prime Numeric. Specifies how L additionally affects after time Z.
-#' @param beta_A0_D_prime Numeric. Specifies how L additionally affects after time D.
-#' @param beta_A0_C_prime Numeric. Specifies how L additionally affects after time C.
-#' @param ... Additional arguments passed to \code{simEventData} or \code{simEventTV}
+#' @param beta_A_L_prime Numeric. Specifies how A additionally affects L after time t_prime.
+#' @param beta_A_Z_prime Numeric. Specifies how A additionally affects Z after time t_prime.
+#' @param beta_A_D_prime Numeric. Specifies how A additionally affects D after time t_prime.
+#' @param beta_A_C_prime Numeric. Specifies how A additionally affects C after time t_prime.
+#' @param beta_Z_L_prime Numeric. Specifies how Z additionally affects L after time t_prime.
+#' @param beta_Z_A_prime Numeric. Specifies how Z additionally affects A after time t_prime.
+#' @param beta_Z_D_prime Numeric. Specifies how Z additionally affects D after time t_prime.
+#' @param beta_Z_C_prime Numeric. Specifies how Z additionally affects C after time t_prime.
+#' @param beta_L0_L_prime Numeric. Specifies how L0 additionally affects L after time t_prime.
+#' @param beta_L0_A_prime Numeric. Specifies how L0 additionally affects A after time t_prime.
+#' @param beta_L0_Z_prime Numeric. Specifies how L0 additionally affects Z after time t_prime.
+#' @param beta_L0_D_prime Numeric. Specifies how L0 additionally affects D after time t_prime.
+#' @param beta_L0_C_prime Numeric. Specifies how L0 additionally affects C after time t_prime.
+#' @param beta_A0_L_prime Numeric. Specifies how A0 additionally affects L after time t_prime.
+#' @param beta_A0_A_prime Numeric. Specifies how A0 additionally affects A after time t_prime.
+#' @param beta_A0_Z_prime Numeric. Specifies how A0 additionally affects Z after time t_prime.
+#' @param beta_A0_D_prime Numeric. Specifies how A0 additionally affects D after time t_prime.
+#' @param beta_A0_C_prime Numeric. Specifies how A0 additionally affects C after time t_prime.
+#' @param ... Additional arguments passed to \code{simEventData} or \code{simEventTV}.
 #'
-#' @return  Data frame containing the simulated event history data
+#' @return A data frame containing the simulated event history data.
 #' @export
 #'
 #' @examples

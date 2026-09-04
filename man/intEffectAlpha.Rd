@@ -25,19 +25,19 @@ intEffectAlpha(
 
 \item{setting}{Character string. Must be either "Disease", "Drop In" or "Treatment". Depending on the simulation setting.}
 
-\item{eta}{Numeric vector of length 3. Shape parameters for Weibull hazards (default \code{rep(0.1, 4)}).}
+\item{eta}{Numeric vector. Shape parameters for Weibull hazards: length 3 for setting "Disease", length 4 for "Drop In" or "Treatment" (default \code{rep(0.1, 4)}).}
 
-\item{nu}{Numeric vector of length 3. Scale parameters for Weibull hazards (default \code{rep(1.1, 4)}).}
+\item{nu}{Numeric vector. Scale parameters for Weibull hazards: length 3 for setting "Disease", length 4 for "Drop In" or "Treatment" (default \code{rep(1.1, 4)}).}
 
-\item{alpha}{Numeric scalar. Multiplicative factor applied to the disease process shape parameter \eqn{\eta}.}
+\item{alpha}{Numeric scalar. Multiplicative factor applied to the shape parameter \eqn{\eta} of the relevant process.}
 
 \item{tau}{Numeric scalar. Time horizon at which proportions are computed.}
 
-\item{a0}{Binary (0/1). Specifies the group for comparison.Only relevant in setting "Drop In" and "Disease".}
+\item{a0}{Binary (0/1). Specifies the group for comparison. Only relevant in setting "Drop In" and "Disease".}
 
 \item{years_lost}{Logical. If \code{TRUE}, computes years lost instead of proportions.}
 
-\item{plot}{Logical. If \code{TRUE}, plots timelines for sample of intervention and non intervention data.}
+\item{plot}{Logical. If \code{TRUE}, plots a sample of the simulated event data.}
 
 \item{lower}{Numeric scalar. Lower bound for root-finding in hazard inversion (default 1e-30).}
 
@@ -50,17 +50,18 @@ intEffectAlpha(
 \value{
 A list with two components:
 \describe{
-\item{\code{effect_L}}{Proportion (or years lost) of individuals diagnosed with disease by time \eqn{\tau} in group \code{A0 = a0}, under intervention.}
-\item{\code{effect_death}}{Proportion (or years lost) of individuals who died by time \eqn{\tau} in group \code{A0 = a0}, under intervention.}
+\item{\code{effect_2}}{Proportion (or years lost) of individuals experiencing disease/drop-in/treatment by time \eqn{\tau}, under intervention.}
+\item{\code{effect_death}}{Proportion (or years lost) of individuals who died by time \eqn{\tau}, under intervention.}
 }
 }
 \description{
-This function simulates data from the disease setting in two scenarios. Under
-intervention on the shape parameter \eqn{\eta} of the disease process is multiplied by
-\code{alpha}, and a baseline (non-intervened) scenario. It computes the proportion
-of individuals who experience death or disease by a specified time \eqn{\tau}
-in the group \code{A0 = a0}, optionally returning years_lost.
-The function can also plot a sample of the event data for each scenario for comparison.
+Simulates data from the Disease, Drop In, or Treatment setting under an intervention
+where the shape parameter \eqn{\eta} of the disease, drop-in, or treatment process
+(respectively) is multiplied by \code{alpha}. It computes the proportion of individuals
+who experience death, and the proportion who experience disease/drop-in/treatment, by a
+specified time \eqn{\tau} in the group \code{A0 = a0} (except in the Treatment setting,
+where all individuals are used), optionally returning years lost instead of proportions.
+The function can also plot a sample of the simulated (intervened) event data.
 }
 \examples{
 intEffectAlpha(N = 1000, alpha = 0.7, tau = 5, years_lost = FALSE, a0 = 1, setting = "Drop In")

@@ -15,14 +15,16 @@
 #' @param max_iter Maximum iterations. Default is 100.
 #'
 #' @return A numeric scalar, the root `u`.
-#' @export
 #'
 #' @examples
 #' eta <- c(0.1, 0.1)
 #' nu <- c(1.1, 1.1)
 #' phi <- c(1, 1)
 #' at_risk <- c(1, 1)
-#' inverseScHaz(0.5, t = 0, lower = 1e-15, upper = 200, eta, nu, phi, at_risk)
+#' simevent:::inverseScHaz(0.5, t = 0, lower = 1e-15, upper = 200, eta, nu, phi, at_risk)
+#'
+#' @keywords internal
+#' @noRd
 inverseScHaz <- function(
   p,
   t,

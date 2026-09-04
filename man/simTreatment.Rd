@@ -66,25 +66,25 @@ simTreatment(
 
 \item{beta_A_C}{Numeric. Effect of treatment \code{A = 1} on censoring hazard. Default 0.}
 
-\item{beta_L_A_prime}{Numeric. Additional effect of covariate \code{L = 1} on treatment hazard. Default 0.}
+\item{beta_L_A_prime}{Numeric. Additional effect of covariate \code{L = 1} on treatment hazard after \code{t_prime}. Default 0.}
 
-\item{beta_L_D_prime}{Numeric. Additionalffect of covariate \code{L = 1} on death hazard. Default 0.}
+\item{beta_L_D_prime}{Numeric. Additional effect of covariate \code{L = 1} on death hazard after \code{t_prime}. Default 0.}
 
-\item{beta_A_D_prime}{Numeric. Effect of treatment \code{A = 1} on death hazard. Default 0.}
+\item{beta_A_D_prime}{Numeric. Additional effect of treatment \code{A = 1} on death hazard after \code{t_prime}. Default 0.}
 
-\item{beta_A_L_prime}{Numeric. Effect of treatment \code{A = 1} on covariate hazard. Default 0.}
+\item{beta_A_L_prime}{Numeric. Additional effect of treatment \code{A = 1} on covariate hazard after \code{t_prime}. Default 0.}
 
-\item{beta_L0_A_prime}{Numeric. Effect of baseline covariate \code{L0} on treatment hazard. Default 0.}
+\item{beta_L0_A_prime}{Numeric. Additional effect of baseline covariate \code{L0} on treatment hazard after \code{t_prime}. Default 0.}
 
-\item{beta_L0_L_prime}{Numeric. Effect of baseline covariate \code{L0} on covariate hazard. Default 0.}
+\item{beta_L0_L_prime}{Numeric. Additional effect of baseline covariate \code{L0} on covariate hazard after \code{t_prime}. Default 0.}
 
-\item{beta_L0_D_prime}{Numeric. Effect of baseline covariate \code{L0} on death hazard. Default 0.}
+\item{beta_L0_D_prime}{Numeric. Additional effect of baseline covariate \code{L0} on death hazard after \code{t_prime}. Default 0.}
 
-\item{beta_L0_C_prime}{Numeric. Effect of baseline covariate \code{L0} on censoring hazard. Default 0.}
+\item{beta_L0_C_prime}{Numeric. Additional effect of baseline covariate \code{L0} on censoring hazard after \code{t_prime}. Default 0.}
 
-\item{beta_L_C_prime}{Numeric. Effect of covariate \code{L = 1} on censoring hazard. Default 0.}
+\item{beta_L_C_prime}{Numeric. Additional effect of covariate \code{L = 1} on censoring hazard after \code{t_prime}. Default 0.}
 
-\item{beta_A_C_prime}{Numeric. Effect of treatment \code{A = 1} on censoring hazard. Default 0.}
+\item{beta_A_C_prime}{Numeric. Additional effect of treatment \code{A = 1} on censoring hazard after \code{t_prime}. Default 0.}
 
 \item{t_prime}{Numeric scalar or NULL. Time point where effects change (optional).}
 
@@ -101,7 +101,7 @@ given their covariates. Takes a numeric vector covariates and returns a binary v
 
 \item{followup}{Numeric. Maximum censoring time. Defaults to \code{Inf} (no censoring).}
 
-\item{...}{Additional arguments passed to \code{simEventData} or \code{simEventTV}}
+\item{...}{Additional arguments passed to \code{simEventData} or \code{simEventTV}.}
 }
 \value{
 A \code{data.frame} with columns:

@@ -25,7 +25,7 @@ formatted for survival analysis.
 Converts simulated event history data with time-dependent covariates into an interval (start-stop) format,
 suitable for classical survival analysis functions like \code{coxph}.
 Adds interval start and stop times (\code{tstart}, \code{tstop}) and a counting variable \code{k} indexing events.
-Optionally, the function can split intervals at a specified time point to accomadate estimation of time-varying effects.
+Optionally, the function can split intervals at a specified time point to accommodate estimation of time-varying effects.
 }
 \examples{
 data <- simEventData(10)

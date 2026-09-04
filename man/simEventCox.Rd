@@ -25,7 +25,7 @@ one for each event type. The names are used as event type labels.}
 \item{old_vars}{A named matrix containing the old covariates. New covariates will
 be simulated by drawing rows from the old covariates with replacement.}
 
-\item{useOldVars}{Logical. If True the simulations use the old_vars directly, rather than draw rows from the matrix.}
+\item{useOldVars}{Logical. If \code{TRUE} the simulations use \code{old_vars} directly, rather than draw rows from the matrix.}
 
 \item{n_event_max}{Integer vector. Maximum number of times each event type can occur
 per individual.}
@@ -41,8 +41,7 @@ baseline cumulative hazard vector for event type \code{j}. Allows dynamic hazard
 \code{intervention2 <- function(j, basehaz) if(j ==2) 1.15 * basehaz else basehaz}
 performs an intervention where the baseline hazard of process 2 is multiplied by 1.15.}
 
-\item{at_risk}{Function. Function determining if an individual is at risk for each event type,
-given their current event counts. Takes a numeric vector of event counts and returns a binary vector. Default returns 1 for all events.}
+\item{at_risk}{Function. Function determining if an individual is at risk for each event type, given their current event counts. Takes a numeric vector of event counts and returns a binary vector. Default returns 1 for all events.}
 }
 \value{
 A \code{data.table} with one row per event per individual containing:

@@ -9,7 +9,7 @@
 #'   one for each event type. The names are used as event type labels.
 #' @param old_vars A named matrix containing the old covariates. New covariates will
 #' be simulated by drawing rows from the old covariates with replacement.
-#' @param useOldVars Logical. If True the simulations use the old_vars directly, rather than draw rows from the matrix.
+#' @param useOldVars Logical. If \code{TRUE} the simulations use `old_vars` directly, rather than draw rows from the matrix.
 #' @param n_event_max Integer vector. Maximum number of times each event type can occur
 #'   per individual.
 #' @param term_events Integer or integer vector. Indices of event types that are terminal,
@@ -20,8 +20,7 @@
 #'   baseline cumulative hazard vector for event type `j`. Allows dynamic hazard modification. The function
 #'   \code{intervention2 <- function(j, basehaz) if(j ==2) 1.15 * basehaz else basehaz}
 #'   performs an intervention where the baseline hazard of process 2 is multiplied by 1.15.
-#' @param at_risk Function. Function determining if an individual is at risk for each event type,
-#'   given their current event counts. Takes a numeric vector of event counts and returns a binary vector. Default returns 1 for all events.
+#' @inheritParams simEventData
 #'
 #' @details
 #' The function simulates individual event histories by:

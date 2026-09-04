@@ -5,9 +5,7 @@
 #' shape parameters \eqn{\eta} and scale parameters \eqn{\nu}. Covariate effects on censoring and event
 #' hazards are specified via a matrix \code{beta}.
 #'
-#' @title Simulate Survival Data
-#'
-#'@param N Numeric scalar. Number of individuals to simulate.
+#' @param N Numeric scalar. Number of individuals to simulate.
 #' @param beta Numeric 2x2 matrix specifying effects of baseline covariates \code{L0} and \code{A0} on censoring and event hazards.
 #'   - Rows correspond to covariates \code{L0} and \code{A0}.
 #'   - Columns correspond to censoring (1st column) and event (2nd column).
@@ -18,7 +16,7 @@
 #' @param cens Numeric binary indicator (0 or 1) specifying if censoring is included (default 1).
 #' @param ... Additional arguments passed to \code{simEventData}, including the argument \code{add_cov} to specify extra covariates.
 #'
-#' @return  Data frame containing the simulated survival data
+#' @return A data frame containing the simulated survival data.
 #'
 #' @examples
 #' simSurvData(10)

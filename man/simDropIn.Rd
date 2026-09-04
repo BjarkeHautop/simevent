@@ -2,7 +2,7 @@
 % Please edit documentation in R/simDropIn.R
 \name{simDropIn}
 \alias{simDropIn}
-\title{\code{simDropIn}}
+\title{Simulate Event Data from a "Drop In" Setting}
 \usage{
 simDropIn(
   N,
@@ -97,41 +97,41 @@ given their covariates. Takes a numeric vector covariates and returns a binary v
 
 \item{beta_L_C}{Numeric. Specifies how L affects C.}
 
-\item{beta_A_L}{Numeric. Specifies how L affects A.}
+\item{beta_A_L}{Numeric. Specifies how A affects L.}
 
-\item{beta_A_Z}{Numeric. Specifies how L affects Z.}
+\item{beta_A_Z}{Numeric. Specifies how A affects Z.}
 
-\item{beta_A_D}{Numeric. Specifies how L affects D.}
+\item{beta_A_D}{Numeric. Specifies how A affects D.}
 
-\item{beta_A_C}{Numeric. Specifies how L affects C.}
+\item{beta_A_C}{Numeric. Specifies how A affects C.}
 
-\item{beta_Z_L}{Numeric. Specifies how L affects A.}
+\item{beta_Z_L}{Numeric. Specifies how Z affects L.}
 
-\item{beta_Z_A}{Numeric. Specifies how L affects Z.}
+\item{beta_Z_A}{Numeric. Specifies how Z affects A.}
 
-\item{beta_Z_D}{Numeric. Specifies how L affects D.}
+\item{beta_Z_D}{Numeric. Specifies how Z affects D.}
 
-\item{beta_Z_C}{Numeric. Specifies how L affects C.}
+\item{beta_Z_C}{Numeric. Specifies how Z affects C.}
 
-\item{beta_L0_L}{Numeric. Specifies how L affects A.}
+\item{beta_L0_L}{Numeric. Specifies how L0 affects L.}
 
-\item{beta_L0_A}{Numeric. Specifies how L affects Z.}
+\item{beta_L0_A}{Numeric. Specifies how L0 affects A.}
 
-\item{beta_L0_Z}{Numeric. Specifies how L affects Z.}
+\item{beta_L0_Z}{Numeric. Specifies how L0 affects Z.}
 
-\item{beta_L0_D}{Numeric. Specifies how L affects D.}
+\item{beta_L0_D}{Numeric. Specifies how L0 affects D.}
 
-\item{beta_L0_C}{Numeric. Specifies how L affects C.}
+\item{beta_L0_C}{Numeric. Specifies how L0 affects C.}
 
-\item{beta_A0_L}{Numeric. Specifies how L affects A.}
+\item{beta_A0_L}{Numeric. Specifies how A0 affects L.}
 
-\item{beta_A0_A}{Numeric. Specifies how L affects Z.}
+\item{beta_A0_A}{Numeric. Specifies how A0 affects A.}
 
-\item{beta_A0_Z}{Numeric. Specifies how L affects Z.}
+\item{beta_A0_Z}{Numeric. Specifies how A0 affects Z.}
 
-\item{beta_A0_D}{Numeric. Specifies how L affects D.}
+\item{beta_A0_D}{Numeric. Specifies how A0 affects D.}
 
-\item{beta_A0_C}{Numeric. Specifies how L affects C.}
+\item{beta_A0_C}{Numeric. Specifies how A0 affects C.}
 
 \item{beta_L_A_prime}{Numeric. Specifies how L additionally affects A after time t_prime.}
 
@@ -141,54 +141,51 @@ given their covariates. Takes a numeric vector covariates and returns a binary v
 
 \item{beta_L_C_prime}{Numeric. Specifies how L additionally affects C after time t_prime.}
 
-\item{beta_A_L_prime}{Numeric. Specifies how L additionally affects A after time t_prime.}
+\item{beta_A_L_prime}{Numeric. Specifies how A additionally affects L after time t_prime.}
 
-\item{beta_A_Z_prime}{Numeric. Specifies how L additionally affects Z after time t_prime.}
+\item{beta_A_Z_prime}{Numeric. Specifies how A additionally affects Z after time t_prime.}
 
-\item{beta_A_D_prime}{Numeric. Specifies how L additionally affects D after time t_prime.}
+\item{beta_A_D_prime}{Numeric. Specifies how A additionally affects D after time t_prime.}
 
-\item{beta_A_C_prime}{Numeric. Specifies how L additionally affects C after time t_prime.}
+\item{beta_A_C_prime}{Numeric. Specifies how A additionally affects C after time t_prime.}
 
-\item{beta_Z_L_prime}{Numeric. Specifies how L additionally affects A after time t_prime.}
+\item{beta_Z_L_prime}{Numeric. Specifies how Z additionally affects L after time t_prime.}
 
-\item{beta_Z_A_prime}{Numeric. Specifies how L additionally affects Z after time t_prime.}
+\item{beta_Z_A_prime}{Numeric. Specifies how Z additionally affects A after time t_prime.}
 
-\item{beta_Z_D_prime}{Numeric. Specifies how L additionally affects D after time t_prime.}
+\item{beta_Z_D_prime}{Numeric. Specifies how Z additionally affects D after time t_prime.}
 
-\item{beta_Z_C_prime}{Numeric. Specifies how L additionally affects C after time t_prime.}
+\item{beta_Z_C_prime}{Numeric. Specifies how Z additionally affects C after time t_prime.}
 
-\item{beta_L0_L_prime}{Numeric. Specifies how L additionally affects after time A.}
+\item{beta_L0_L_prime}{Numeric. Specifies how L0 additionally affects L after time t_prime.}
 
-\item{beta_L0_A_prime}{Numeric. Specifies how L additionally affects after time Z.}
+\item{beta_L0_A_prime}{Numeric. Specifies how L0 additionally affects A after time t_prime.}
 
-\item{beta_L0_Z_prime}{Numeric. Specifies how L additionally affects after time Z.}
+\item{beta_L0_Z_prime}{Numeric. Specifies how L0 additionally affects Z after time t_prime.}
 
-\item{beta_L0_D_prime}{Numeric. Specifies how L additionally affects after time D.}
+\item{beta_L0_D_prime}{Numeric. Specifies how L0 additionally affects D after time t_prime.}
 
-\item{beta_L0_C_prime}{Numeric. Specifies how L additionally affects after time C.}
+\item{beta_L0_C_prime}{Numeric. Specifies how L0 additionally affects C after time t_prime.}
 
-\item{beta_A0_L_prime}{Numeric. Specifies how L additionally affects after time A.}
+\item{beta_A0_L_prime}{Numeric. Specifies how A0 additionally affects L after time t_prime.}
 
-\item{beta_A0_A_prime}{Numeric. Specifies how L additionally affects after time Z.}
+\item{beta_A0_A_prime}{Numeric. Specifies how A0 additionally affects A after time t_prime.}
 
-\item{beta_A0_Z_prime}{Numeric. Specifies how L additionally affects after time Z.}
+\item{beta_A0_Z_prime}{Numeric. Specifies how A0 additionally affects Z after time t_prime.}
 
-\item{beta_A0_D_prime}{Numeric. Specifies how L additionally affects after time D.}
+\item{beta_A0_D_prime}{Numeric. Specifies how A0 additionally affects D after time t_prime.}
 
-\item{beta_A0_C_prime}{Numeric. Specifies how L additionally affects after time C.}
+\item{beta_A0_C_prime}{Numeric. Specifies how A0 additionally affects C after time t_prime.}
 
-\item{...}{Additional arguments passed to \code{simEventData} or \code{simEventTV}}
+\item{...}{Additional arguments passed to \code{simEventData} or \code{simEventTV}.}
 }
 \value{
-Data frame containing the simulated event history data
+A data frame containing the simulated event history data.
 }
 \description{
-Simulate Event Data from a "Drop In" Setting
-}
-\details{
-\code{simDropIn} is a function that simulates data corresponding to \code{N} individuals
-that are at risk for 4 or 5 events. Censoring (C), Death (D), Drop In Initiation (Z),
-Change in Covariate Process (L) and optionally Treatment (A).
+\code{simDropIn} simulates data corresponding to \code{N} individuals that are at risk
+for 4 or 5 events: Censoring (C), Death (D), Drop In Initiation (Z), Change in
+Covariate Process (L), and optionally Treatment (A).
 }
 \examples{
 simDropIn(10)

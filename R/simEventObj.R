@@ -20,7 +20,7 @@
 #' The argument is optional. By default events will be named `N0`, `N1`, ....
 #' @param old_vars A named matrix containing the old covariates. New covariates will
 #' be simulated by drawing rows from the old covariates with replacement.
-#' @param useOldVars Logical. If True the simulations use the old_vars directly rather than draw rows from the matrix.
+#' @param useOldVars Logical. If \code{TRUE} the simulations use `old_vars` directly, rather than draw rows from the matrix.
 #'
 #' @details
 #' The function simulates individual event histories by:
@@ -42,6 +42,22 @@
 #' }
 #'
 #' @import data.table
+#'
+#' @examples
+#' # Fit a Cox model and equip it with a predict2 method
+#' data_obs <- simCRdata(N = 200)
+#' cox_fit <- survival::coxph(survival::Surv(Time, Delta == 1) ~ L0 + A0, data = data_obs)
+#'
+#' predict2 <- function(obj, ...) UseMethod("predict2")
+#' predict2.coxph <- function(obj, sim_data, ...) {
+#'   preds <- survival::survfit(obj, newdata = sim_data)
+#'   # preds$cumhaz is a times x individuals matrix; reshape to individuals x times x events
+#'   chf <- array(t(preds$cumhaz), dim = c(nrow(sim_data), length(preds$time), 1))
+#'   list(time = preds$time, chf = chf)
+#' }
+#'
+#' old_vars <- data_obs[, c("L0", "A0")]
+#' new_data <- simEventObj(100, cox_fit, old_vars = old_vars)
 #'
 #' @export
 simEventObj <- function(

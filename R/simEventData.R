@@ -13,10 +13,8 @@
 #' \deqn{
 #' \lambda_0^x(t) = \eta^x \nu^x t^{\nu^x - 1}.
 #' }
-#' Here, \eqn{L} is the vector of covariates and event counts, and \eqn{\beta^x} is the
-#' a vector of coefficients representing the effect of covariates and previous events on the intensity.
-#'
-#' @title Simulate Event Data with Multiple Event Types and Covariates
+#' Here, \eqn{L} is the vector of covariates and event counts, and \eqn{\beta^x} is
+#' the vector of coefficients representing the effect of covariates and previous events on the intensity.
 #'
 #' @param N Integer. Number of individuals to simulate.
 #' @param beta Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). Default is a zero matrix.
@@ -31,9 +29,9 @@
 #' @param lower Numeric. Lower bound for root-finding in inverse cumulative hazard calculations. Default is \eqn{10^{-15}}.
 #' @param upper Numeric. Upper bound for root-finding in inverse cumulative hazard calculations. Default is 200.
 #' @param gen_A0 Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.
-#' @param gen_L0 Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a N(0,1) random variable.
-#' @param at_risk_cov Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a matrix of covariates and returns a binary matrix vector. Default returns 1 for all events and all individuals.
-#' @param ... Additional technical arguments
+#' @param gen_L0 Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.
+#' @param at_risk_cov Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a matrix of covariates and returns a binary matrix. Default returns 1 for all events and all individuals.
+#' @param ... Additional technical arguments.
 #'
 #' @return A \code{data.table} with columns:
 #' \item{ID}{Individual identifier}

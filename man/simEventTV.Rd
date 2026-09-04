@@ -2,7 +2,7 @@
 % Please edit documentation in R/simEventTV.R
 \name{simEventTV}
 \alias{simEventTV}
-\title{simEventTV}
+\title{Simulate Event Data with Time-Varying Effects}
 \usage{
 simEventTV(
   N,
@@ -27,40 +27,37 @@ simEventTV(
 \arguments{
 \item{N}{Integer. Number of individuals to simulate.}
 
-\item{beta}{Matrix. Coefficients for covariates and processes. Columns correspond to events (\code{N0}, \code{N1}, ...),
-rows correspond to covariates (\code{L0}, \code{A0}, ..., and past event counts).}
+\item{beta}{Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). Default is a zero matrix.}
 
 \item{tv_eff}{Matrix. Time-varying changes to \code{beta}, applied at time \code{t_prime}. Must have same dimensions as \code{beta}.}
 
 \item{t_prime}{Numeric. Time at which \code{tv_eff} is added to \code{beta}.}
 
-\item{eta}{Numeric vector. Shape parameters of Weibull intensities for each event.}
+\item{eta}{Numeric vector. Shape parameters of the Weibull baseline intensity for each event type. Default is 0.1 for all events.}
 
-\item{nu}{Numeric vector. Scale parameters of Weibull intensities for each event.}
+\item{nu}{Numeric vector. Scale parameters of the Weibull baseline intensity for each event type. Default is 1.1 for all events.}
 
-\item{at_risk}{Function. Determines which events an individual is at risk for, based on event history.}
+\item{at_risk}{Function. Function determining if an individual is at risk for each event type, given their current event counts. Takes a numeric vector of event counts and returns a binary vector. Default returns 1 for all events.}
 
-\item{term_deltas}{Integer vector. Event types considered terminal (e.g., death).}
+\item{term_deltas}{Integer vector. Event types considered terminal (after which no further events occur). Default is c(0, 1).}
 
-\item{max_cens}{Numeric. Maximum censoring time. Defaults to \code{Inf}.}
+\item{max_cens}{Numeric. Maximum censoring time. Events occurring after this time are censored. Default is Inf (no maximal censoring).}
 
-\item{add_cov}{Named list of functions for generating additional baseline covariates.
-Each function takes one argument \code{N} and returns a vector of length \code{N}.}
+\item{add_cov}{Named list of functions. Functions generating additional baseline covariates. Each function takes integer N and returns a numeric vector of length N. Default is NULL.}
 
-\item{override_beta}{Named list to override elements of \code{beta}. Format:
-\code{list("covariate" = c("event" = value))}.}
+\item{override_beta}{Named list. Used to specify entries of the \code{beta} matrix to override defaults. For example, \code{list("L0" = c("N1" = 2))} sets the effect of L0 on N1 to 2.}
 
-\item{max_events}{Integer. Maximum number of events allowed per individual.}
+\item{max_events}{Integer. Maximum number of events to simulate per individual. Default is 10.}
 
-\item{lower}{Numeric. Lower bound for the root-finding algorithm used in inverse cumulative hazard computation.}
+\item{lower}{Numeric. Lower bound for root-finding in inverse cumulative hazard calculations. Default is \eqn{10^{-15}}.}
 
-\item{upper}{Numeric. Upper bound for the root-finding algorithm used in inverse cumulative hazard computation.}
+\item{upper}{Numeric. Upper bound for root-finding in inverse cumulative hazard calculations. Default is 200.}
 
-\item{gen_A0}{Function. Generates baseline treatment assignment. Takes arguments \code{N} and \code{L0}.}
+\item{gen_A0}{Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.}
 
-\item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as input. Default is a Uniform(0,1) random variable.}
+\item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.}
 
-\item{at_risk_cov}{Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a numeric vector covariates and returns a binary vector. Default returns 1 for all events.}
+\item{at_risk_cov}{Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a matrix of covariates and returns a binary matrix. Default returns 1 for all events and all individuals.}
 }
 \value{
 A \code{data.table} with columns:
@@ -73,13 +70,10 @@ A \code{data.table} with columns:
 \item{L1, L2, ...:}{Additional covariates (if specified)}
 }
 \description{
-Simulate Event Data with Time-Varying Effects
-}
-\details{
-\code{simEventTV} is a function that simulates event data, with the option of
-adding time varying effects. The function is build up in the same way as \code{simEventData},
-with the additional arguments \code{tv_eff} and \code{t_prime}, which specify the change
-of the beta matrix at time \code{t_prime}.
+\code{simEventTV} simulates event data with the option of adding time-varying effects.
+The function is built up in the same way as \code{simEventData}, with the additional
+arguments \code{tv_eff} and \code{t_prime}, which specify the change of the beta matrix at
+time \code{t_prime}.
 }
 \examples{
 eta <- rep(0.1, 2)

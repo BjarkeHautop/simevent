@@ -3,7 +3,7 @@
 #' Converts simulated event history data with time-dependent covariates into an interval (start-stop) format,
 #' suitable for classical survival analysis functions like \code{coxph}.
 #' Adds interval start and stop times (\code{tstart}, \code{tstop}) and a counting variable \code{k} indexing events.
-#' Optionally, the function can split intervals at a specified time point to accomadate estimation of time-varying effects.
+#' Optionally, the function can split intervals at a specified time point to accommodate estimation of time-varying effects.
 #'
 #' @param data A \code{data.frame} or \code{data.table} containing event data with columns \code{ID}, \code{Time}, \code{Delta},
 #'   and counting process columns specified by \code{N_cols}.

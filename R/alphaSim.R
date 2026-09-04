@@ -1,8 +1,9 @@
 #' Simulation and Estimation with Modified Shape Parameter
 #'
-#' This function simulates event history data from either the Disease, Treatment or Drop In setting.
-#' See simDisease, simTreatment and simDropIn. The shape parameter \eqn{\eta} of respectively the disease process,
-#' the Drop In process and the Treatment process is multiplied by \code{alpha}. The function either
+#' This function simulates event history data from the Disease, Treatment, Drop In, or Statin
+#' setting (see \code{simDisease}, \code{simTreatment}, \code{simDropIn}, and \code{simStatinData}).
+#' The shape parameter \eqn{\eta} of the disease/treatment/drop-in/MACE process is multiplied by
+#' \code{alpha}. The function either
 #' * returns the proportion of individuals who experience death and the proportion of individuals who experience disease/drop in/treatment
 #' by a specified time \eqn{\tau} (in group \code{A0 = a0} for drop in and disease).
 #' * returns number of years lost before \eqn{\tau} of death and disease/drop in/treatment
@@ -15,22 +16,22 @@
 #' @param years_lost Logical. If \code{TRUE}, computes years lost instead of proportions.
 #' @param a0 Binary (0/1). Specifies the group for comparison in setting Drop In and Disease.
 #' @param eta Numeric vector. Shape parameters for Weibull hazards. Length of the vector should
-#' match number of events. For the Disease and Drop In setting this is 4. For the Treatment setting,
-#' this is 3. (default \code{rep(0.1, 4)}).
+#' match number of events: 3 for the Disease setting, 4 for the Drop In or Treatment setting,
+#' 12 for the Statin setting (default \code{rep(0.1, 4)}).
 #' @param nu Numeric vector. Scale parameters for Weibull hazards. Length of the vector should
-#' match number of events. For the Disease and Drop In setting this is 4.  For the Treatment setting,
-#' this is 3. (default \code{rep(1.1, 4)}).
+#' match number of events: 3 for the Disease setting, 4 for the Drop In or Treatment setting,
+#' 12 for the Statin setting (default \code{rep(1.1, 4)}).
 #' @param cens Binary scalar. Indicates whether individuals are at risk of censoring (default \code{0}).
-#' @param setting Character string. Must be either "Disease", "Drop In" or "Treatment". Depending on the simulation setting.
+#' @param setting Character string. Must be "Disease", "Drop In", "Treatment", or "Statin". Depending on the simulation setting.
 #' @param return_data Logical. If \code{TRUE} the simulated data is returned.
 #' @param ... Additional arguments passed to respectively simDisease, simTreatment and simDropIn.
 #'
 #' @return A list with two components:
 #' \describe{
-#'   \item{\code{effect_L}}{Proportion (or years lost) of individuals diagnosed with disease by time \eqn{\tau}, under intervention.}
-#'   \item{\code{effect_death}}{Proportion (or years lost) of individuals who died by time \eqn{\tau} under intervention.}
+#'   \item{\code{effectDeath}}{Proportion (or years lost) of individuals who died by time \eqn{\tau}, under intervention.}
+#'   \item{\code{effectSetting}}{Proportion (or years lost) of individuals experiencing disease/drop-in/treatment/MACE by time \eqn{\tau}, under intervention.}
 #' }
-#' Or the simulated data.
+#' Or the simulated data, if \code{return_data = TRUE}.
 #' @export
 #'
 #' @examples

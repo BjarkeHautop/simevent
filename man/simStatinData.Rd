@@ -35,7 +35,7 @@ simStatinData(
 
 \item{upper}{Numeric scalar. Upper bound for root-finding (default 200).}
 
-\item{gen_A0}{Function. Function to generate the baseline treatment covariate A0.Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.}
+\item{gen_A0}{Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.}
 
 \item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as input. Default is a N(0,1) random variable.}
 
@@ -55,9 +55,11 @@ A data frame containing the simulated data with columns:
 \item{L1,...Lp}{Additional baseline covariates}
 }
 \description{
-Simulate Data in a Statin Setting
+Simulates event history data in a statin treatment setting via
+\code{simEventData}, with defaults for age (\code{A0}), a binary baseline
+covariate (\code{L0}), and 12 event processes.
 }
 \examples{
-simDisease(10)
+simStatinData(10)
 
 }

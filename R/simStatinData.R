@@ -1,5 +1,9 @@
 #' @title Simulate Data in a Statin Setting
 #'
+#' @description Simulates event history data in a statin treatment setting via
+#' \code{simEventData}, with defaults for age (\code{A0}), a binary baseline
+#' covariate (\code{L0}), and 12 event processes.
+#'
 #' @param N Numeric scalar. Number of individuals to simulate.
 #' @param eta Numeric vector of length equal to number of processes. Shape parameters for Weibull intensities with parameterization
 #' \eqn{\eta \nu t^{\nu - 1}}. Defaults to \code{rep(0.1, 8)}.
@@ -8,7 +12,7 @@
 #' @param lower Numeric scalar. Lower bound for root-finding (inverse cumulative hazard) (default \code{1e-15}).
 #' @param upper Numeric scalar. Upper bound for root-finding (default 200).
 #' @param beta Numeric matrix. Of dimension p times 6. Regression coefficients matrix where columns correspond to event types (N0, ..., N5) and rows correspond to covariates (L0, A0, L1, L2, ...) followed by event counts (N0, ..., N5). Default is a zero matrix.
-#' @param gen_A0 Function. Function to generate the baseline treatment covariate A0.Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.
+#' @param gen_A0 Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.
 #' @param gen_L0 Function. Function to generate the baseline covariate L0. Takes N as input. Default is a N(0,1) random variable.
 #' @param add_cov Named list of functions. Functions generating additional baseline covariates. Each function takes integer N and returns a numeric vector of length N. Default is NULL.
 #' @param at_risk Function. Function determining if an individual is at risk for each event type, given their current event counts. Takes a numeric vector of event counts and returns a binary vector. Default returns 1 for all events.
@@ -23,7 +27,7 @@
 #'  \item{L1,...Lp}{Additional baseline covariates}
 #'
 #' @examples
-#' simDisease(10)
+#' simStatinData(10)
 #'
 #' @export
 simStatinData <- function(
