@@ -3,6 +3,10 @@
 
 <!-- badges: start -->
 
+[![CRAN
+status](https://www.r-pkg.org/badges/version/simevent)](https://CRAN.R-project.org/package=simevent)
+[![Codecov test
+coverage](https://codecov.io/gh/BjarkeHautop/simevent/graph/badge.svg)](https://app.codecov.io/gh/BjarkeHautop/simevent)
 <!-- badges: end -->
 
 The `simevent` package provides tools for simulating and analyzing
