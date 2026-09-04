@@ -72,13 +72,12 @@ covariate (<code>L0</code>), and 12 event processes.</p>
 
 <dt id="arg-eta">eta<a class="anchor" aria-label="anchor" href="#arg-eta"></a></dt>
 <dd><p>Numeric vector of length equal to number of processes. Shape parameters for Weibull
-intensities with parameterization
-\(\eta \nu t^{\nu - 1}\). Defaults to <code>rep(0.1, 8)</code>.</p></dd>
+intensities with parameterization \(\eta \nu t^{\nu - 1}\). Defaults to <code>rep(0.025, 12)</code>.</p></dd>
 
 
 <dt id="arg-nu">nu<a class="anchor" aria-label="anchor" href="#arg-nu"></a></dt>
 <dd><p>Numeric vector of length equal to number of processes. Scale parameters for the Weibull
-hazards. Defaults to <code>rep(1.1, 8)</code>.</p></dd>
+hazards. Defaults to <code>rep(1.1, 12)</code>.</p></dd>
 
 
 <dt id="arg-beta">beta<a class="anchor" aria-label="anchor" href="#arg-beta"></a></dt>
@@ -148,80 +147,52 @@ Bernoulli(0.4) random variable.</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">simStatinData</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;ID&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        ID       Time Delta    L0       A0    N0    N1    N2    N3    N4    N5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;      &lt;num&gt; &lt;int&gt; &lt;num&gt;    &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 1.28747796     7     1 73.55001     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1 1.87869578    10     1 73.55001     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     1 2.76585826     3     1 73.55001     0     0     0     1     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     1 3.90280669     5     1 73.55001     0     0     0     1     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     1 4.74374497     8     1 73.55001     0     0     0     1     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     1 5.00000000     0     1 73.55001     1     0     0     1     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     2 0.11766678     5     0 70.81898     0     0     0     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     2 0.40336761    11     0 70.81898     0     0     0     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     2 0.78676308     6     0 70.81898     0     0     0     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     2 0.96898721     8     0 70.81898     0     0     0     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     2 1.34366076     8     0 70.81898     0     0     0     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     2 1.64860689     4     0 70.81898     0     0     0     0     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13:     2 2.15771978     7     0 70.81898     0     0     0     0     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14:     2 2.29885923     0     0 70.81898     1     0     0     0     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15:     3 0.17594113     5     0 72.56287     0     0     0     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16:     3 0.48282369     3     0 72.56287     0     0     0     1     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17:     3 1.54985100     9     0 72.56287     0     0     0     1     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18:     3 1.70248968     6     0 72.56287     0     0     0     1     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 19:     3 1.73511928     2     0 72.56287     0     0     1     1     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20:     4 0.18411118     9     0 74.33295     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 21:     4 1.64096769     9     0 74.33295     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 22:     4 2.92911728     0     0 74.33295     1     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 23:     5 0.06610941     0     1 75.94237     1     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 24:     6 0.19534642     6     0 71.33176     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 25:     6 1.27678102     1     0 71.33176     0     1     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 26:     7 0.56167303     0     1 76.62502     1     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 27:     8 0.25621467     2     0 75.68919     0     0     1     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 28:     9 1.93308150     8     1 72.06932     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 29:     9 2.07866976     1     1 72.06932     0     1     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 30:    10 0.79763233     8     1 70.26848     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 31:    10 0.80418156     5     1 70.26848     0     0     0     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 32:    10 1.19382958     3     1 70.26848     0     0     0     1     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 33:    10 1.22369494     8     1 70.26848     0     0     0     1     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 34:    10 2.65594862     0     1 70.26848     1     0     0     1     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        ID       Time Delta    L0       A0    N0    N1    N2    N3    N4    N5</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;      &lt;num&gt; &lt;int&gt; &lt;num&gt;    &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        ID      Time Delta    L0       A0    N0    N1    N2    N3    N4    N5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;     &lt;num&gt; &lt;int&gt; &lt;num&gt;    &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 4.5401173     7     1 73.55001     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1 5.0000000     0     1 73.55001     1     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     2 0.4149360     5     0 70.81898     0     0     0     0     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     2 1.4224214    11     0 70.81898     0     0     0     0     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     2 4.8796220     7     0 70.81898     0     0     0     0     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     2 5.0000000     0     0 70.81898     1     0     0     0     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     3 0.6204326     5     0 72.56287     0     0     0     0     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     3 1.7026126     3     0 72.56287     0     0     0     1     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     3 3.0377237     3     0 72.56287     0     0     0     2     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     3 5.0000000     0     0 72.56287     1     0     0     2     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     4 0.6492432     9     0 74.33295     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     4 5.0000000     0     0 74.33295     1     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13:     5 0.2331259     0     1 75.94237     1     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14:     6 0.6888628     6     0 71.33176     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15:     6 4.5023959     1     0 71.33176     0     1     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16:     7 1.9806641     0     1 76.62502     1     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17:     8 0.9035064     2     0 75.68919     0     0     1     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18:     9 5.0000000     0     1 72.06932     1     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19:    10 2.8127428     8     1 70.26848     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20:    10 2.8358377     1     1 70.26848     0     1     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        ID      Time Delta    L0       A0    N0    N1    N2    N3    N4    N5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;     &lt;num&gt; &lt;int&gt; &lt;num&gt;    &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        N6    N7    N8    N9   N10   N11</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  1:     0     1     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     0     1     0     0     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     0     1     0     0     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     0     1     0     0     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     0     1     1     0     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     0     1     1     0     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     0     1     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     0     0     0     0     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     0     1     0     0     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     0     1     0     0     0     1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  7:     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     0     0     0     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     1     0     0     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     1     0     1     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     1     0     2     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     1     0     2     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13:     1     1     2     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14:     1     1     2     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15:     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     0     0     0     1     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     0     0     0     1     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13:     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14:     1     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15:     1     0     0     0     0     0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 16:     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17:     0     0     0     1     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18:     1     0     0     1     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 19:     1     0     0     1     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20:     0     0     0     1     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 21:     0     0     0     2     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 22:     0     0     0     2     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 23:     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 24:     1     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 25:     1     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 26:     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 27:     0     0     0     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 28:     0     0     1     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 29:     0     0     1     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 30:     0     0     1     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 31:     0     0     1     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 32:     0     0     1     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 33:     0     0     2     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 34:     0     0     2     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17:     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18:     0     0     0     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19:     0     0     1     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20:     0     0     1     0     0     0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        N6    N7    N8    N9   N10   N11</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
 <span class="r-in"><span></span></span>
