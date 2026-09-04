@@ -29,13 +29,14 @@ simEventDataTdPhi(
 
 \item{beta}{Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). Default is a zero matrix.}
 
-\item{beta2}{Numeric vector. Regression coefficients corresponding to the effect of time since last event on the events (N0, N1, ...). Default is 0 for all events (no time-decay effect).}
+\item{beta2}{Numeric vector. Regression coefficients corresponding to the effect of time since
+last event on the events (N0, N1, ...). Default is 0 for all events (no time-decay effect).}
 
 \item{eta}{Numeric vector. Shape parameters of the Weibull baseline intensity for each event type. Default is 0.1 for all events.}
 
 \item{nu}{Numeric vector. Scale parameters of the Weibull baseline intensity for each event type. Default is 1.1 for all events.}
 
-\item{at_risk}{Function. Function determining if an individual is at risk for each event type, given their current event counts. Takes a numeric vector events and returns a binary vector. Default returns 1 for all events.}
+\item{at_risk}{Function. Function determining if an individual is at risk for each event type, given their current event counts. Takes a numeric vector of event counts and returns a binary vector. Default returns 1 for all events.}
 
 \item{term_deltas}{Integer vector. Event types considered terminal (after which no further events occur). Default is c(0, 1).}
 
@@ -53,9 +54,9 @@ simEventDataTdPhi(
 
 \item{gen_A0}{Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.}
 
-\item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a N(0,1) random variable.}
+\item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.}
 
-\item{at_risk_cov}{Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a numeric vector covariates and returns a binary vector. Default returns 1 for all events.}
+\item{at_risk_cov}{Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a matrix of covariates and returns a binary matrix. Default returns 1 for all events and all individuals.}
 
 \item{...}{Additional technical arguments.}
 }
@@ -88,10 +89,16 @@ Here, \eqn{L} is the vector of covariates and event counts, and \eqn{\beta^x} is
 the vector of coefficients representing the effect of covariates and previous events on the intensity.
 Additionally, the intensity decays (or grows) exponentially with the time since the most
 recent occurrence of event \eqn{x}, controlled by \code{beta2}.
+
+Every simulated dataset includes two fixed baseline covariates, \code{L0} and
+\code{A0}, in addition to any covariates supplied via \code{add_cov}. \code{L0}
+is a baseline covariate and \code{A0} is a baseline treatment indicator whose
+generator can depend on \code{L0}. Their distributions can be changed via
+\code{gen_L0}/\code{gen_A0}.
 }
 \examples{
 # Simulate data for 10 individuals with default settings
-sim_data <- simEventDataTdPhi(N = 10, beta2 = c(0.01,0.01,0.01,0.01))
+sim_data <- simEventDataTdPhi(N = 10, beta2 = rep(0.01, 4))
 head(sim_data)
 
 }

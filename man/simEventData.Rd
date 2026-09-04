@@ -83,6 +83,12 @@ where the baseline intensity follows a Weibull hazard function:
 }
 Here, \eqn{L} is the vector of covariates and event counts, and \eqn{\beta^x} is
 the vector of coefficients representing the effect of covariates and previous events on the intensity.
+
+Every simulated dataset includes two fixed baseline covariates, \code{L0} and
+\code{A0}, in addition to any covariates supplied via \code{add_cov}. \code{L0}
+is a baseline covariate and \code{A0} is a baseline treatment indicator whose
+generator can depend on \code{L0}. Their distributions can be changed via
+\code{gen_L0}/\code{gen_A0}.
 }
 \examples{
 # Simulate data for 10 individuals with default settings

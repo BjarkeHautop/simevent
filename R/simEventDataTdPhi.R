@@ -18,40 +18,24 @@
 #' Additionally, the intensity decays (or grows) exponentially with the time since the most
 #' recent occurrence of event \eqn{x}, controlled by \code{beta2}.
 #'
-#' @param N Integer. Number of individuals to simulate.
-#' @param beta Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). Default is a zero matrix.
-#' @param beta2 Numeric vector. Regression coefficients corresponding to the effect of time since last event on the events (N0, N1, ...). Default is 0 for all events (no time-decay effect).
-#' @param eta Numeric vector. Shape parameters of the Weibull baseline intensity for each event type. Default is 0.1 for all events.
-#' @param nu Numeric vector. Scale parameters of the Weibull baseline intensity for each event type. Default is 1.1 for all events.
-#' @param at_risk Function. Function determining if an individual is at risk for each event type, given their current event counts. Takes a numeric vector events and returns a binary vector. Default returns 1 for all events.
-#' @param term_deltas Integer vector. Event types considered terminal (after which no further events occur). Default is c(0, 1).
-#' @param max_cens Numeric. Maximum censoring time. Events occurring after this time are censored. Default is Inf (no maximal censoring).
-#' @param add_cov Named list of functions. Functions generating additional baseline covariates. Each function takes integer N and returns a numeric vector of length N. Default is NULL.
-#' @param override_beta Named list. Used to specify entries of the \code{beta} matrix to override defaults. For example, \code{list("L0" = c("N1" = 2))} sets the effect of L0 on N1 to 2.
-#' @param max_events Integer. Maximum number of events to simulate per individual. Default is 10.
-#' @param lower Numeric. Lower bound for root-finding in inverse cumulative hazard calculations. Default is \eqn{10^{-15}}.
-#' @param upper Numeric. Upper bound for root-finding in inverse cumulative hazard calculations. Default is 200.
-#' @param gen_A0 Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.
-#' @param gen_L0 Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a N(0,1) random variable.
-#' @param at_risk_cov Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a numeric vector covariates and returns a binary vector. Default returns 1 for all events.
-#' @param ... Additional technical arguments.
+#' Every simulated dataset includes two fixed baseline covariates, \code{L0} and
+#' \code{A0}, in addition to any covariates supplied via \code{add_cov}. \code{L0}
+#' is a baseline covariate and \code{A0} is a baseline treatment indicator whose
+#' generator can depend on \code{L0}. Their distributions can be changed via
+#' \code{gen_L0}/\code{gen_A0}.
 #'
-#' @return A \code{data.table} with columns:
-#' \item{ID}{Individual identifier}
-#' \item{Time}{Time of event}
-#' \item{Delta}{Event type at time}
-#' \item{L0}{Baseline covariate}
-#' \item{A0}{Baseline treatment}
-#' \item{L1, L2, ...}{Additional baseline covariates if specified}
-#' \item{N0, N1, ...}{Event counts up to the current event}
+#' @inheritParams simEventData
+#' @param beta2 Numeric vector. Regression coefficients corresponding to the effect of time since
+#' last event on the events (N0, N1, ...). Default is 0 for all events (no time-decay effect).
+#'
+#' @inherit simEventData return
 #'
 #' @examples
 #' # Simulate data for 10 individuals with default settings
-#' sim_data <- simEventDataTdPhi(N = 10, beta2 = c(0.01,0.01,0.01,0.01))
+#' sim_data <- simEventDataTdPhi(N = 10, beta2 = rep(0.01, 4))
 #' head(sim_data)
 #'
 #' @export
-
 simEventDataTdPhi <- function(
   N, # Number of individuals
   beta = NULL, # Effects of covariates and processes

@@ -16,6 +16,12 @@
 #' Here, \eqn{L} is the vector of covariates and event counts, and \eqn{\beta^x} is
 #' the vector of coefficients representing the effect of covariates and previous events on the intensity.
 #'
+#' Every simulated dataset includes two fixed baseline covariates, \code{L0} and
+#' \code{A0}, in addition to any covariates supplied via \code{add_cov}. \code{L0}
+#' is a baseline covariate and \code{A0} is a baseline treatment indicator whose
+#' generator can depend on \code{L0}. Their distributions can be changed via
+#' \code{gen_L0}/\code{gen_A0}.
+#'
 #' @param N Integer. Number of individuals to simulate.
 #' @param beta Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). Default is a zero matrix.
 #' @param eta Numeric vector. Shape parameters of the Weibull baseline intensity for each event type. Default is 0.1 for all events.
@@ -48,7 +54,6 @@
 #' head(sim_data)
 #'
 #' @export
-
 simEventData <- function(
   N, # Number of individuals
   beta = NULL, # Effects
