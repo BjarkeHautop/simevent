@@ -8,3 +8,8 @@
 ^pkgdown$
 ^vignettes/\.quarto$
 ^vignettes/*_files$
+^vignettes/figures/.*\.tex$
+^\.pre-commit-config\.yaml$
+^\.github$
+^air\.toml$
+^panache\.toml$

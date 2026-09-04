@@ -204,6 +204,6 @@
 
 .simEvent_finalize <- function(res_list) {
   res <- data.table::rbindlist(res_list)
-  data.table::setkey(res, ID)
+  data.table::setkeyv(res, "ID")
   res
 }

@@ -1,5 +1,5 @@
 ---
-title: "The simevent package"
+output: github_document
 ---
 
 ```{r}
@@ -42,10 +42,10 @@ library(simevent)
 ```
 
 At the core of the package is the flexible function `simEventData`, which
-simulates event history data from a Cox proportional hazards model with
-Weibull hazards. Users specify the number of events, and their intensity
-parameters and covariate effects, to create custom scenarios. On top of this,
-the package provides:
+simulates event history data from a Cox proportional hazards model with Weibull
+hazards. Users specify the number of events, and their intensity parameters and
+covariate effects, to create custom scenarios. On top of this, the package
+provides:
 
 - Wrapper functions for common settings, e.g. `simSurvData` (survival data),
   `simCRdata` (competing risks), `simDisease`, `simTreatment`, `simDropIn`, and
@@ -55,11 +55,11 @@ the package provides:
   `predict2` method).
 - `plotEventData` and `IntFormatData` for plotting and reformatting simulated
   data.
-- `alphaSim` and `intEffectAlpha` for performing and evaluating interventions
-  on the shape parameter of a process.
+- `alphaSim` and `intEffectAlpha` for performing and evaluating interventions on
+  the shape parameter of a process.
 
-A minimal example, simulating survival data for 100 individuals and plotting
-the event histories:
+A minimal example, simulating survival data for 100 individuals and plotting the
+event histories:
 
 ```{r}
 #| label: quick-example

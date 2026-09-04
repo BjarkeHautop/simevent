@@ -1,13 +1,8 @@
-The simevent package
-================
-
-- [simevent](#simevent)
-  - [Installation](#installation)
-  - [Usage](#usage)
 
 # simevent
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 The `simevent` package provides tools for simulating and analyzing
