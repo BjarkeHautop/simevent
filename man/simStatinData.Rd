@@ -23,11 +23,10 @@ simStatinData(
 \item{N}{Numeric scalar. Number of individuals to simulate.}
 
 \item{eta}{Numeric vector of length equal to number of processes. Shape parameters for Weibull
-intensities with parameterization
-\eqn{\eta \nu t^{\nu - 1}}. Defaults to \code{rep(0.1, 8)}.}
+intensities with parameterization \eqn{\eta \nu t^{\nu - 1}}. Defaults to \code{rep(0.025, 12)}.}
 
 \item{nu}{Numeric vector of length equal to number of processes. Scale parameters for the Weibull
-hazards. Defaults to \code{rep(1.1, 8)}.}
+hazards. Defaults to \code{rep(1.1, 12)}.}
 
 \item{beta}{Numeric matrix. Of dimension p times 6. Regression coefficients matrix where columns correspond
 to event types (N0, ..., N5) and rows correspond to covariates (L0, A0, L1, L2, ...) followed by event counts

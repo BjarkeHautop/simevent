@@ -12,8 +12,7 @@ test_that("simStatinData simulates data in the right way (explicit beta)", {
     eta = rep(0.2, 3),
     nu = rep(1.1, 3),
     beta = beta,
-    followup = 5,
-    max_events = 50
+    followup = 5
   )
 
   expect_true(all(
@@ -45,7 +44,7 @@ test_that("simStatinData simulates data in the right way (explicit beta)", {
 
 test_that("simStatinData default arguments produce the expected 12-process structure", {
   set.seed(201)
-  data_test <- simStatinData(500, max_events = 50)
+  data_test <- simStatinData(500)
 
   expected_names <- c("ID", "Time", "Delta", "L0", "A0", paste0("N", 0:11))
   expect_true(all(expected_names %in% names(data_test)))
@@ -55,14 +54,14 @@ test_that("simStatinData default arguments produce the expected 12-process struc
 
 test_that("simStatinData determines number of processes from eta alone", {
   set.seed(202)
-  data_test <- simStatinData(300, eta = rep(0.15, 4), max_events = 50)
+  data_test <- simStatinData(300, eta = rep(0.15, 4))
   expect_true(all(c("N0", "N1", "N2", "N3") %in% names(data_test)))
   expect_false("N4" %in% names(data_test))
 })
 
 test_that("simStatinData determines number of processes from nu alone", {
   set.seed(203)
-  data_test <- simStatinData(300, nu = rep(1.2, 5), max_events = 50)
+  data_test <- simStatinData(300, nu = rep(1.2, 5))
   expect_true(all(c("N0", "N1", "N2", "N3", "N4") %in% names(data_test)))
   expect_false("N5" %in% names(data_test))
 })
@@ -74,8 +73,7 @@ test_that("simStatinData works with a custom at_risk function", {
     300,
     eta = rep(0.15, 3),
     nu = rep(1.1, 3),
-    at_risk = at_risk_once,
-    max_events = 50
+    at_risk = at_risk_once
   )
   expect_true(nrow(data_test) > 0)
   # With at_risk_once every process can only fire once per individual
