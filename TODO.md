@@ -21,5 +21,7 @@
 - Improve vignette + docstrings. More clear introduction also in README/getting
   started.
 
+- Stop using `NULL` as default in ARGS; just give the actual default instead?
+
 - Consider using reftip + quarto call out blocks via my packages :). Either as
   pkgdown or using altdown.
