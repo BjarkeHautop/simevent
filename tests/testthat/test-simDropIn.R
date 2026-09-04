@@ -89,12 +89,57 @@ test_that("simDropIn works with a custom followup (censoring time)", {
   expect_true(all(data_test[, max(Time), by = ID]$V1 <= 2))
 })
 
-test_that("simDropIn errors for adherence = TRUE (documents current bug)", {
-  # NOTE: this currently fails due to an ordering bug in R/simDropIn.R --
-  # when adherence = TRUE, `eta` is extended to length 5 *before* the beta
-  # matrix rows are filled in with length-4 vectors, causing a recycling
-  # error. Flagged in the coverage-task report; not fixed here since fixing
-  # source is out of scope for this task.
+test_that("simDropIn simulates data in the right way (adherence = TRUE)", {
   set.seed(105)
-  expect_error(simDropIn(50, adherence = TRUE))
+  data_test <- simDropIn(4000, adherence = TRUE)
+
+  expect_true(all(
+    c("ID", "Time", "Delta", "L0", "A0", "Z", "L", "A") %in% names(data_test)
+  ))
+  expect_true(all(data_test$A %in% c(0, 1)))
+
+  # Transform data into tstart tstop format (C, D, Z, L, A -> 5 processes)
+  data_int <- IntFormatData(data_test, N_cols = 6:8)
+
+  survfit_death <- coxph(
+    Surv(tstart, tstop, Delta == 1) ~ L0 + A0 + Z + L + A,
+    data = data_int
+  )
+
+  # Default betas: beta_L0_D=1, beta_A0_D=-2, beta_Z_D=-1, beta_L_D=1.5,
+  # beta_A_D=-1
+  expect_true(
+    confint(survfit_death, level = 0.99)[1, 1] <= 1 &
+      1 <= confint(survfit_death, level = 0.99)[1, 2]
+  )
+  expect_true(
+    confint(survfit_death, level = 0.99)[2, 1] <= -2 &
+      -2 <= confint(survfit_death, level = 0.99)[2, 2]
+  )
+  expect_true(
+    confint(survfit_death, level = 0.99)[3, 1] <= -1 &
+      -1 <= confint(survfit_death, level = 0.99)[3, 2]
+  )
+  expect_true(
+    confint(survfit_death, level = 0.99)[4, 1] <= 1.5 &
+      1.5 <= confint(survfit_death, level = 0.99)[4, 2]
+  )
+  expect_true(
+    confint(survfit_death, level = 0.99)[5, 1] <= -1 &
+      -1 <= confint(survfit_death, level = 0.99)[5, 2]
+  )
+})
+
+test_that("simDropIn works with adherence = TRUE and a t_prime time-varying effect", {
+  set.seed(106)
+  data_test <- simDropIn(
+    500,
+    adherence = TRUE,
+    t_prime = 1,
+    beta_A_D_prime = 1
+  )
+  expect_true(all(
+    c("ID", "Time", "Delta", "L0", "A0", "Z", "L", "A") %in% names(data_test)
+  ))
+  expect_true(nrow(data_test) > 0)
 })

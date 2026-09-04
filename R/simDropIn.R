@@ -157,7 +157,7 @@ simDropIn <- function(
     }
   }
 
-  beta <- matrix(ncol = length(eta), nrow = 2 + length(eta))
+  beta <- matrix(ncol = 4, nrow = 6)
   # The effect of L0 on the processes C, D, Z, L
   beta[1, ] <- c(beta_L0_C, beta_L0_D, beta_L0_Z, beta_L0_L)
   # The effect of A0 on the processes C, D, Z, L
@@ -175,7 +175,7 @@ simDropIn <- function(
   }
 
   if (!is.null(t_prime)) {
-    beta_prime <- matrix(ncol = length(eta), nrow = 2 + length(eta))
+    beta_prime <- matrix(ncol = 4, nrow = 6)
     # The additional effect of L0 on the processes C, D, Z, L after t_prime
     beta_prime[1, ] <- c(
       beta_L0_C_prime,
