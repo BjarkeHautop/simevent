@@ -1,5 +1,7 @@
 # Changelog
 
+## simevent (development version)
+
 ## simevent 0.1.1
 
 CRAN release: 2026-04-24

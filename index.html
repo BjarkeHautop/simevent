@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">simevent</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,15 +57,17 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version of <code>simevent</code> from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<p>You can install the stable version of simevent from CRAN with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"miclukacova/simevent"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"simevent"</span><span class="op">)</span></span></code></pre></div>
+<p>or the development version of simevent from GitHub using pak:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"miclukacova/simevent"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/miclukacova/simevent">simevent</a></span><span class="op">)</span></span></code></pre></div>
 <p>At the core of the package is the flexible function <code>simEventData</code>, which simulates event history data from a Cox proportional hazards model with Weibull hazards. Users specify the number of events, and their intensity parameters and covariate effects, to create custom scenarios. On top of this, the package provides:</p>
 <ul>
@@ -77,11 +79,16 @@
 <code>alphaSim</code> and <code>intEffectAlpha</code> for performing and evaluating interventions on the shape parameter of a process.</li>
 </ul>
 <p>A minimal example, simulating survival data for 100 individuals and plotting the event histories:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simSurvData.html">simSurvData</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/plotEventData.html">plotEventData</a></span><span class="op">(</span><span class="va">data</span>, title <span class="op">=</span> <span class="st">"Survival Data"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-quick-example-1.png" alt="" width="100%"></p>
 <p>For a full walkthrough of the simulation framework and all of the functions above, see <code><a href="articles/simevent.html">vignette("simevent")</a></code>.</p>
+</div>
+<div class="section level2">
+<h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
+</h2>
+<p>All contributions are welcome!</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

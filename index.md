@@ -7,12 +7,17 @@ progression, and health factors.
 
 ## Installation
 
-You can install the development version of `simevent` from
-[GitHub](https://github.com/) with:
+You can install the stable version of simevent from CRAN with:
 
 ``` r
 
-# install.packages("pak")
+install.packages("simevent")
+```
+
+or the development version of simevent from GitHub using pak:
+
+``` r
+
 pak::pak("miclukacova/simevent")
 ```
 
@@ -54,3 +59,7 @@ plotEventData(data, title = "Survival Data")
 For a full walkthrough of the simulation framework and all of the
 functions above, see
 [`vignette("simevent")`](https://github.com/miclukacova/simevent/articles/simevent.md).
+
+## Contributing
+
+All contributions are welcome!
