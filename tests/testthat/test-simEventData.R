@@ -107,3 +107,65 @@ test_that("simEventData does not error when max_events is sufficient", {
     simEventData(100, max_events = 1000)
   )
 })
+
+test_that("a non-terminal event produces multiple rows per ID", {
+  set.seed(1)
+  N <- 500
+  at_risk <- function(events) {
+    c(0, 1, 1) # censoring off, outcome1 and z always at risk, z repeatable
+  }
+  dt <- simEventData(
+    N,
+    beta = matrix(0, nrow = 5, ncol = 3),
+    eta = c(0.1, 0.3, 0.2),
+    nu = c(1, 1, 1),
+    at_risk = at_risk,
+    term_deltas = c(0, 1),
+    max_events = 100
+  )
+
+  expect_gt(nrow(dt), N)
+  expect_equal(data.table::uniqueN(dt$ID), N)
+  # Exactly one terminal (Delta == 1) row per individual
+  expect_equal(sum(dt$Delta == 1), N)
+})
+
+test_that("an unrelated non-terminal process with a true zero effect does not bias another process's marginal distribution", {
+  set.seed(3)
+  N <- 20000
+  tau <- 1
+  process_order <- c("censoring", "outcome1", "z")
+  eta <- c(0.1, 0.3, 0.2)
+  nu <- c(1, 1, 1)
+
+  beta <- matrix(0, nrow = 5, ncol = 3)
+  rownames(beta) <- c("L0", "A0", process_order)
+  colnames(beta) <- process_order
+  beta["L0", "z"] <- 0.5 # z depends on L0
+  beta["z", "outcome1"] <- 0 # true zero effect of z on outcome1
+
+  at_risk <- function(events) {
+    out <- numeric(3)
+    names(out) <- process_order
+    out["censoring"] <- 0
+    out["outcome1"] <- 1
+    out["z"] <- as.numeric(events[3] == 0) # at most one z event
+    out
+  }
+
+  dt <- simEventData(
+    N,
+    beta = beta,
+    eta = eta,
+    nu = nu,
+    at_risk = at_risk,
+    term_deltas = c(0, 1),
+    max_events = 50,
+    gen_L0 = function(N) rnorm(N)
+  )
+
+  p_hat <- sum(dt$Delta == 1 & dt$Time <= tau) / N
+  p_true <- 1 - exp(-eta[2] * tau)
+
+  expect_equal(p_hat, p_true, tolerance = 0.02)
+})
