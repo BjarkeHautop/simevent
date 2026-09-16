@@ -18,6 +18,7 @@ reference:
   - simEventData
   - simEventTV
   - simEventDataTdPhi
+  - sim.generic
   - simSurvData
   - simCRdata
   - simDisease
@@ -38,6 +39,7 @@ reference:
   contents:
   - simEventCox
   - simEventObj
+  - sim.from.data
 
 - title: Interventions
   desc: >

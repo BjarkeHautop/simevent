@@ -1,7 +1,9 @@
 Package: simevent
 Title: Simulation and Analysis of Event History Data
 Version: 0.1.1.9000
-Authors@R: person("Michaela", "Lukacova", , "michaela.lukacova@sund.ku.dk", role = c("aut", "cre"))
+Authors@R: c(
+    person("Michaela", "Lukacova", , "michaela.lukacova@sund.ku.dk", role = c("aut", "cre")),
+    person("Helene", "Charlotte Wiese Rytgaard", role = "ctb", comment = "Original author of sim.generic()/sim.from.data(), ported from MultiStateTMLE"))
 Description: Simulate event history data from a framework where treatment decisions 
     and disease progression are represented as counting process. The user can specify 
     number of events and parameters of intensities thereby creating a flexible 
