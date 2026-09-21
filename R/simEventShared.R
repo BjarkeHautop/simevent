@@ -42,21 +42,53 @@
   }
 }
 
-.simEvent_default_beta <- function(beta, N_stop, num_events) {
-  beta <- if (!is.null(beta)) {
-    beta
-  } else {
-    matrix(0, nrow = N_stop, ncol = num_events)
+# Builds the canonical N_stop x num_events beta matrix, named by
+# c(cov_names, event_names). A user-supplied beta with rownames is matched by
+# name (any order, any subset of full_names); missing rows default to 0. A
+# user-supplied beta without rownames falls back to the historical positional
+# behavior, requiring exactly N_stop rows in c(cov_names, event_names) order.
+.simEvent_default_beta <- function(beta, N_stop, num_events, cov_names) {
+  event_names <- paste0("N", seq(0, num_events - 1))
+  full_names <- c(cov_names, event_names)
+
+  if (is.null(beta)) {
+    beta <- matrix(0, nrow = N_stop, ncol = num_events)
+    rownames(beta) <- full_names
+    colnames(beta) <- event_names
+    return(beta)
   }
-  colnames(beta) <- paste0("N", seq(0, num_events - 1))
+
+  colnames(beta) <- event_names
+
+  if (!is.null(rownames(beta))) {
+    unknown <- setdiff(rownames(beta), full_names)
+    if (length(unknown) > 0) {
+      stop(
+        "Unknown name(s) in rownames(beta): ",
+        paste(unknown, collapse = ", "),
+        ". Expected names are a subset of: ",
+        paste(full_names, collapse = ", ")
+      )
+    }
+    full_beta <- matrix(0, nrow = length(full_names), ncol = num_events)
+    rownames(full_beta) <- full_names
+    colnames(full_beta) <- event_names
+    full_beta[rownames(beta), ] <- beta
+    return(full_beta)
+  }
 
   if (N_stop != nrow(beta)) {
     stop(
-      "Number of rows in beta should equal the sum of number of events and
-         number of additional covariates + 2"
+      "Number of rows in beta should equal the sum of number of events and ",
+      "number of covariates (",
+      N_stop,
+      "). Alternatively, give beta ",
+      "rownames matching covariate/event names so rows can be matched by ",
+      "name instead of position."
     )
   }
 
+  rownames(beta) <- full_names
   beta
 }
 
@@ -79,36 +111,47 @@
   at_risk
 }
 
-.simEvent_default_gen <- function(gen_A0, gen_L0) {
-  if (is.null(gen_A0)) {
-    gen_A0 <- function(N, L0) stats::rbinom(N, 1, 0.5)
+# Builds the ordered list of baseline covariate generators: L0 and A0 (from
+# gen_L0/gen_A0, or their entries in add_cov, or defaults), followed by the
+# remaining add_cov entries in the order supplied. gen_L0/gen_A0 are
+# deprecated in favor of putting "L0"/"A0" entries directly in add_cov, but
+# are still supported and merged in here for backwards compatibility.
+.simEvent_build_cov_generators <- function(add_cov, gen_L0, gen_A0) {
+  if (is.null(add_cov)) {
+    add_cov <- list()
   }
-  if (is.null(gen_L0)) {
-    gen_L0 <- function(N) stats::runif(N)
+  if (
+    ("L0" %in% names(add_cov) && !is.null(gen_L0)) ||
+      ("A0" %in% names(add_cov) && !is.null(gen_A0))
+  ) {
+    stop(
+      "Specify baseline covariates L0/A0 either via gen_L0/gen_A0 or via ",
+      "add_cov (e.g. add_cov = list(L0 = ..., A0 = ...)), not both."
+    )
   }
-  list(gen_A0 = gen_A0, gen_L0 = gen_L0)
+
+  if (!("A0" %in% names(add_cov))) {
+    if (is.null(gen_A0)) {
+      gen_A0 <- function(N, L0) stats::rbinom(N, 1, 0.5)
+    }
+    add_cov <- c(list(A0 = gen_A0), add_cov)
+  }
+  if (!("L0" %in% names(add_cov))) {
+    if (is.null(gen_L0)) {
+      gen_L0 <- function(N) stats::runif(N)
+    }
+    add_cov <- c(list(L0 = gen_L0), add_cov)
+  }
+
+  # L0 must precede A0, since the default A0 generator depends on L0; keep
+  # the relative order of any other add_cov entries as supplied.
+  ord <- c("L0", "A0", setdiff(names(add_cov), c("L0", "A0")))
+  add_cov[ord]
 }
 
-.simEvent_build_simmatrix <- function(
-  N,
-  num_events,
-  num_add_cov,
-  add_cov,
-  beta
-) {
-  simmatrix <- matrix(0, nrow = N, ncol = (2 + num_events + num_add_cov))
-
-  if (is.null(names(add_cov)) && num_add_cov != 0) {
-    colnames(simmatrix) <- c(
-      "L0",
-      "A0",
-      paste0("L", seq_len(num_add_cov)),
-      colnames(beta)
-    )
-  } else {
-    colnames(simmatrix) <- c("L0", "A0", names(add_cov), colnames(beta))
-  }
-
+.simEvent_build_simmatrix <- function(N, num_events, cov_names, beta) {
+  simmatrix <- matrix(0, nrow = N, ncol = length(cov_names) + num_events)
+  colnames(simmatrix) <- c(cov_names, colnames(beta))
   simmatrix
 }
 
@@ -130,21 +173,32 @@
   beta
 }
 
-.simEvent_draw_baseline <- function(
-  simmatrix,
-  N,
-  num_add_cov,
-  add_cov,
-  gen_L0,
-  gen_A0
-) {
-  simmatrix[, 1] <- gen_L0(N) # L0
-  simmatrix[, 2] <- gen_A0(N, simmatrix[, 1]) # A0
+# Draws baseline covariates sequentially (in the order of `covs`), so a
+# generator may depend on any covariate drawn before it: a generator's
+# formal arguments (besides N) are matched by name against covariates
+# already drawn, and passed in automatically.
+.simEvent_draw_baseline <- function(simmatrix, N, covs) {
+  drawn <- list()
 
-  if (num_add_cov != 0) {
-    simmatrix[, 3:(2 + length(add_cov))] <- sapply(add_cov, function(f) f(N))
+  for (nm in names(covs)) {
+    f <- covs[[nm]]
+    arg_names <- setdiff(names(formals(f)), "N")
+    missing_args <- setdiff(arg_names, names(drawn))
+    if (length(missing_args) > 0) {
+      stop(
+        "add_cov generator '",
+        nm,
+        "' depends on '",
+        paste(missing_args, collapse = ", "),
+        "', which has not been generated yet. A covariate can only depend ",
+        "on covariates defined earlier in add_cov (L0 and A0, if used, are ",
+        "always generated first)."
+      )
+    }
+    drawn[[nm]] <- do.call(f, c(list(N = N), drawn[arg_names]))
   }
 
+  simmatrix[, names(covs)] <- do.call(cbind, drawn)
   simmatrix
 }
 

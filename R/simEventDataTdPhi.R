@@ -60,20 +60,21 @@ simEventDataTdPhi <- function(
   ############################ Check and useful quantities #####################
   .simEvent_validate_add_cov(add_cov)
 
-  # Number of additional baseline covariates
-  num_add_cov <- length(add_cov)
+  # Ordered list of baseline covariate generators (L0, A0, then add_cov)
+  covs <- .simEvent_build_cov_generators(add_cov, gen_L0, gen_A0)
+  num_cov <- length(covs)
 
   # Determine number of events
   num_events <- .simEvent_num_events(eta, nu, beta)
 
   # Useful indices
-  N_start <- 3 + num_add_cov
-  N_stop <- 2 + num_add_cov + num_events
+  N_start <- num_cov + 1
+  N_stop <- num_cov + num_events
 
   ############################ Default values ##################################
 
   # Set default values for beta, eta, and nu
-  beta <- .simEvent_default_beta(beta, N_stop, num_events)
+  beta <- .simEvent_default_beta(beta, N_stop, num_events, names(covs))
   beta2 <- if (!is.null(beta2)) beta2 else rep(0, num_events)
   eta_nu <- .simEvent_default_eta_nu(eta, nu, beta, num_events)
   eta <- eta_nu$eta
@@ -82,21 +83,8 @@ simEventDataTdPhi <- function(
   # Default at_risk
   at_risk <- .simEvent_default_at_risk(at_risk, num_events)
 
-  # Default A0 and L0 generation
-  gens <- .simEvent_default_gen(gen_A0, gen_L0)
-  gen_A0 <- gens$gen_A0
-  gen_L0 <- gens$gen_L0
-
   # Matrix for storing values
-  simmatrix <- .simEvent_build_simmatrix(
-    N,
-    num_events,
-    num_add_cov,
-    add_cov,
-    beta
-  )
-
-  rownames(beta) <- colnames(simmatrix)
+  simmatrix <- .simEvent_build_simmatrix(N, num_events, names(covs), beta)
 
   # Filling out beta matrix
   beta <- .simEvent_apply_override_beta(beta, override_beta)
@@ -124,14 +112,7 @@ simEventDataTdPhi <- function(
   ############################ Initializing Simulations ########################
 
   # Draw baseline covariates
-  simmatrix <- .simEvent_draw_baseline(
-    simmatrix,
-    N,
-    num_add_cov,
-    add_cov,
-    gen_L0,
-    gen_A0
-  )
+  simmatrix <- .simEvent_draw_baseline(simmatrix, N, covs)
 
   # Covariate dependent at_risk
   at_risk_cov <- .simEvent_at_risk_cov(
@@ -220,8 +201,8 @@ simEventDataTdPhi <- function(
     T_star[cbind(alive, Deltas + 1)] <- T_k[alive]
 
     # Update event counts
-    simmatrix[cbind(alive, 2 + num_add_cov + Deltas + 1)] <-
-      simmatrix[cbind(alive, 2 + num_add_cov + Deltas + 1)] + 1
+    simmatrix[cbind(alive, num_cov + Deltas + 1)] <-
+      simmatrix[cbind(alive, num_cov + Deltas + 1)] + 1
 
     # Store data
     res_list[[idx]] <- .simEvent_store_result(alive, T_k, Deltas, simmatrix)

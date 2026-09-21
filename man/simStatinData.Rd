@@ -44,7 +44,7 @@ Default is age, drawn as \code{Exponential(0.3) + 70} capped at 100.}
 \item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as input. Default is a
 Bernoulli(0.4) random variable.}
 
-\item{add_cov}{Named list of functions. Functions generating additional baseline covariates. Each function takes integer N and returns a numeric vector of length N. Default is NULL.}
+\item{add_cov}{Named list of functions. Functions generating baseline covariates, drawn in list order after \code{L0}/\code{A0} (unless the list itself supplies "L0"/"A0", replacing the defaults). Each function takes integer N and, optionally, any subset of the names of covariates defined earlier (including L0/A0), matched by argument name, and returns a numeric vector of length N. Default is NULL.}
 
 \item{at_risk}{Function. Function determining if an individual is at risk for each event type, given their current event counts. Takes a numeric vector of event counts and returns a binary vector. Default returns 1 for all events.}
 

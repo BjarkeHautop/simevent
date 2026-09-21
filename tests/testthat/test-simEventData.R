@@ -138,11 +138,12 @@ test_that("an unrelated non-terminal process with a true zero effect does not bi
   eta <- c(0.1, 0.3, 0.2)
   nu <- c(1, 1, 1)
 
+  # process_order maps to event columns N0 (censoring), N1 (outcome1), N2 (z)
   beta <- matrix(0, nrow = 5, ncol = 3)
-  rownames(beta) <- c("L0", "A0", process_order)
-  colnames(beta) <- process_order
-  beta["L0", "z"] <- 0.5 # z depends on L0
-  beta["z", "outcome1"] <- 0 # true zero effect of z on outcome1
+  rownames(beta) <- c("L0", "A0", "N0", "N1", "N2")
+  colnames(beta) <- c("N0", "N1", "N2")
+  beta["L0", "N2"] <- 0.5 # z depends on L0
+  beta["N2", "N1"] <- 0 # true zero effect of z on outcome1
 
   at_risk <- function(events) {
     out <- numeric(3)

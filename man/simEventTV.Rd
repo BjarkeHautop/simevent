@@ -27,7 +27,7 @@ simEventTV(
 \arguments{
 \item{N}{Integer. Number of individuals to simulate.}
 
-\item{beta}{Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). Default is a zero matrix.}
+\item{beta}{Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). If \code{beta} has rownames, rows are matched by name against covariate/event names (any order, any subset; missing rows default to 0) instead of requiring a fixed row order. Default is a zero matrix.}
 
 \item{tv_eff}{Matrix. Time-varying changes to \code{beta}, applied at time \code{t_prime}. Must have same dimensions as \code{beta}.}
 
@@ -43,7 +43,7 @@ simEventTV(
 
 \item{max_cens}{Numeric. Maximum censoring time. Events occurring after this time are censored. Default is Inf (no maximal censoring).}
 
-\item{add_cov}{Named list of functions. Functions generating additional baseline covariates. Each function takes integer N and returns a numeric vector of length N. Default is NULL.}
+\item{add_cov}{Named list of functions. Functions generating baseline covariates, drawn in list order after \code{L0}/\code{A0} (unless the list itself supplies "L0"/"A0", replacing the defaults). Each function takes integer N and, optionally, any subset of the names of covariates defined earlier (including L0/A0), matched by argument name, and returns a numeric vector of length N. Default is NULL.}
 
 \item{override_beta}{Named list. Used to specify entries of the \code{beta} matrix to override defaults. For example, \code{list("L0" = c("N1" = 2))} sets the effect of L0 on N1 to 2.}
 
@@ -53,9 +53,9 @@ simEventTV(
 
 \item{upper}{Numeric. Upper bound for root-finding in inverse cumulative hazard calculations. Default is 200.}
 
-\item{gen_A0}{Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.}
+\item{gen_A0}{Function. Deprecated; use \code{add_cov = list(A0 = ...)} instead. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.}
 
-\item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.}
+\item{gen_L0}{Function. Deprecated; use \code{add_cov = list(L0 = ...)} instead. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.}
 
 \item{at_risk_cov}{Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a matrix of covariates and returns a binary matrix. Default returns 1 for all events and all individuals.}
 }

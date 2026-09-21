@@ -26,7 +26,7 @@ simEventData(
 \arguments{
 \item{N}{Integer. Number of individuals to simulate.}
 
-\item{beta}{Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). Default is a zero matrix.}
+\item{beta}{Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). If \code{beta} has rownames, rows are matched by name against covariate/event names (any order, any subset; missing rows default to 0) instead of requiring a fixed row order. Default is a zero matrix.}
 
 \item{eta}{Numeric vector. Shape parameters of the Weibull baseline intensity for each event type. Default is 0.1 for all events.}
 
@@ -38,7 +38,7 @@ simEventData(
 
 \item{max_cens}{Numeric. Maximum censoring time. Events occurring after this time are censored. Default is Inf (no maximal censoring).}
 
-\item{add_cov}{Named list of functions. Functions generating additional baseline covariates. Each function takes integer N and returns a numeric vector of length N. Default is NULL.}
+\item{add_cov}{Named list of functions. Functions generating baseline covariates, drawn in list order after \code{L0}/\code{A0} (unless the list itself supplies "L0"/"A0", replacing the defaults). Each function takes integer N and, optionally, any subset of the names of covariates defined earlier (including L0/A0), matched by argument name, and returns a numeric vector of length N. Default is NULL.}
 
 \item{override_beta}{Named list. Used to specify entries of the \code{beta} matrix to override defaults. For example, \code{list("L0" = c("N1" = 2))} sets the effect of L0 on N1 to 2.}
 
@@ -48,9 +48,9 @@ simEventData(
 
 \item{upper}{Numeric. Upper bound for root-finding in inverse cumulative hazard calculations. Default is 200.}
 
-\item{gen_A0}{Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.}
+\item{gen_A0}{Function. Deprecated; use \code{add_cov = list(A0 = ...)} instead. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.}
 
-\item{gen_L0}{Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.}
+\item{gen_L0}{Function. Deprecated; use \code{add_cov = list(L0 = ...)} instead. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.}
 
 \item{at_risk_cov}{Function. Function determining if an individual is at risk for each event type, given their covariates. Takes a matrix of covariates and returns a binary matrix. Default returns 1 for all events and all individuals.}
 
@@ -84,11 +84,15 @@ where the baseline intensity follows a Weibull hazard function:
 Here, \eqn{L} is the vector of covariates and event counts, and \eqn{\beta^x} is
 the vector of coefficients representing the effect of covariates and previous events on the intensity.
 
-Every simulated dataset includes two fixed baseline covariates, \code{L0} and
-\code{A0}, in addition to any covariates supplied via \code{add_cov}. \code{L0}
-is a baseline covariate and \code{A0} is a baseline treatment indicator whose
-generator can depend on \code{L0}. Their distributions can be changed via
-\code{gen_L0}/\code{gen_A0}.
+Every simulated dataset includes two baseline covariates, \code{L0} (a
+baseline covariate, Uniform(0,1) by default) and \code{A0} (a baseline
+treatment indicator, Bernoulli(0.5) by default), followed by any
+covariates supplied via \code{add_cov}. \code{L0}/\code{A0} are just the
+first two entries of the covariate-generation list: a generator may depend
+on any covariate defined earlier in that list by name (e.g. the default
+\code{A0} generator takes \code{L0} as an argument), so \code{add_cov} can
+itself supply "L0"/"A0" entries, or later covariates conditional on
+earlier ones (see \code{add_cov} below).
 }
 \examples{
 # Simulate data for 10 individuals with default settings
