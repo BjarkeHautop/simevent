@@ -169,6 +169,14 @@ sim.generic <- function(
     beta[effect[1], effect[2]] <- as.numeric(effect[3])
   }
 
+  # simEventData() matches beta's rows by name when beta has rownames, but
+  # only against its own fixed L0/A0/add_cov/N0/N1/... names, which our
+  # descriptive process/baseline names above aren't drawn from. Drop the
+  # rownames so it falls back to positional matching instead, which the
+  # row order set above (L0, A0, other baseline vars, process order) already
+  # satisfies.
+  rownames(beta) <- NULL
+
   override_beta <- NULL
 
   if (browse) {

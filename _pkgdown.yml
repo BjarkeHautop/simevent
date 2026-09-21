@@ -13,12 +13,21 @@ reference:
 - title: Core simulation
   desc: >
     Functions for simulating event history data, built on the general-purpose
-    simEventData/simEventTV engine, plus ready-made wrappers for common settings.
+    simEventData/simEventTV engine.
   contents:
   - simEventData
   - simEventTV
   - simEventDataTdPhi
   - sim.generic
+
+- title: Preset wrappers (old)
+  desc: >
+    Ready-made wrappers for common settings, each hard-coding a fixed
+    baseline/process/effect specification on top of simEventData(). These
+    predate sim.generic() and are kept for backward compatibility, but
+    sim.generic() can reproduce any of them (and more) from a single general
+    interface --- see `vignette("sim-generic")`.
+  contents:
   - simSurvData
   - simCRdata
   - simDisease
