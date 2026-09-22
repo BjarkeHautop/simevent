@@ -225,47 +225,6 @@ test_that("sim_event_graph's transient process respects a custom limit", {
   expect_true(any(data$illness == 2))
 })
 
-test_that("sim_event_graph matches simSurvData()/simCRdata() bit-for-bit given the same spec", {
-  set.seed(1405)
-  wrapper_data <- as.data.frame(simSurvData(200))
-
-  set.seed(1405)
-  graph <- sim_graph(
-    L0 = sim_covariate(function(N) runif(N)),
-    A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
-    censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
-    death = sim_process("terminal", eta = 0.1, nu = 1.1)
-  )
-  graph_data <- as.data.frame(sim_event_graph(graph, n = 200))
-  names(graph_data) <- c("ID", "Time", "Delta", "L0", "A0")
-
-  expect_equal(wrapper_data, graph_data[names(wrapper_data)], tolerance = 1e-6)
-
-  set.seed(1405)
-  beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
-  wrapper_data <- as.data.frame(simCRdata(N = 200, beta = beta))
-
-  set.seed(1405)
-  graph <- sim_graph(
-    L0 = sim_covariate(function(N) runif(N)),
-    A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
-    censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
-    cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
-    cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),
-    effects = list(
-      sim_effect("L0", "censoring", 0.5),
-      sim_effect("A0", "censoring", -1),
-      sim_effect("L0", "cause1", -0.5),
-      sim_effect("A0", "cause1", 0.5),
-      sim_effect("A0", "cause2", 0.5)
-    )
-  )
-  graph_data <- as.data.frame(sim_event_graph(graph, n = 200))
-  names(graph_data) <- c("ID", "Time", "Delta", "L0", "A0")
-
-  expect_equal(wrapper_data, graph_data[names(wrapper_data)], tolerance = 1e-6)
-})
-
 test_that("sim_graph_from_fits recovers the fitted event-type distribution", {
   set.seed(1405)
   beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)

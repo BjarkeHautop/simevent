@@ -46,15 +46,15 @@ apply_intervention <- function(graph, intervene) {
 
 # For each process, the multiplicative hazard effect exp(sum of incoming
 # sim_effect() coefs * current value of their `from`), evaluated by name
-# against covariates/event counts. Returns an n x length(process_order)
-# matrix, for the vectorized time-sampling step.
+# against covariates/event counts. Returns a length(covariates[[1]]) x
+# length(process_names) matrix.
 process_hazard_multipliers <- function(
   effects,
   covariates,
   event_counts,
-  process_names,
-  n
+  process_names
 ) {
+  n <- length(event_counts[[1]])
   log_phi <- matrix(
     0,
     nrow = n,
@@ -75,11 +75,7 @@ process_hazard_multipliers <- function(
 # iteration of the simulation loop: the closed-form vectorized path when
 # every process shares one Weibull shape/scale (same_params), else the
 # per-individual numerical inverse (inverseScHazCpp) via inverseScHaz().
-# `v` is -log(runif(n)) for every individual (drawn once per iteration,
-# regardless of how many are alive, so the RNG draw count is stable across
-# iterations); only the entries for `alive` are used.
 sample_next_event_times <- function(
-  v,
   t_now,
   phi_alive,
   risk_alive,
@@ -89,6 +85,8 @@ sample_next_event_times <- function(
   lower,
   upper
 ) {
+  v <- -log(stats::runif(length(t_now)))
+
   if (same_params) {
     denom <- colSums(risk_alive * eta * t(phi_alive))
     (v / denom + t_now^nu[1])^(1 / nu[1]) - t_now
@@ -155,15 +153,16 @@ run_sim_graph <- function(
   process_order <- .sim_graph_process_order(graph)
   types <- vapply(graph$processes[process_order], `[[`, character(1), "type")
   term_deltas <- which(types %in% c("censoring", "terminal")) - 1L
+  transient_names <- process_order[types == "transient"]
 
   intervened <- apply_intervention(graph, intervene)
   covariates <- draw_baseline_covariates(intervened$covs, n)
 
-  eta <- unname(intervened$eta[process_order])
-  nu <- unname(stats::setNames(
+  eta <- intervened$eta[process_order]
+  nu <- stats::setNames(
     vapply(graph$processes[process_order], `[[`, numeric(1), "nu"),
     process_order
-  ))
+  )
   same_params <- all(nu[1] == nu) && all(eta[1] == eta)
 
   at_risk_fn <- .sim_graph_at_risk(graph, process_order, cens)
@@ -179,35 +178,18 @@ run_sim_graph <- function(
   idx <- 1
 
   while (length(alive) != 0) {
-    v <- -log(stats::runif(n))[alive]
+    covariates_alive <- lapply(covariates, `[`, alive)
+    event_counts_alive <- lapply(event_counts, `[`, alive)
 
-    phi <- process_hazard_multipliers(
+    phi_alive <- process_hazard_multipliers(
       graph$effects,
-      covariates,
-      event_counts,
-      process_order,
-      n
+      covariates_alive,
+      event_counts_alive,
+      process_order
     )
-    phi_alive <- phi[alive, , drop = FALSE]
-
-    events_alive <- vapply(
-      event_counts[process_order],
-      `[`,
-      numeric(length(alive)),
-      alive
-    )
-    dim(events_alive) <- c(length(alive), length(process_order))
-    colnames(events_alive) <- process_order
-
-    risk_alive <- vapply(
-      seq_len(nrow(events_alive)),
-      function(i) at_risk_fn(events_alive[i, ]),
-      numeric(length(process_order))
-    )
-    dim(risk_alive) <- c(length(process_order), length(alive))
+    risk_alive <- at_risk_fn(event_counts_alive)
 
     w <- sample_next_event_times(
-      v,
       t_k[alive],
       phi_alive,
       risk_alive,
@@ -242,8 +224,8 @@ run_sim_graph <- function(
       list(id = alive, time = t_k[alive], delta = deltas),
       lapply(covariates, `[`, alive),
       stats::setNames(
-        lapply(process_order, function(nm) event_counts[[nm]][alive]),
-        process_order
+        lapply(transient_names, function(nm) event_counts[[nm]][alive]),
+        transient_names
       )
     )
     res_list[[idx]] <- data.table::as.data.table(result_cols)
@@ -264,9 +246,5 @@ run_sim_graph <- function(
 
   res <- data.table::rbindlist(res_list)
   data.table::setkeyv(res, "id")
-
-  for (nm in process_order[types %in% c("censoring", "terminal")]) {
-    res[[nm]] <- NULL
-  }
   res[]
 }

@@ -278,20 +278,33 @@ print.sim_graph <- function(x, ...) {
 # A "transient" process is at risk only while its own count is still below
 # its limit (always true for the default limit = Inf); censoring's at-risk
 # indicator is scaled by `cens`; terminal processes are always at risk.
+# Returns a function of `event_counts` (a named list, one entry per process
+# in process_order, each a vector of per-individual counts) to a
+# length(process_order) x length(event_counts[[1]]) at-risk matrix, for all
+# individuals at once.
 .sim_graph_at_risk <- function(graph, process_order, cens) {
   types <- stats::setNames(
     vapply(graph$processes[process_order], `[[`, character(1), "type"),
     process_order
   )
   transient <- process_order[types == "transient"]
-  limit <- vapply(graph$processes[transient], `[[`, numeric(1), "limit")
-  names(limit) <- transient
+  limit <- stats::setNames(
+    vapply(graph$processes[transient], `[[`, numeric(1), "limit"),
+    transient
+  )
   censoring <- process_order[types == "censoring"]
 
-  function(events) {
-    at_risk <- stats::setNames(rep(1, length(process_order)), process_order)
-    at_risk[censoring] <- cens
-    at_risk[transient] <- as.numeric(events[transient] < limit[transient])
+  function(event_counts) {
+    at_risk <- matrix(
+      1,
+      nrow = length(process_order),
+      ncol = length(event_counts[[1]]),
+      dimnames = list(process_order, NULL)
+    )
+    at_risk[censoring, ] <- cens
+    for (nm in transient) {
+      at_risk[nm, ] <- as.numeric(event_counts[[nm]] < limit[nm])
+    }
     at_risk
   }
 }
