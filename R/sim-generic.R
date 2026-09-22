@@ -3,7 +3,8 @@
 #' `sim.generic` simulates multistate event history data from a set of
 #' user-specified baseline covariates, event processes (with Weibull
 #' intensities and Cox-type effects), and their effects on one another, by
-#' translating the specification into a call to \code{\link{simEventData}}.
+#' translating the specification into a \code{\link{sim_graph}()} and
+#' simulating from it.
 #'
 #' Where the preset wrapper functions (\code{\link{simCRdata}},
 #' \code{\link{simDisease}}, \code{\link{simSurvData}}, etc.) hard-code a
@@ -71,160 +72,47 @@ sim.generic <- function(
     effects <- sim.object$effects
   }
 
-  baseline.vars <- names(baseline)
+  covariate_nodes <- lapply(baseline, sim_covariate)
 
-  add_cov <- copy(baseline)
+  process_nodes <- lapply(processes, function(process) {
+    type <- switch(
+      process[["type"]],
+      censoring = "censoring",
+      terminal = "terminal",
+      "transient"
+    )
+    limit <- if (identical(process[["type"]], "one.jump")) 1 else Inf
+    sim_process(
+      type = type,
+      eta = process[["eta"]],
+      nu = process[["nu"]],
+      limit = limit
+    )
+  })
 
-  process.names <- names(processes)
+  effect_nodes <- lapply(effects, function(effect) {
+    sim_effect(effect[[1]], effect[[2]], as.numeric(effect[[3]]))
+  })
 
-  which.cens <- process.names[sapply(processes, function(process) {
-    process[["type"]] == "censoring"
-  })]
-  which.terminal <- process.names[sapply(processes, function(process) {
-    process[["type"]] == "terminal"
-  })]
-  which.one.jump <- setdiff(
-    process.names[sapply(processes, function(process) {
-      process[["type"]] == "one.jump"
-    })],
-    c(which.terminal, which.cens)
+  graph <- do.call(
+    sim_graph,
+    c(covariate_nodes, process_nodes, list(effects = effect_nodes))
   )
 
-  process.order <- c(
-    which.cens,
-    which.terminal,
-    setdiff(process.names, c(which.cens, which.terminal))
-  )
-
-  eta <- sapply(processes[process.order], function(process) process[["eta"]])
-  nu <- sapply(processes[process.order], function(process) process[["nu"]])
-
-  if (length(baseline.intervention) > 0) {
-    for (bname in names(baseline.intervention)) {
-      add_cov[[bname]] <- function(N) rep(baseline.intervention[[bname]], N)
-    }
-  }
-
-  if (length(alpha.intervention) > 0) {
-    for (alphaname in names(alpha.intervention)) {
-      eta[names(processes[process.order]) == alphaname] <-
-        alpha.intervention[[alphaname]] *
-        eta[names(processes[process.order]) == alphaname]
-    }
-  }
-
-  at_risk <- function(events) {
-    out <- numeric(length(process.order))
-
-    names(out) <- process.order
-
-    ## censoring
-    out[process.order %in% which.cens] <- cens
-
-    ## terminal events
-    out[process.order %in% which.terminal] <- 1
-
-    ## one jump
-    for (one.jump in which.one.jump) {
-      idx <- which(process.order == one.jump)
-      out[idx] <- as.numeric(events[idx] == 0)
-    }
-
-    ## recurrent
-    out[setdiff(
-      process.order,
-      c(which.cens, which.terminal, which.one.jump)
-    )] <- 1
-
-    return(out)
-  }
-
-  if (!("A0" %in% baseline.vars)) {
-    add_A0 <- 1
-  } else {
-    add_A0 <- 0
-  }
-
-  if (!("L0" %in% baseline.vars)) {
-    add_L0 <- 1
-  } else {
-    add_L0 <- 0
-  }
-
-  other.baseline.vars <- setdiff(baseline.vars, c("L0", "A0"))
-
-  beta <- matrix(
-    0,
-    nrow = length(process.order) + length(other.baseline.vars) + 2,
-    ncol = length(process.order)
-  )
-
-  # simEventData() always renames beta's rows to L0, A0, ... positionally
-  # (to match its internal simmatrix), so this order must be fixed
-  # regardless of whether L0/A0 were user-supplied or auto-added.
-  rownames(beta) <- c("L0", "A0", other.baseline.vars, process.order)
-  colnames(beta) <- process.order
-
-  for (effect in effects) {
-    beta[effect[1], effect[2]] <- as.numeric(effect[3])
-  }
-
-  # simEventData() matches beta's rows by name when beta has rownames, but
-  # only against its own fixed L0/A0/add_cov/N0/N1/... names, which our
-  # descriptive process/baseline names above aren't drawn from. Drop the
-  # rownames so it falls back to positional matching instead, which the
-  # row order set above (L0, A0, other baseline vars, process order) already
-  # satisfies.
-  rownames(beta) <- NULL
-
-  override_beta <- NULL
+  intervene <- c(baseline.intervention, alpha.intervention)
 
   if (browse) {
     browser()
   }
 
-  term.processes <- c(which.cens, which.terminal)
-  term.deltas <- match(term.processes, process.order) - 1L
-
-  non.term.processes <- setdiff(process.order, term.processes)
-  non.term.deltas <- match(non.term.processes, process.order) - 1L
-
-  data <- simEventData(
-    N = n,
-    beta = beta,
-    eta = eta,
-    nu = nu,
+  run_sim_graph(
+    graph,
+    n = n,
+    intervene = intervene,
+    cens = cens,
     max_cens = Inf,
     max_events = 50,
-    at_risk = at_risk,
     lower = 1e-25,
-    upper = 1e8,
-    term_deltas = term.deltas,
-    gen_L0 = add_cov[["L0"]],
-    gen_A0 = {
-      if ("A0" %in% names(add_cov)) function(N, L0) add_cov[["A0"]](N) else NULL
-    },
-    add_cov = add_cov[!(names(add_cov) %in% c("A0", "L0"))],
-    override_beta = override_beta
+    upper = 1e8
   )
-
-  if (add_L0) {
-    data[["L0"]] <- NULL
-  }
-
-  if (add_A0) {
-    data[["A0"]] <- NULL
-  }
-
-  for (jj in term.deltas) {
-    data[[paste0("N", jj)]] <- NULL
-  }
-
-  if (length(non.term.processes) > 0) {
-    setnames(data, paste0("N", non.term.deltas), non.term.processes)
-  }
-
-  setnames(data, c("Delta", "Time", "ID"), c("delta", "time", "id"))
-
-  return(data)
 }

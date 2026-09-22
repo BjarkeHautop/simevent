@@ -60,7 +60,8 @@ column per non-terminal process.
 \code{sim.generic} simulates multistate event history data from a set of
 user-specified baseline covariates, event processes (with Weibull
 intensities and Cox-type effects), and their effects on one another, by
-translating the specification into a call to \code{\link{simEventData}}.
+translating the specification into a \code{\link{sim_graph}()} and
+simulating from it.
 }
 \details{
 Where the preset wrapper functions (\code{\link{simCRdata}},
