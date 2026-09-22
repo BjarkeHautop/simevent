@@ -394,76 +394,16 @@ sim_event_graph <- function(
     )
   }
 
-  # Baseline covariate generators: a sim_covariate()'s own generator, or a
-  # sim_derived()'s fn wrapped to fit .simEvent_draw_baseline()'s
-  # N-first-argument calling convention, with any intervened covariate
-  # replaced by a generator returning the fixed value for everyone.
-  add_cov <- lapply(graph$covariates, function(node) {
-    if (inherits(node, "sim_derived")) {
-      .sim_graph_wrap_derived(node$fn)
-    } else {
-      node$generator
-    }
-  })
-  for (nm in intersect(names(intervene), covariate_names)) {
-    value <- intervene[[nm]]
-    add_cov[[nm]] <- local({
-      force(value)
-      function(N) rep(value, N)
-    })
-  }
-
-  eta <- stats::setNames(
-    vapply(graph$processes[process_order], `[[`, numeric(1), "eta"),
-    process_order
-  )
-  nu <- stats::setNames(
-    vapply(graph$processes[process_order], `[[`, numeric(1), "nu"),
-    process_order
-  )
-  for (nm in intersect(names(intervene), process_order)) {
-    eta[nm] <- eta[nm] * intervene[[nm]]
-  }
-
-  beta <- matrix(
-    0,
-    nrow = length(covariate_names) + length(process_order),
-    ncol = length(process_order),
-    dimnames = list(c(covariate_names, process_order), process_order)
-  )
-  for (eff in graph$effects) {
-    beta[eff$from, eff$to] <- eff$coef
-  }
-
-  types <- vapply(graph$processes[process_order], `[[`, character(1), "type")
-  term_deltas <- which(types %in% c("censoring", "terminal")) - 1L
-
-  data <- .simEvent_run(
-    N = n,
-    covs = add_cov,
-    beta = beta,
-    eta = unname(eta),
-    nu = unname(nu),
-    at_risk = .sim_graph_at_risk(graph, process_order, cens),
-    term_deltas = term_deltas,
+  run_sim_graph(
+    graph,
+    n = n,
+    intervene = intervene,
+    cens = cens,
     max_cens = max_cens,
-    override_beta = NULL,
     max_events = max_events,
     lower = lower,
-    upper = upper,
-    at_risk_cov = NULL,
-    event_names = process_order
+    upper = upper
   )
-
-  # Drop the (uninformative) event-count column for censoring/terminal
-  # processes: since they end follow-up, it's always 0 or 1 and duplicates
-  # `delta`.
-  for (nm in process_order[types %in% c("censoring", "terminal")]) {
-    data[[nm]] <- NULL
-  }
-
-  data.table::setnames(data, c("ID", "Time", "Delta"), c("id", "time", "delta"))
-  data[]
 }
 
 # Approximates a coxph() fit's baseline cumulative hazard with a Weibull
