@@ -12,8 +12,8 @@ reference:
 
 - title: Graph-based simulation
   desc: >
-    A general-purpose alternative built directly on top of simEventData()'s
-    sampler.
+    Build a simulation spec as a graph of covariates, event processes, and
+    effects between them, and simulate event history data from it.
   contents:
   - sim_graph
   - sim_covariate
@@ -23,10 +23,18 @@ reference:
   - sim_event_graph
   - sim_graph_from_fits
 
-- title: Core simulation
+- title: Treating graph-based simulated data
   desc: >
-    Functions for simulating event history data, built on the general-purpose
-    simEventData/simEventTV engine.
+    Functions for formatting and plotting data simulated with
+    `sim_event_graph()`.
+  contents:
+  - interval_format_data
+  - plot_event_data
+
+- title: Core simulation (old)
+  desc: >
+    Functions for simulating event history data, built on the old
+    simEventData/simEventTV engine. Will be removed in the future.
   contents:
   - simEventData
   - simEventTV
@@ -46,16 +54,18 @@ reference:
   - simDropIn
   - simStatinData
 
-- title: Treating simulated data
+- title: Treating simulated data (old)
   desc: >
-    Functions for formatting and plotting simulated event history data.
+    Functions for formatting and plotting event history data simulated with
+    the old engine. Will be removed in the future.
   contents:
   - IntFormatData
   - plotEventData
 
-- title: Simulating from fitted models
+- title: Simulating from fitted models (old)
   desc: >
-    Functions for simulating new data from models fitted to observed data.
+    Functions for simulating new data from models fitted to observed data,
+    built on the old engine. Will be removed in the future.
   contents:
   - simEventCox
   - simEventObj

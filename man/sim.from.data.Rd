@@ -75,7 +75,7 @@ directly, \code{sim.from.data} is meant to be fed parameters estimated
 from real data, so that the simulated data mimics an observed dataset's
 distribution (optionally under an intervention via
 \code{alpha.intervention}/\code{baseline.intervention}). See
-\code{vignette("sim-generic", package = "simevent")} for a worked example
-of building \code{sim.parameters} by hand from \code{coxph}/\code{basehaz}
-fits.
+\code{\link{sim_graph_from_fits}} for a more convenient way to do this
+directly from \code{coxph} fits and the data they were fit to, without
+hand-building \code{sim.parameters}.
 }

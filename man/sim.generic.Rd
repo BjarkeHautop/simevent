@@ -68,9 +68,6 @@ Where the preset wrapper functions (\code{\link{simCRdata}},
 \code{\link{simDisease}}, \code{\link{simSurvData}}, etc.) hard-code a
 fixed set of processes and effects, \code{sim.generic} lets you describe
 an arbitrary number of named processes and baseline covariates directly.
-See \code{vignette("sim-generic", package = "simevent")} for worked
-examples, including how to reproduce each preset wrapper's default
-behavior.
 }
 \examples{
 baseline <- list(L0 = function(N) rbinom(N, 1, 0.4))

@@ -8,7 +8,7 @@ test_that("sim.generic simulates data in the right way", {
   )
   effects <- list(c("L0", "death", 1.5), c("L0", "censoring", -0.5))
 
-  data <- sim.generic(baseline, processes, effects, n = 2000)
+  data <- sim.generic(baseline, processes, effects, n = 5000)
 
   expect_setequal(names(data), c("id", "time", "delta", "L0"))
 

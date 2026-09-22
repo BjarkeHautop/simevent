@@ -10,9 +10,6 @@
 #' \code{\link{simDisease}}, \code{\link{simSurvData}}, etc.) hard-code a
 #' fixed set of processes and effects, \code{sim.generic} lets you describe
 #' an arbitrary number of named processes and baseline covariates directly.
-#' See \code{vignette("sim-generic", package = "simevent")} for worked
-#' examples, including how to reproduce each preset wrapper's default
-#' behavior.
 #'
 #' @param baseline Named list of baseline covariate generator functions, each
 #'   taking \code{N} and returning a numeric vector of length \code{N}.

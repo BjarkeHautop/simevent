@@ -35,6 +35,15 @@ compare_graph <- function(wrapper_data, graph_data) {
 }
 ```
 
+`compare_graph()` checks that a `sim_event_graph()` reproduction draws the exact
+same random numbers, in the same order, as the wrapper it's reproducing. That
+only holds below for `simSurvData()`/`simCRdata()`.
+
+`simDisease()`/`simTreatment()` each have a `"transient"` process, so some
+individuals finish before others; `sim_event_graph()` draws random numbers only
+for whoever's still being simulated, while the wrapper always draws for everyone
+(including those already finished) and discards the unused draws.
+
 # Introduction
 
 This introduces the new API with `sim_event_graph()`, which is (probably?) a
@@ -143,14 +152,17 @@ compare_graph(wrapper_data, graph_data)
 
 `simDisease()` has a censoring process, a terminal death process, and a
 covariate process `L` that can happen at most once and can itself affect death;
-a `"transient"` process with `limit = 1`:
+a `"transient"` process with `limit = 1`. Since `L` can fire, the simulation
+loop can run more than once per individual, so `sim_event_graph()`'s random
+draws no longer line up one-to-one with `simDisease()`'s (see the note on
+`compare_graph()` above); event-type proportions are compared instead:
 
 ```{r}
 #| label: simdisease-equivalence
 
 set.seed(1405)
 wrapper_data <- simDisease(
-  N = 200,
+  N = 5000,
   cens = 1,
   eta = c(0.1, 0.3, 0.1),
   nu = c(1.1, 1.3, 1.1),
@@ -160,7 +172,6 @@ wrapper_data <- simDisease(
   beta_L0_D = 0
 )
 
-set.seed(1405)
 graph <- sim_graph(
   L0 = sim_covariate(function(N) runif(N)),
   A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
@@ -173,23 +184,28 @@ graph <- sim_graph(
     sim_effect("L", "death", 1)
   )
 )
-graph_data <- sim_event_graph(graph, n = 200)
+graph_data <- sim_event_graph(graph, n = 5000)
 
-compare_graph(wrapper_data, graph_data)
+rbind(
+  simDisease = prop.table(table(wrapper_data$Delta)),
+  sim_graph = prop.table(table(graph_data$delta))
+)
 ```
 
 ## `simTreatment()`
 
 `simTreatment()` (with `op = 1`, the default) adds a second `"transient"`
 process, treatment (`A`), which can itself affect and be affected by the
-covariate process `L`:
+covariate process `L`. `simTreatment()` doesn't declare its own `A0`, so its
+reproduction doesn't need one either -- `sim_graph()` forces no default
+covariates:
 
 ```{r}
 #| label: simtreatment-equivalence
 
 set.seed(1405)
 wrapper_data <- simTreatment(
-  N = 200,
+  N = 5000,
   beta_L_A = 1,
   beta_L_D = 1,
   beta_A_D = -1,
@@ -201,16 +217,8 @@ wrapper_data <- simTreatment(
   op = 1
 )
 
-set.seed(1405)
 graph <- sim_graph(
   L0 = sim_covariate(function(N) runif(N)),
-  # simTreatment() doesn't declare its own A0, so it silently relies on
-  # simEventData()'s forced default A0 draw (Bernoulli(0.5)) purely to
-  # consume the same random numbers, then discards it.
-  # sim_graph() forces nothing, so reproducing simTreatment()'s
-  # random numbers bit-for-bit means declaring that same unused A0
-  # explicitly.
-  A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   A = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
@@ -225,9 +233,12 @@ graph <- sim_graph(
     sim_effect("L", "A", 1)
   )
 )
-graph_data <- sim_event_graph(graph, n = 200)
+graph_data <- sim_event_graph(graph, n = 5000)
 
-compare_graph(wrapper_data, graph_data)
+rbind(
+  simTreatment = prop.table(table(wrapper_data$Delta)),
+  sim_graph = prop.table(table(graph_data$delta))
+)
 ```
 
 ## `simStatinData()`
@@ -298,8 +309,8 @@ graph
 ```
 
 Each process's Weibull `eta`/`nu` is approximated from its `coxph()` fit's
-baseline cumulative hazard, the same way `vignette("sim-generic")`'s
-`weibull_params()` helper does it by hand.
+baseline cumulative hazard, by regressing log(cumulative hazard) on log(time) (a
+Weibull hazard is linear on that scale).
 
 ```{r}
 #| label: sim-graph-from-fits-simulate
