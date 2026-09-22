@@ -16,6 +16,7 @@ BugReports: https://github.com/miclukacova/simevent/issues
 Imports:
     utils,
     stats,
+    checkmate,
     data.table,
     ggplot2,
     survival,

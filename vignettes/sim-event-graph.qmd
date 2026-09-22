@@ -1,0 +1,349 @@
+---
+title: "Migrating to sim_event_graph()"
+vignette: >
+  %\VignetteIndexEntry{Migrating to sim_event_graph()}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+#| label: knitr-opts
+#| include: false
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r}
+#| label: setup
+
+library(simevent)
+library(survival)
+
+compare_graph <- function(wrapper_data, graph_data) {
+  wrapper_data <- as.data.frame(wrapper_data)
+  graph_data <- as.data.frame(graph_data)
+  names(graph_data)[match(c("id", "time", "delta"), names(graph_data))] <-
+    c("ID", "Time", "Delta")
+  isTRUE(all.equal(
+    wrapper_data,
+    graph_data[names(wrapper_data)],
+    tolerance = 1e-6
+  ))
+}
+```
+
+# Introduction
+
+This introduces the new API with `sim_event_graph()`, which is (probably?) a
+better interface.
+
+# The `sim_graph()` Interface
+
+A `sim_graph()` call has three kinds of possible inputs:
+
+- `sim_covariate()`: a baseline covariate generator. Takes `N` and, optionally,
+  any other covariate defined earlier in the same call (matched by argument
+  name).
+- `sim_process()`: a `"censoring"`, `"terminal"`, or `"transient"` (fires at
+  most `limit` times, default `Inf`) process, with Weibull `eta`/`nu`
+  parameters.
+- `sim_effect()`: a `from -> to` edge with a Cox-type `coef`, where `from` is a
+  covariate or process name and `to` is a process name.
+
+```{r}
+#| label: sim-graph-basic
+
+graph <- sim_graph(
+  L0 = sim_covariate(function(N) rbinom(N, 1, 0.4)),
+  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+  death = sim_process("terminal", eta = 0.1, nu = 1.1),
+  effects = list(sim_effect("L0", "death", coef = 1.5))
+)
+graph
+
+data <- sim_event_graph(graph, n = 100)
+head(data)
+```
+
+`sim_event_graph()`'s `intervene` argument replaces `sim.generic()`'s
+`alpha.intervention`/`baseline.intervention` pair with a single named list: give
+a process name to scale its `eta`, or a covariate name to fix it to a constant.
+
+```{r}
+#| label: sim-graph-intervention
+
+data_intervened <- sim_event_graph(
+  graph,
+  n = 100,
+  intervene = list(death = 0.2, L0 = 1)
+)
+head(data_intervened)
+```
+
+# Reproducing the Preset Wrappers
+
+## `simSurvData()`
+
+`simSurvData()`'s default (`beta = NULL`, i.e. no covariate effects) is two
+terminal processes, censoring and death, both with `eta = 0.1`, `nu = 1.1`:
+
+```{r}
+#| label: simsurvdata-equivalence
+
+set.seed(1405)
+wrapper_data <- simSurvData(200)
+
+set.seed(1405)
+graph <- sim_graph(
+  L0 = sim_covariate(function(N) runif(N)),
+  A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
+  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+  death = sim_process("terminal", eta = 0.1, nu = 1.1)
+)
+graph_data <- sim_event_graph(graph, n = 200)
+
+compare_graph(wrapper_data, graph_data)
+```
+
+## `simCRdata()`
+
+`simCRdata()` adds a third terminal process (a second competing cause):
+
+```{r}
+#| label: simcrdata-equivalence
+
+set.seed(1405)
+beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
+wrapper_data <- simCRdata(N = 200, beta = beta)
+
+set.seed(1405)
+graph <- sim_graph(
+  L0 = sim_covariate(function(N) runif(N)),
+  A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
+  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+  cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
+  cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),
+  effects = list(
+    sim_effect("L0", "censoring", 0.5),
+    sim_effect("A0", "censoring", -1),
+    sim_effect("L0", "cause1", -0.5),
+    sim_effect("A0", "cause1", 0.5),
+    sim_effect("A0", "cause2", 0.5)
+  )
+)
+graph_data <- sim_event_graph(graph, n = 200)
+
+compare_graph(wrapper_data, graph_data)
+```
+
+## `simDisease()`
+
+`simDisease()` has a censoring process, a terminal death process, and a
+covariate process `L` that can happen at most once and can itself affect death;
+a `"transient"` process with `limit = 1`:
+
+```{r}
+#| label: simdisease-equivalence
+
+set.seed(1405)
+wrapper_data <- simDisease(
+  N = 200,
+  cens = 1,
+  eta = c(0.1, 0.3, 0.1),
+  nu = c(1.1, 1.3, 1.1),
+  beta_L0_L = 1,
+  beta_A0_L = -1.1,
+  beta_L_D = 1,
+  beta_L0_D = 0
+)
+
+set.seed(1405)
+graph <- sim_graph(
+  L0 = sim_covariate(function(N) runif(N)),
+  A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
+  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+  death = sim_process("terminal", eta = 0.3, nu = 1.3),
+  L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
+  effects = list(
+    sim_effect("L0", "L", 1),
+    sim_effect("A0", "L", -1.1),
+    sim_effect("L", "death", 1)
+  )
+)
+graph_data <- sim_event_graph(graph, n = 200)
+
+compare_graph(wrapper_data, graph_data)
+```
+
+## `simTreatment()`
+
+`simTreatment()` (with `op = 1`, the default) adds a second `"transient"`
+process, treatment (`A`), which can itself affect and be affected by the
+covariate process `L`:
+
+```{r}
+#| label: simtreatment-equivalence
+
+set.seed(1405)
+wrapper_data <- simTreatment(
+  N = 200,
+  beta_L_A = 1,
+  beta_L_D = 1,
+  beta_A_D = -1,
+  beta_A_L = -0.5,
+  beta_L0_A = 1,
+  eta = rep(0.1, 4),
+  nu = rep(1.1, 4),
+  cens = 1,
+  op = 1
+)
+
+set.seed(1405)
+graph <- sim_graph(
+  L0 = sim_covariate(function(N) runif(N)),
+  # simTreatment() doesn't declare its own A0, so it silently relies on
+  # simEventData()'s forced default A0 draw (Bernoulli(0.5)) purely to
+  # consume the same random numbers, then discards it.
+  # sim_graph() forces nothing, so reproducing simTreatment()'s
+  # random numbers bit-for-bit means declaring that same unused A0
+  # explicitly.
+  A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
+  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+  death = sim_process("terminal", eta = 0.1, nu = 1.1),
+  A = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
+  L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
+  effects = list(
+    sim_effect("L0", "death", 1),
+    sim_effect("L0", "A", 1),
+    sim_effect("L0", "L", 1),
+    sim_effect("A", "death", -1),
+    sim_effect("A", "L", -0.5),
+    sim_effect("L", "death", 1),
+    sim_effect("L", "A", 1)
+  )
+)
+graph_data <- sim_event_graph(graph, n = 200)
+
+compare_graph(wrapper_data, graph_data)
+```
+
+## `simStatinData()`
+
+`simStatinData()` mainly demonstrates non-default baseline covariate generators.
+`sim_covariate()` reproduces this directly, with no forced covariate names to
+work around:
+
+```{r}
+#| label: simstatindata-equivalence
+
+set.seed(1405)
+graph <- sim_graph(
+  L0 = sim_covariate(function(N) rbinom(N, 1, 0.4)),
+  A0 = sim_covariate(function(N, L0) pmin(rexp(N, 0.3) + 70, 100)),
+  censoring = sim_process("censoring", eta = 0.025, nu = 1.1),
+  death = sim_process("terminal", eta = 0.025, nu = 1.1)
+)
+graph_data <- sim_event_graph(graph, n = 200)
+summary(graph_data$A0)
+```
+
+# Building a `sim_graph()` from Fitted Cox Models
+
+`sim_graph_from_fits()` is the graph-native replacement for `sim.from.data()`:
+instead of user-specified effects, it builds a `sim_graph()` from a set of
+fitted `coxph()` models (one per process) and the data they were fit to, so
+simulated data mimics an observed dataset's distribution.
+
+Unlike `sim.from.data()`, which requires building a `sim.parameters` list,
+including a `baseline.summary` computed by hand from `mean()`/
+`sd()`/`min()`/`max()`, `sim_graph_from_fits()` reads baseline covariate
+distributions straight from the data itself.
+
+```{r}
+#| label: sim-graph-from-fits-setup
+
+# Some "observed" data, from a 3-cause competing-risks sim_graph():
+set.seed(1405)
+observed_graph <- sim_graph(
+  L0 = sim_covariate(function(N) runif(N)),
+  A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
+  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+  cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
+  cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),
+  effects = list(
+    sim_effect("L0", "censoring", 0.5),
+    sim_effect("A0", "censoring", -1),
+    sim_effect("L0", "cause1", -0.5),
+    sim_effect("A0", "cause1", 0.5),
+    sim_effect("A0", "cause2", 0.5)
+  )
+)
+observed_data <- sim_event_graph(observed_graph, n = 1000)
+
+# Refit each process from that "observed" data, then rebuild a sim_graph()
+# from the fits, as if observed_data came from an outside source and
+# observed_graph were unknown:
+fits <- list(
+  censoring = coxph(Surv(time, delta == 0) ~ L0 + A0, data = observed_data),
+  cause1 = coxph(Surv(time, delta == 1) ~ L0 + A0, data = observed_data),
+  cause2 = coxph(Surv(time, delta == 2) ~ L0 + A0, data = observed_data)
+)
+types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
+
+graph <- sim_graph_from_fits(fits, observed_data, types)
+graph
+```
+
+Each process's Weibull `eta`/`nu` is approximated from its `coxph()` fit's
+baseline cumulative hazard, the same way `vignette("sim-generic")`'s
+`weibull_params()` helper does it by hand.
+
+```{r}
+#| label: sim-graph-from-fits-simulate
+
+new_data <- sim_event_graph(graph, n = 1000)
+head(new_data)
+
+# Event-type distribution should be comparable between the observed and
+# newly simulated data:
+rbind(
+  observed = prop.table(table(observed_data$delta)),
+  simulated = prop.table(table(new_data$delta))
+)
+```
+
+## Categorical Baseline Covariates
+
+A categorical baseline covariate must be a factor column in `data`, referenced
+directly in the `coxph()` formula (not wrapped in `factor()` there).
+`sim_graph_from_fits()` regenerates it as a categorical draw from its observed
+level proportions, plus one `sim_derived()` dummy per non-reference level, named
+to match `coxph()`'s own coefficient names (`"<variable><level>"`). The
+graph-native replacement for `sim.from.data()`'s `"(region==2)"`-style
+expression matching.
+
+```{r}
+#| label: sim-graph-from-fits-categorical
+
+observed_data$region <- factor(sample(
+  c("a", "b", "c"),
+  nrow(observed_data),
+  replace = TRUE,
+  prob = c(0.5, 0.3, 0.2)
+))
+
+fits_region <- list(
+  censoring = coxph(
+    Surv(time, delta == 0) ~ L0 + region,
+    data = observed_data
+  ),
+  cause1 = coxph(Surv(time, delta == 1) ~ L0 + region, data = observed_data),
+  cause2 = coxph(Surv(time, delta == 2) ~ L0, data = observed_data)
+)
+
+graph_region <- sim_graph_from_fits(fits_region, observed_data, types)
+graph_region
+```

@@ -10,6 +10,19 @@ reference:
   contents:
   - simevent-package
 
+- title: Graph-based simulation
+  desc: >
+    A general-purpose alternative built directly on top of simEventData()'s
+    sampler.
+  contents:
+  - sim_graph
+  - sim_covariate
+  - sim_derived
+  - sim_process
+  - sim_effect
+  - sim_event_graph
+  - sim_graph_from_fits
+
 - title: Core simulation
   desc: >
     Functions for simulating event history data, built on the general-purpose
@@ -23,10 +36,8 @@ reference:
 - title: Preset wrappers (old)
   desc: >
     Ready-made wrappers for common settings, each hard-coding a fixed
-    baseline/process/effect specification on top of simEventData(). These
-    predate sim.generic() and are kept for backward compatibility, but
-    sim.generic() can reproduce any of them (and more) from a single general
-    interface --- see `vignette("sim-generic")`.
+    baseline/process/effect specification on top of simEventData(). Will
+    be removed in the future.
   contents:
   - simSurvData
   - simCRdata

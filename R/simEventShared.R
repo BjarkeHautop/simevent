@@ -47,8 +47,17 @@
 # name (any order, any subset of full_names); missing rows default to 0. A
 # user-supplied beta without rownames falls back to the historical positional
 # behavior, requiring exactly N_stop rows in c(cov_names, event_names) order.
-.simEvent_default_beta <- function(beta, N_stop, num_events, cov_names) {
-  event_names <- paste0("N", seq(0, num_events - 1))
+# event_names defaults to the historical N0, N1, ... labels, but a caller that
+# already has real process names (e.g. simEventGraph()) can supply them
+# directly, so beta/simmatrix/output columns use them end-to-end instead of
+# requiring a name -> "N<k>" -> name round trip.
+.simEvent_default_beta <- function(
+  beta,
+  N_stop,
+  num_events,
+  cov_names,
+  event_names = paste0("N", seq(0, num_events - 1))
+) {
   full_names <- c(cov_names, event_names)
 
   if (is.null(beta)) {
@@ -186,13 +195,12 @@
     missing_args <- setdiff(arg_names, names(drawn))
     if (length(missing_args) > 0) {
       stop(
-        "add_cov generator '",
+        "covariate generator '",
         nm,
         "' depends on '",
         paste(missing_args, collapse = ", "),
         "', which has not been generated yet. A covariate can only depend ",
-        "on covariates defined earlier in add_cov (L0 and A0, if used, are ",
-        "always generated first)."
+        "on covariates defined earlier in the same list."
       )
     }
     drawn[[nm]] <- do.call(f, c(list(N = N), drawn[arg_names]))
@@ -260,4 +268,180 @@
   res <- data.table::rbindlist(res_list)
   data.table::setkeyv(res, "ID")
   res
+}
+
+.simEvent_run <- function(
+  N,
+  covs,
+  beta,
+  eta,
+  nu,
+  at_risk,
+  term_deltas,
+  max_cens,
+  override_beta,
+  max_events,
+  lower,
+  upper,
+  at_risk_cov,
+  event_names = NULL,
+  ...
+) {
+  num_cov <- length(covs)
+
+  # Determine number of events
+  num_events <- .simEvent_num_events(eta, nu, beta)
+
+  # Useful indices
+  N_start <- num_cov + 1
+  N_stop <- num_cov + num_events
+
+  ############################ Default values ##################################
+
+  # Set default values for beta, eta, and nu
+  beta <- if (is.null(event_names)) {
+    .simEvent_default_beta(beta, N_stop, num_events, names(covs))
+  } else {
+    .simEvent_default_beta(beta, N_stop, num_events, names(covs), event_names)
+  }
+  eta_nu <- .simEvent_default_eta_nu(eta, nu, beta, num_events)
+  eta <- eta_nu$eta
+  nu <- eta_nu$nu
+
+  # Default at_risk
+  at_risk <- .simEvent_default_at_risk(at_risk, num_events)
+
+  # Matrix for storing values
+  simmatrix <- .simEvent_build_simmatrix(N, num_events, names(covs), beta)
+
+  # Filling out beta matrix
+  beta <- .simEvent_apply_override_beta(beta, override_beta)
+
+  ############################ Functions #######################################
+
+  # Proportional hazard
+  calculate_phi <- function(simmatrix) {
+    if (nrow(beta) == N_stop) {
+      return(exp(simmatrix %*% beta))
+    } else {
+      obj <- as.data.frame(simmatrix)
+      obj <- cbind(obj, Times, Events)
+      X <- sapply(rownames(beta), function(expr) {
+        eval(parse(text = expr), envir = obj)
+      })
+      effects <- as.matrix(X) %*% beta
+      return(exp(effects))
+    }
+  }
+
+  # Whether all events share the same Weibull shape/scale, which enables a
+  # closed-form (vectorized) inverse of the cumulative hazard; otherwise we
+  # fall back to a per-individual numerical inverse coded in rcpp
+  same_params <- all(nu[1] == nu) && all(eta[1] == eta)
+
+  ############################ Initializing Simulations ########################
+
+  # Draw baseline covariates
+  simmatrix <- .simEvent_draw_baseline(simmatrix, N, covs)
+
+  # Covariate dependent at_risk
+  at_risk_cov <- .simEvent_at_risk_cov(
+    at_risk_cov,
+    simmatrix,
+    N_start,
+    num_events,
+    N
+  )
+
+  # Initialize
+  T_k <- rep(0, N) # Time 0
+  alive <- 1:N # Keeping track of who is alive
+  res_list <- vector("list", max_events) # For results
+  idx <- 1 # Index
+  Times <- matrix(0, ncol = max_events, nrow = N) # Times for override_beta
+  colnames(Times) <- paste("T", seq(1, max_events), sep = "") # names for Times
+  Events <- matrix(0, ncol = max_events, nrow = N) # Events for override_beta
+  colnames(Events) <- paste("E", seq(1, max_events), sep = "") # names for Events
+
+  ############################ Simulations #####################################
+
+  while (length(alive) != 0) {
+    n_alive <- length(alive)
+
+    # Simulate time
+    V <- -log(stats::runif(N))
+    phi <- calculate_phi(simmatrix)
+    phi_alive <- phi[alive, , drop = FALSE] # n_alive x num_events
+
+    # At-risk indicator for every alive individual (num_events x n_alive)
+    risk_user <- .simEvent_risk_user(
+      alive,
+      simmatrix,
+      N_start,
+      N_stop,
+      num_events,
+      at_risk
+    )
+    riskss_mat <- risk_user * at_risk_cov[, alive, drop = FALSE]
+
+    if (same_params) {
+      denom <- colSums(riskss_mat * eta * t(phi_alive))
+      W <- (V[alive] / denom + T_k[alive]^nu[1])^(1 / nu[1]) - T_k[alive]
+    } else {
+      W <- vapply(
+        seq_len(n_alive),
+        function(j) {
+          i <- alive[j]
+          inverseScHaz(
+            V[i],
+            T_k[i],
+            lower = lower,
+            upper = upper,
+            eta = eta,
+            nu = nu,
+            phi = phi[i, ],
+            at_risk = riskss_mat[, j],
+            ...
+          )
+        },
+        numeric(1)
+      )
+    }
+    T_k[alive] <- T_k[alive] + W
+
+    # Maximal censoring time
+    T_k[T_k > max_cens] <- max_cens
+    t_alive <- T_k[alive]
+
+    # Simulate event: vectorized event intensities across all alive individuals
+    pow_mat <- outer(nu - 1, t_alive, FUN = function(p, tt) tt^p) # num_events x n_alive
+    lambda_mat <- riskss_mat * eta * nu * pow_mat * t(phi_alive)
+
+    censored <- t_alive >= max_cens
+    if (any(censored)) {
+      lambda_mat[, censored] <- c(1, rep(0, num_events - 1))
+    }
+    probs_mat <- lambda_mat / rep(colSums(lambda_mat), each = num_events)
+
+    Deltas <- sampleEvents(probs_mat)
+
+    # Update event counts
+    simmatrix[cbind(alive, num_cov + Deltas + 1)] <-
+      simmatrix[cbind(alive, num_cov + Deltas + 1)] + 1
+
+    # Store data
+    res_list[[idx]] <- .simEvent_store_result(alive, T_k, Deltas, simmatrix)
+    if (idx < max_events) {
+      Times[, idx] <- T_k # Saving the current time
+      Events[alive, idx] <- Deltas # Saving the current event type
+    }
+    idx <- idx + 1
+
+    # Who is still alive and uncensored?
+    alive <- alive[!Deltas %in% term_deltas]
+
+    .simEvent_check_max_events(alive, idx, max_events)
+  }
+
+  .simEvent_finalize(res_list)
 }

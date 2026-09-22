@@ -22,9 +22,6 @@ knitr::opts_chunk$set(
 library(simevent)
 library(survival)
 
-# Compares a preset wrapper's output to sim.generic()'s, up to column order
-# and floating-point root-finding precision (the two use slightly different
-# default `lower`/`upper` root-finding bounds).
 compare_wrapper <- function(wrapper_data, generic_data) {
   wrapper_data <- as.data.frame(wrapper_data)
   generic_data <- as.data.frame(setNames(
@@ -103,10 +100,10 @@ terminal processes, censoring and death, both with `eta = 0.1`, `nu = 1.1`:
 ```{r}
 #| label: simsurvdata-equivalence
 
-set.seed(11)
+set.seed(1405)
 wrapper_data <- simSurvData(200)
 
-set.seed(11)
+set.seed(1405)
 generic_data <- sim.generic(
   baseline = list(
     L0 = function(N) runif(N),
@@ -130,11 +127,11 @@ compare_wrapper(wrapper_data, generic_data)
 ```{r}
 #| label: simcrdata-equivalence
 
-set.seed(22)
+set.seed(1405)
 beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
 wrapper_data <- simCRdata(N = 200, beta = beta)
 
-set.seed(22)
+set.seed(1405)
 generic_data <- sim.generic(
   baseline = list(
     L0 = function(N) runif(N),
@@ -171,7 +168,7 @@ itself affect death):
 ```{r}
 #| label: simdisease-equivalence
 
-set.seed(6258)
+set.seed(1405)
 wrapper_data <- simDisease(
   N = 200,
   cens = 1,
@@ -183,7 +180,7 @@ wrapper_data <- simDisease(
   beta_L0_D = 0
 )
 
-set.seed(6258)
+set.seed(1405)
 generic_data <- sim.generic(
   baseline = list(
     L0 = function(N) runif(N),
@@ -216,7 +213,7 @@ process `L`:
 ```{r}
 #| label: simtreatment-equivalence
 
-set.seed(6258)
+set.seed(1405)
 wrapper_data <- simTreatment(
   N = 200,
   beta_L_A = 1,
@@ -230,7 +227,7 @@ wrapper_data <- simTreatment(
   op = 1
 )
 
-set.seed(6258)
+set.seed(1405)
 generic_data <- sim.generic(
   baseline = list(L0 = function(N) runif(N)),
   processes = list(
@@ -262,7 +259,7 @@ The `baseline` argument reproduces this directly:
 ```{r}
 #| label: simstatindata-equivalence
 
-set.seed(4)
+set.seed(1405)
 generic_data <- sim.generic(
   baseline = list(
     L0 = function(N) rbinom(N, 1, 0.4),
@@ -292,7 +289,7 @@ from its baseline cumulative hazard; a small helper does the latter:
 ```{r}
 #| label: sim-from-data-setup
 
-set.seed(373)
+set.seed(1405)
 beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
 observed_data <- simCRdata(N = 1000, beta = beta)
 

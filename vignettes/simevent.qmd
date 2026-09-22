@@ -325,10 +325,11 @@ data <- simEventData(
 # Wrapper Functions for Common Settings
 
 `simEventData()` is fully general, but for common settings the package provides
-ready-made wrappers built on top of it. `sim.generic()` is a general-purpose
-alternative to writing another such wrapper: see
-`vignette("sim-generic", package = "simevent")` for how each of the wrappers
-below can be reproduced as a `sim.generic()` specification.
+ready-made wrappers built on top of it. `sim.generic()` and `sim_graph()` are
+general-purpose alternatives to writing another such wrapper: see
+`vignette("sim-generic")` and `vignette("sim-event-graph")` for how each of the
+wrappers below can be reproduced as a `sim.generic()`/`sim_graph()`
+specification.
 
 ## Survival Data with `simSurvData()`
 
