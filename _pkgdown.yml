@@ -25,11 +25,12 @@ reference:
 
 - title: Treating graph-based simulated data
   desc: >
-    Functions for formatting and plotting data simulated with
+    Functions for formatting, plotting, and summarising data simulated with
     `sim_event_graph()`.
   contents:
   - interval_format_data
   - plot_event_data
+  - event_risk
 
 - title: Core simulation (old)
   desc: >
@@ -71,10 +72,10 @@ reference:
   - simEventObj
   - sim.from.data
 
-- title: Interventions
+- title: Interventions (old)
   desc: >
     Functions for performing interventions on the shape parameter of a process,
-    and estimating their effect.
+    and estimating their effect. Will be removed in the future.
   contents:
   - alphaSim
   - intEffectAlpha

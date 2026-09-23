@@ -261,6 +261,122 @@ graph_data <- sim_event_graph(graph, n = 200)
 summary(graph_data$A0)
 ```
 
+# Estimating Intervention Effects
+
+`alphaSim()` and `intEffectAlpha()` simulate one of the preset settings with the
+shape parameter `eta` of one process multiplied by `alpha`, and summarise the
+result as the proportion of individuals experiencing death and the intervened
+process by time $\tau$ (or the years lost to them before $\tau$). With the graph
+API this splits into two general steps, which work for any process in any graph:
+
+1. Simulate under the intervention with `sim_event_graph()`'s `intervene`
+   argument: `intervene = list(<process> = alpha)` multiplies that process's
+   `eta` by `alpha`.
+2. Summarise with `event_risk()`: the risk $P(T \le \tau)$ of each process's
+   first event, or (`type = "time_lost"`) the expected time lost to it before
+   $\tau$, $E[\tau - \min(T, \tau)]$.
+
+Take `alphaSim()`'s `"Disease"` setting with `alpha = 0.5`, which halves the
+hazard of the disease process `L`:
+
+```{r}
+#| label: alphasim-old
+
+set.seed(1405)
+alphaSim(
+  N = 5000,
+  eta = rep(0.1, 3),
+  nu = rep(1.1, 3),
+  alpha = 0.5,
+  tau = 5,
+  setting = "Disease"
+)
+```
+
+The same model as a graph:
+
+```{r}
+#| label: intervention-graph
+
+disease_graph <- sim_graph(
+  L0 = sim_covariate(function(N) runif(N)),
+  A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
+  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+  death = sim_process("terminal", eta = 0.1, nu = 1.1),
+  L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
+  effects = list(
+    sim_effect("L0", "death", 1),
+    sim_effect("L0", "L", 1),
+    sim_effect("L", "death", 1)
+  )
+)
+```
+
+`alphaSim()` switches censoring off by default (`cens = 0`). Simulating both
+with and without the intervention gives the effect directly:
+
+```{r}
+#| label: intervention-risk
+
+set.seed(1405)
+observed <- sim_event_graph(disease_graph, n = 5000, cens = 0)
+intervened <- sim_event_graph(
+  disease_graph,
+  n = 5000,
+  cens = 0,
+  intervene = list(L = 0.5)
+)
+
+risk_observed <- event_risk(observed, disease_graph, c("death", "L"), tau = 5)
+risk_intervened <- event_risk(
+  intervened,
+  disease_graph,
+  c("death", "L"),
+  tau = 5
+)
+cbind(
+  risk_observed[, "process"],
+  observed = risk_observed$risk,
+  intervened = risk_intervened$risk
+)
+```
+
+Halving the disease hazard lowers the risk of disease, and, since disease raises
+the death hazard (`sim_effect("L", "death", 1)`), the risk of death too.
+
+`alphaSim()`/`intEffectAlpha()`'s `years_lost = TRUE` corresponds to
+`type = "time_lost"`, and their `a0` argument (summarise only individuals with
+`A0 == a0`) to `by = "A0"`, which summarises every group at once:
+
+```{r}
+#| label: intervention-time-lost
+
+event_risk(
+  intervened,
+  disease_graph,
+  c("death", "L"),
+  tau = 5,
+  type = "time_lost",
+  by = "A0"
+)
+```
+
+`by` conditions on the observed value of `A0`. For a `do()`-style contrast,
+where everyone's `A0` is set to a value, fix it with `intervene` instead, e.g.
+`intervene = list(L = 0.5, A0 = 1)`.
+
+Finally, `intEffectAlpha()`'s `plot = TRUE` is `plot_event_data()` on the
+intervened data:
+
+```{r}
+#| label: intervention-plot
+
+plot_event_data(
+  intervened[intervened$id <= 100, ],
+  title = "Under Intervention"
+)
+```
+
 # Building a `sim_graph()` from Fitted Cox Models
 
 `sim_graph_from_fits()` is the graph-native replacement for `sim.from.data()`:

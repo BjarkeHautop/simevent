@@ -3,6 +3,7 @@
 S3method(print,sim_graph)
 export(IntFormatData)
 export(alphaSim)
+export(event_risk)
 export(intEffectAlpha)
 export(interval_format_data)
 export(plotEventData)
