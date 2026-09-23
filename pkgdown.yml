@@ -2,8 +2,9 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
+  sim-event-graph: sim-event-graph.html
   simevent: simevent.html
-last_built: 2026-09-07T09:44Z
+last_built: 2026-09-23T09:46Z
 urls:
   reference: https://github.com/miclukacova/simevent/reference
   article: https://github.com/miclukacova/simevent/articles

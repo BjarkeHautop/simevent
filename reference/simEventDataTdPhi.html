@@ -23,6 +23,10 @@ and previous event history."></head><body>
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/sim-event-graph.html">Migrating to sim_event_graph()</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -79,7 +83,7 @@ and previous event history.</p>
 
 
 <dt id="arg-beta">beta<a class="anchor" aria-label="anchor" href="#arg-beta"></a></dt>
-<dd><p>Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). Default is a zero matrix.</p></dd>
+<dd><p>Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). If <code>beta</code> has rownames, rows are matched by name against covariate/event names (any order, any subset; missing rows default to 0) instead of requiring a fixed row order. Default is a zero matrix.</p></dd>
 
 
 <dt id="arg-beta-">beta2<a class="anchor" aria-label="anchor" href="#arg-beta-"></a></dt>
@@ -108,7 +112,7 @@ last event on the events (N0, N1, ...). Default is 0 for all events (no time-dec
 
 
 <dt id="arg-add-cov">add_cov<a class="anchor" aria-label="anchor" href="#arg-add-cov"></a></dt>
-<dd><p>Named list of functions. Functions generating additional baseline covariates. Each function takes integer N and returns a numeric vector of length N. Default is NULL.</p></dd>
+<dd><p>Named list of functions. Functions generating baseline covariates, drawn in list order after <code>L0</code>/<code>A0</code> (unless the list itself supplies "L0"/"A0", replacing the defaults). Each function takes integer N and, optionally, any subset of the names of covariates defined earlier (including L0/A0), matched by argument name, and returns a numeric vector of length N. Default is NULL.</p></dd>
 
 
 <dt id="arg-override-beta">override_beta<a class="anchor" aria-label="anchor" href="#arg-override-beta"></a></dt>
@@ -128,11 +132,11 @@ last event on the events (N0, N1, ...). Default is 0 for all events (no time-dec
 
 
 <dt id="arg-gen-a-">gen_A0<a class="anchor" aria-label="anchor" href="#arg-gen-a-"></a></dt>
-<dd><p>Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.</p></dd>
+<dd><p>Function. Deprecated; use <code>add_cov = list(A0 = ...)</code> instead. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.</p></dd>
 
 
 <dt id="arg-gen-l-">gen_L0<a class="anchor" aria-label="anchor" href="#arg-gen-l-"></a></dt>
-<dd><p>Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.</p></dd>
+<dd><p>Function. Deprecated; use <code>add_cov = list(L0 = ...)</code> instead. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.</p></dd>
 
 
 <dt id="arg-at-risk-cov">at_risk_cov<a class="anchor" aria-label="anchor" href="#arg-at-risk-cov"></a></dt>
@@ -197,12 +201,12 @@ generator can depend on <code>L0</code>. Their distributions can be changed via
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;ID&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       ID      Time Delta        L0    A0    N0    N1    N2    N3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;     &lt;num&gt; &lt;int&gt;     &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 0.9297416     1 0.5912092     0     0     1     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     2 4.8578179     2 0.8204104     1     0     0     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     2 5.0015938     1 0.8204104     1     0     1     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     3 0.8643098     2 0.7769687     1     0     0     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     3 3.1735358     3 0.7769687     1     0     0     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     3 4.9565938     2 0.7769687     1     0     0     2     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 1.3156016     0 0.2791934     0     1     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     2 0.4370052     2 0.1776163     1     0     0     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     2 4.0326162     0 0.1776163     1     1     0     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     3 4.3247029     0 0.6790462     0     1     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     4 0.6396897     1 0.4552875     0     0     1     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     5 2.9408255     2 0.6404929     1     0     0     1     0</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

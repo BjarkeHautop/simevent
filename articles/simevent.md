@@ -332,6 +332,12 @@ data <- simEventData(
 [`simEventData()`](https://github.com/miclukacova/simevent/reference/simEventData.md)
 is fully general, but for common settings the package provides
 ready-made wrappers built on top of it.
+[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+is a general-purpose alternative to writing another such wrapper: see
+[`vignette("sim-event-graph")`](https://github.com/miclukacova/simevent/articles/sim-event-graph.md)
+for how each of the wrappers below can be reproduced as a
+[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+specification.
 
 ### Survival Data with `simSurvData()`
 

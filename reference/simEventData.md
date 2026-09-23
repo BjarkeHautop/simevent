@@ -38,8 +38,10 @@ simEventData(
 
   Numeric matrix. Regression coefficients matrix where columns
   correspond to event types (N0, N1, ...) and rows correspond to
-  covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...).
-  Default is a zero matrix.
+  covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). If
+  `beta` has rownames, rows are matched by name against covariate/event
+  names (any order, any subset; missing rows default to 0) instead of
+  requiring a fixed row order. Default is a zero matrix.
 
 - eta:
 
@@ -70,9 +72,12 @@ simEventData(
 
 - add_cov:
 
-  Named list of functions. Functions generating additional baseline
-  covariates. Each function takes integer N and returns a numeric vector
-  of length N. Default is NULL.
+  Named list of functions. Functions generating baseline covariates,
+  drawn in list order after `L0`/`A0` (unless the list itself supplies
+  "L0"/"A0", replacing the defaults). Each function takes integer N and,
+  optionally, any subset of the names of covariates defined earlier
+  (including L0/A0), matched by argument name, and returns a numeric
+  vector of length N. Default is NULL.
 
 - override_beta:
 
@@ -97,13 +102,15 @@ simEventData(
 
 - gen_A0:
 
-  Function. Function to generate the baseline treatment covariate A0.
-  Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.
+  Function. Deprecated; use `add_cov = list(A0 = ...)` instead. Function
+  to generate the baseline treatment covariate A0. Takes N and L0 as
+  inputs. Default is a Bernoulli(0.5) random variable.
 
 - gen_L0:
 
-  Function. Function to generate the baseline covariate L0. Takes N as
-  inputs. Default is a Uniform(0,1) random variable.
+  Function. Deprecated; use `add_cov = list(L0 = ...)` instead. Function
+  to generate the baseline covariate L0. Takes N as inputs. Default is a
+  Uniform(0,1) random variable.
 
 - at_risk_cov:
 
@@ -158,11 +165,15 @@ vector of covariates and event counts, and \\\beta^x\\ is the vector of
 coefficients representing the effect of covariates and previous events
 on the intensity.
 
-Every simulated dataset includes two fixed baseline covariates, `L0` and
-`A0`, in addition to any covariates supplied via `add_cov`. `L0` is a
-baseline covariate and `A0` is a baseline treatment indicator whose
-generator can depend on `L0`. Their distributions can be changed via
-`gen_L0`/`gen_A0`.
+Every simulated dataset includes two baseline covariates, `L0` (a
+baseline covariate, Uniform(0,1) by default) and `A0` (a baseline
+treatment indicator, Bernoulli(0.5) by default), followed by any
+covariates supplied via `add_cov`. `L0`/`A0` are just the first two
+entries of the covariate-generation list: a generator may depend on any
+covariate defined earlier in that list by name (e.g. the default `A0`
+generator takes `L0` as an argument), so `add_cov` can itself supply
+"L0"/"A0" entries, or later covariates conditional on earlier ones (see
+`add_cov` below).
 
 ## Examples
 
@@ -171,12 +182,12 @@ generator can depend on `L0`. Their distributions can be changed via
 sim_data <- simEventData(N = 10)
 head(sim_data)
 #> Key: <ID>
-#>       ID     Time Delta         L0    A0    N0    N1    N2    N3
-#>    <int>    <num> <int>      <num> <num> <num> <num> <num> <num>
-#> 1:     1 1.950912     2 0.46717567     0     0     0     1     0
-#> 2:     1 4.578772     0 0.46717567     0     1     0     1     0
-#> 3:     2 2.007552     0 0.49895085     0     1     0     0     0
-#> 4:     3 1.268429     3 0.69876955     1     0     0     0     1
-#> 5:     3 1.387908     0 0.69876955     1     1     0     0     1
-#> 6:     4 1.546615     3 0.07114061     0     0     0     0     1
+#>       ID      Time Delta         L0    A0    N0    N1    N2    N3
+#>    <int>     <num> <int>      <num> <num> <num> <num> <num> <num>
+#> 1:     1 0.7685405     3 0.96263514     1     0     0     0     1
+#> 2:     1 3.9906223     2 0.96263514     1     0     0     1     1
+#> 3:     1 6.7972661     0 0.96263514     1     1     0     1     1
+#> 4:     2 0.9621105     1 0.01141535     0     0     1     0     0
+#> 5:     3 3.9906696     0 0.24988251     0     1     0     0     0
+#> 6:     4 0.2759365     2 0.21641406     1     0     0     1     0
 ```

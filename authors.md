@@ -4,6 +4,10 @@
 
 - **Michaela Lukacova**. Author, maintainer.
 
+- **Helene Charlotte Wiese Rytgaard**. Contributor.  
+  Original author of sim.generic()/sim.from.data(), ported from
+  MultiStateTMLE
+
 ## Citation
 
 Source:

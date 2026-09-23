@@ -20,3 +20,9 @@ Useful links:
 Authors:
 
 - Michaela Lukacova <michaela.lukacova@sund.ku.dk>
+
+Other contributors:
+
+- Helene Charlotte Wiese Rytgaard (Original author of
+  sim.generic()/sim.from.data(), ported from MultiStateTMLE)
+  \[contributor\]

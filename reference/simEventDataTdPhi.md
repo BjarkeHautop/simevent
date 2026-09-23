@@ -39,8 +39,10 @@ simEventDataTdPhi(
 
   Numeric matrix. Regression coefficients matrix where columns
   correspond to event types (N0, N1, ...) and rows correspond to
-  covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...).
-  Default is a zero matrix.
+  covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). If
+  `beta` has rownames, rows are matched by name against covariate/event
+  names (any order, any subset; missing rows default to 0) instead of
+  requiring a fixed row order. Default is a zero matrix.
 
 - beta2:
 
@@ -77,9 +79,12 @@ simEventDataTdPhi(
 
 - add_cov:
 
-  Named list of functions. Functions generating additional baseline
-  covariates. Each function takes integer N and returns a numeric vector
-  of length N. Default is NULL.
+  Named list of functions. Functions generating baseline covariates,
+  drawn in list order after `L0`/`A0` (unless the list itself supplies
+  "L0"/"A0", replacing the defaults). Each function takes integer N and,
+  optionally, any subset of the names of covariates defined earlier
+  (including L0/A0), matched by argument name, and returns a numeric
+  vector of length N. Default is NULL.
 
 - override_beta:
 
@@ -104,13 +109,15 @@ simEventDataTdPhi(
 
 - gen_A0:
 
-  Function. Function to generate the baseline treatment covariate A0.
-  Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.
+  Function. Deprecated; use `add_cov = list(A0 = ...)` instead. Function
+  to generate the baseline treatment covariate A0. Takes N and L0 as
+  inputs. Default is a Bernoulli(0.5) random variable.
 
 - gen_L0:
 
-  Function. Function to generate the baseline covariate L0. Takes N as
-  inputs. Default is a Uniform(0,1) random variable.
+  Function. Deprecated; use `add_cov = list(L0 = ...)` instead. Function
+  to generate the baseline covariate L0. Takes N as inputs. Default is a
+  Uniform(0,1) random variable.
 
 - at_risk_cov:
 
@@ -182,10 +189,10 @@ head(sim_data)
 #> Key: <ID>
 #>       ID      Time Delta        L0    A0    N0    N1    N2    N3
 #>    <int>     <num> <int>     <num> <num> <num> <num> <num> <num>
-#> 1:     1 0.9297416     1 0.5912092     0     0     1     0     0
-#> 2:     2 4.8578179     2 0.8204104     1     0     0     1     0
-#> 3:     2 5.0015938     1 0.8204104     1     0     1     1     0
-#> 4:     3 0.8643098     2 0.7769687     1     0     0     1     0
-#> 5:     3 3.1735358     3 0.7769687     1     0     0     1     1
-#> 6:     3 4.9565938     2 0.7769687     1     0     0     2     1
+#> 1:     1 1.3156016     0 0.2791934     0     1     0     0     0
+#> 2:     2 0.4370052     2 0.1776163     1     0     0     1     0
+#> 3:     2 4.0326162     0 0.1776163     1     1     0     1     0
+#> 4:     3 4.3247029     0 0.6790462     0     1     0     0     0
+#> 5:     4 0.6396897     1 0.4552875     0     0     1     0     0
+#> 6:     5 2.9408255     2 0.6404929     1     0     0     1     0
 ```

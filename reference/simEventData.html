@@ -23,6 +23,10 @@ and previous event history."></head><body>
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/sim-event-graph.html">Migrating to sim_event_graph()</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -78,7 +82,7 @@ and previous event history.</p>
 
 
 <dt id="arg-beta">beta<a class="anchor" aria-label="anchor" href="#arg-beta"></a></dt>
-<dd><p>Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). Default is a zero matrix.</p></dd>
+<dd><p>Numeric matrix. Regression coefficients matrix where columns correspond to event types (N0, N1, ...) and rows correspond to covariates (L0, A0, L1, L2, ...) and event counts (N0, N1, ...). If <code>beta</code> has rownames, rows are matched by name against covariate/event names (any order, any subset; missing rows default to 0) instead of requiring a fixed row order. Default is a zero matrix.</p></dd>
 
 
 <dt id="arg-eta">eta<a class="anchor" aria-label="anchor" href="#arg-eta"></a></dt>
@@ -102,7 +106,7 @@ and previous event history.</p>
 
 
 <dt id="arg-add-cov">add_cov<a class="anchor" aria-label="anchor" href="#arg-add-cov"></a></dt>
-<dd><p>Named list of functions. Functions generating additional baseline covariates. Each function takes integer N and returns a numeric vector of length N. Default is NULL.</p></dd>
+<dd><p>Named list of functions. Functions generating baseline covariates, drawn in list order after <code>L0</code>/<code>A0</code> (unless the list itself supplies "L0"/"A0", replacing the defaults). Each function takes integer N and, optionally, any subset of the names of covariates defined earlier (including L0/A0), matched by argument name, and returns a numeric vector of length N. Default is NULL.</p></dd>
 
 
 <dt id="arg-override-beta">override_beta<a class="anchor" aria-label="anchor" href="#arg-override-beta"></a></dt>
@@ -122,11 +126,11 @@ and previous event history.</p>
 
 
 <dt id="arg-gen-a-">gen_A0<a class="anchor" aria-label="anchor" href="#arg-gen-a-"></a></dt>
-<dd><p>Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.</p></dd>
+<dd><p>Function. Deprecated; use <code>add_cov = list(A0 = ...)</code> instead. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.</p></dd>
 
 
 <dt id="arg-gen-l-">gen_L0<a class="anchor" aria-label="anchor" href="#arg-gen-l-"></a></dt>
-<dd><p>Function. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.</p></dd>
+<dd><p>Function. Deprecated; use <code>add_cov = list(L0 = ...)</code> instead. Function to generate the baseline covariate L0. Takes N as inputs. Default is a Uniform(0,1) random variable.</p></dd>
 
 
 <dt id="arg-at-risk-cov">at_risk_cov<a class="anchor" aria-label="anchor" href="#arg-at-risk-cov"></a></dt>
@@ -174,11 +178,15 @@ $$
 $$
 Here, \(L\) is the vector of covariates and event counts, and \(\beta^x\) is
 the vector of coefficients representing the effect of covariates and previous events on the intensity.</p>
-<p>Every simulated dataset includes two fixed baseline covariates, <code>L0</code> and
-<code>A0</code>, in addition to any covariates supplied via <code>add_cov</code>. <code>L0</code>
-is a baseline covariate and <code>A0</code> is a baseline treatment indicator whose
-generator can depend on <code>L0</code>. Their distributions can be changed via
-<code>gen_L0</code>/<code>gen_A0</code>.</p>
+<p>Every simulated dataset includes two baseline covariates, <code>L0</code> (a
+baseline covariate, Uniform(0,1) by default) and <code>A0</code> (a baseline
+treatment indicator, Bernoulli(0.5) by default), followed by any
+covariates supplied via <code>add_cov</code>. <code>L0</code>/<code>A0</code> are just the
+first two entries of the covariate-generation list: a generator may depend
+on any covariate defined earlier in that list by name (e.g. the default
+<code>A0</code> generator takes <code>L0</code> as an argument), so <code>add_cov</code> can
+itself supply "L0"/"A0" entries, or later covariates conditional on
+earlier ones (see <code>add_cov</code> below).</p>
     </div>
 
     <div class="section level2">
@@ -187,14 +195,14 @@ generator can depend on <code>L0</code>. Their distributions can be changed via
 <span class="r-in"><span><span class="va">sim_data</span> <span class="op">&lt;-</span> <span class="fu">simEventData</span><span class="op">(</span>N <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sim_data</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;ID&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       ID     Time Delta         L0    A0    N0    N1    N2    N3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;    &lt;num&gt; &lt;int&gt;      &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 1.950912     2 0.46717567     0     0     0     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     1 4.578772     0 0.46717567     0     1     0     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     2 2.007552     0 0.49895085     0     1     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     3 1.268429     3 0.69876955     1     0     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     3 1.387908     0 0.69876955     1     1     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     4 1.546615     3 0.07114061     0     0     0     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       ID      Time Delta         L0    A0    N0    N1    N2    N3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;     &lt;num&gt; &lt;int&gt;      &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 0.7685405     3 0.96263514     1     0     0     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     1 3.9906223     2 0.96263514     1     0     0     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     1 6.7972661     0 0.96263514     1     1     0     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     2 0.9621105     1 0.01141535     0     0     1     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     3 3.9906696     0 0.24988251     0     1     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     4 0.2759365     2 0.21641406     1     0     0     1     0</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

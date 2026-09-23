@@ -19,6 +19,10 @@ Death and censoring are terminal events; treatment and covariate events can occu
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/sim-event-graph.html">Migrating to sim_event_graph()</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -228,20 +232,34 @@ the effect of covariate <code>L = 1</code> on the hazard of treatment.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">simTreatment</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;ID&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        ID       Time Delta        L0     A     L</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;      &lt;num&gt; &lt;int&gt;     &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 1.60937897     1 0.4013722     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     2 0.35047328     1 0.5286588     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     3 1.34003341     1 0.6417266     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     4 1.22361034     1 0.8901832     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     5 2.66686046     1 0.8172235     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     6 0.07611203     0 0.8504901     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     7 1.19170742     0 0.1950094     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     8 1.70857612     1 0.8698328     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     9 0.15932568     1 0.4123311     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10:    10 0.38013908     2 0.4366730     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11:    10 6.50400572     3 0.4366730     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12:    10 8.69130214     1 0.4366730     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        ID        Time Delta         L0     A     L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;       &lt;num&gt; &lt;int&gt;      &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1  1.51216202     2 0.84000818     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1  2.23639177     3 0.84000818     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     1  8.67567060     1 0.84000818     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     2  1.70286226     2 0.03308578     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     2  6.73507088     3 0.03308578     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     2 20.46830128     0 0.03308578     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     3  5.89363307     2 0.22492050     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     3  9.13428421     0 0.22492050     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     4  0.25701200     2 0.58185912     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     4  3.60155561     3 0.58185912     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     4  4.34737903     0 0.58185912     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     5  0.08181358     1 0.55046058     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13:     6  1.38547842     2 0.36495008     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14:     6  4.15217637     1 0.36495008     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15:     7  0.07178860     3 0.80168056     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16:     7  0.17267466     1 0.80168056     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17:     8  0.50941998     2 0.49029575     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18:     8  1.19568729     0 0.49029575     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19:     9  2.54577230     2 0.13689095     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20:     9 11.45403302     3 0.13689095     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21:     9 11.94137732     0 0.13689095     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22:    10  3.73694156     3 0.12309058     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23:    10  4.69795133     2 0.12309058     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24:    10  5.23029269     1 0.12309058     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        ID        Time Delta         L0     A     L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;       &lt;num&gt; &lt;int&gt;      &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -114,9 +114,9 @@ A list with two components:
 ``` r
 intEffectAlpha(N = 1000, alpha = 0.7, tau = 5, years_lost = FALSE, a0 = 1, setting = "Drop In")
 #> $effect_2
-#> [1] 0.527668
+#> [1] 0.5695364
 #> 
 #> $effect_death
-#> [1] 0.09486166
+#> [1] 0.1125828
 #> 
 ```

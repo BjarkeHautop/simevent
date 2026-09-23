@@ -17,6 +17,10 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/sim-event-graph.html">Migrating to sim_event_graph()</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -49,9 +53,97 @@
         </dt>
         <dd>simevent: Simulation and Analysis of Event History Data</dd>
       </dl></div><div class="section level2">
-      <h2 id="core-simulation">Core simulation<a class="anchor" aria-label="anchor" href="#core-simulation"></a></h2>
+      <h2 id="graph-based-simulation">Graph-based simulation<a class="anchor" aria-label="anchor" href="#graph-based-simulation"></a></h2>
 
-      <div class="section-desc"><p>Functions for simulating event history data, built on the general-purpose simEventData/simEventTV engine, plus ready-made wrappers for common settings.</p></div>
+      <div class="section-desc"><p>Build a simulation spec as a graph of covariates, event processes, and effects between them, and simulate event history data from it.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="sim_graph.html">sim_graph()</a></code>
+
+        </dt>
+        <dd>Build a Simulation Graph for <code><a href="../reference/sim_event_graph.html">sim_event_graph()</a></code></dd>
+
+        <dt>
+
+          <code><a href="sim_covariate.html">sim_covariate()</a></code>
+
+        </dt>
+        <dd>Define a Baseline Covariate for <code><a href="../reference/sim_graph.html">sim_graph()</a></code></dd>
+
+        <dt>
+
+          <code><a href="sim_derived.html">sim_derived()</a></code>
+
+        </dt>
+        <dd>Define a Derived Covariate for <code><a href="../reference/sim_graph.html">sim_graph()</a></code></dd>
+
+        <dt>
+
+          <code><a href="sim_process.html">sim_process()</a></code>
+
+        </dt>
+        <dd>Define an Event Process for <code><a href="../reference/sim_graph.html">sim_graph()</a></code></dd>
+
+        <dt>
+
+          <code><a href="sim_effect.html">sim_effect()</a></code>
+
+        </dt>
+        <dd>Define an Effect for <code><a href="../reference/sim_graph.html">sim_graph()</a></code></dd>
+
+        <dt>
+
+          <code><a href="sim_event_graph.html">sim_event_graph()</a></code>
+
+        </dt>
+        <dd>Simulate Event History Data from a <code><a href="../reference/sim_graph.html">sim_graph()</a></code></dd>
+
+        <dt>
+
+          <code><a href="sim_graph_from_fits.html">sim_graph_from_fits()</a></code>
+
+        </dt>
+        <dd>Build a <code><a href="../reference/sim_graph.html">sim_graph()</a></code> from Fitted Cox Models</dd>
+      </dl></div><div class="section level2">
+      <h2 id="treating-graph-based-simulated-data">Treating graph-based simulated data<a class="anchor" aria-label="anchor" href="#treating-graph-based-simulated-data"></a></h2>
+
+      <div class="section-desc"><p>Functions for formatting, plotting, and summarising data simulated with <code><a href="../reference/sim_event_graph.html">sim_event_graph()</a></code>.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="interval_format_data.html">interval_format_data()</a></code>
+
+        </dt>
+        <dd>Transform Graph-Based Event Data into Interval Format for Classical Inference</dd>
+
+        <dt>
+
+          <code><a href="plot_event_data.html">plot_event_data()</a></code>
+
+        </dt>
+        <dd>Plot Graph-Based Simulated Event History Data</dd>
+
+        <dt>
+
+          <code><a href="event_risk.html">event_risk()</a></code>
+
+        </dt>
+        <dd>Risk of, or Time Lost to, an Event by a Time Horizon</dd>
+      </dl></div><div class="section level2">
+      <h2 id="core-simulation-old-">Core simulation (old)<a class="anchor" aria-label="anchor" href="#core-simulation-old-"></a></h2>
+
+      <div class="section-desc"><p>Functions for simulating event history data, built on the old simEventData/simEventTV engine. Will be removed in the future.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -80,6 +172,22 @@
         <dd>Simulate Continuous Time-to-Event Data with Multiple Event Types and time dependent effects</dd>
 
         <dt>
+
+          <code><a href="sim.generic.html">sim.generic()</a></code>
+
+        </dt>
+        <dd>Simulate Event History Data from a Generic Process Specification</dd>
+      </dl></div><div class="section level2">
+      <h2 id="preset-wrappers-old-">Preset wrappers (old)<a class="anchor" aria-label="anchor" href="#preset-wrappers-old-"></a></h2>
+
+      <div class="section-desc"><p>Ready-made wrappers for common settings, each hard-coding a fixed baseline/process/effect specification on top of simEventData(). Will be removed in the future.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="simSurvData.html">simSurvData()</a></code>
 
@@ -121,9 +229,9 @@
         </dt>
         <dd>Simulate Data in a Statin Setting</dd>
       </dl></div><div class="section level2">
-      <h2 id="treating-simulated-data">Treating simulated data<a class="anchor" aria-label="anchor" href="#treating-simulated-data"></a></h2>
+      <h2 id="treating-simulated-data-old-">Treating simulated data (old)<a class="anchor" aria-label="anchor" href="#treating-simulated-data-old-"></a></h2>
 
-      <div class="section-desc"><p>Functions for formatting and plotting simulated event history data.</p></div>
+      <div class="section-desc"><p>Functions for formatting and plotting event history data simulated with the old engine. Will be removed in the future.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -144,9 +252,9 @@
         </dt>
         <dd>Plot Simulated Event History Data</dd>
       </dl></div><div class="section level2">
-      <h2 id="simulating-from-fitted-models">Simulating from fitted models<a class="anchor" aria-label="anchor" href="#simulating-from-fitted-models"></a></h2>
+      <h2 id="simulating-from-fitted-models-old-">Simulating from fitted models (old)<a class="anchor" aria-label="anchor" href="#simulating-from-fitted-models-old-"></a></h2>
 
-      <div class="section-desc"><p>Functions for simulating new data from models fitted to observed data.</p></div>
+      <div class="section-desc"><p>Functions for simulating new data from models fitted to observed data, built on the old engine. Will be removed in the future.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -166,10 +274,17 @@
 
         </dt>
         <dd>Simulate Survival and Competing Risk Data Based on a General Model</dd>
-      </dl></div><div class="section level2">
-      <h2 id="interventions">Interventions<a class="anchor" aria-label="anchor" href="#interventions"></a></h2>
 
-      <div class="section-desc"><p>Functions for performing interventions on the shape parameter of a process, and estimating their effect.</p></div>
+        <dt>
+
+          <code><a href="sim.from.data.html">sim.from.data()</a></code>
+
+        </dt>
+        <dd>Simulate Event History Data from Parameters Fitted to Observed Data</dd>
+      </dl></div><div class="section level2">
+      <h2 id="interventions-old-">Interventions (old)<a class="anchor" aria-label="anchor" href="#interventions-old-"></a></h2>
+
+      <div class="section-desc"><p>Functions for performing interventions on the shape parameter of a process, and estimating their effect. Will be removed in the future.</p></div>
 
       <dl></dl></div><div class="section level2">
 

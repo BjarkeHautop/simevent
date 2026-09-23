@@ -23,6 +23,10 @@ previous events, following Weibull hazards with shape and scale parameters \(\et
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/sim-event-graph.html">Migrating to sim_event_graph()</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -147,7 +151,7 @@ previous events, following Weibull hazards with shape and scale parameters \(\et
 
 
 <dt id="arg-gen-a-">gen_A0<a class="anchor" aria-label="anchor" href="#arg-gen-a-"></a></dt>
-<dd><p>Function. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.</p></dd>
+<dd><p>Function. Deprecated; use <code>add_cov = list(A0 = ...)</code> instead. Function to generate the baseline treatment covariate A0. Takes N and L0 as inputs. Default is a Bernoulli(0.5) random variable.</p></dd>
 
 
 <dt id="arg-at-risk-cov">at_risk_cov<a class="anchor" aria-label="anchor" href="#arg-at-risk-cov"></a></dt>
@@ -188,21 +192,24 @@ Time-varying effects can be included via <code>beta_L_D_t_prime</code> and <code
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">simDisease</span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;ID&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        ID       Time Delta        L0    A0     L</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;      &lt;num&gt; &lt;int&gt;     &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 2.21316247     2 0.5031158     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1 2.67315265     1 0.5031158     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     2 4.09487739     2 0.2968534     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     2 6.39804291     1 0.2968534     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     3 9.86025281     1 0.2317255     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     4 0.08721161     1 0.5951929     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     5 0.74653349     1 0.9495907     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     6 1.01768854     1 0.6086446     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     7 1.12425645     1 0.5617409     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     8 5.25604931     2 0.8382615     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     8 9.26838927     1 0.8382615     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     9 2.52572316     1 0.3706584     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13:    10 5.74922441     0 0.2718674     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        ID       Time Delta         L0    A0     L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;      &lt;num&gt; &lt;int&gt;      &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 0.42962291     2 0.73434487     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1 3.85626073     1 0.73434487     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     2 0.10735355     0 0.35737817     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     3 0.70575722     1 0.38044179     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     4 4.93022171     2 0.01007393     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     4 7.92271276     1 0.01007393     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     5 0.07979234     2 0.51933362     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     5 1.36707562     1 0.51933362     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     6 1.12857585     2 0.49378098     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     6 1.93852293     1 0.49378098     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     7 0.44891364     1 0.91582416     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     8 6.53847484     2 0.47776159     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13:     8 7.19345556     1 0.47776159     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14:     9 0.13960266     2 0.77614838     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15:     9 1.02106907     1 0.77614838     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16:    10 1.35950493     1 0.66430565     0     0</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
