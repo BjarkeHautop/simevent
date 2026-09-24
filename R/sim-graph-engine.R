@@ -164,7 +164,11 @@ process_hazard_multipliers <- function(
           n_events_so_far
         )
       }
-      value <- eval(str2lang(eff$from), envir = env)
+      expr <- eff$parsed_from
+      if (is.null(expr)) {
+        expr <- str2lang(eff$from)
+      }
+      value <- eval(expr, envir = env)
     }
     log_phi[, eff$to] <- log_phi[, eff$to] + eff$coef * value
   }

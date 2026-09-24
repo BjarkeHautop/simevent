@@ -245,7 +245,8 @@ sim_graph <- function(..., effects = list()) {
 
   checkmate::assert_list(effects, types = "sim_effect")
   process_names <- names(nodes)[is_process]
-  for (eff in effects) {
+  for (i in seq_along(effects)) {
+    eff <- effects[[i]]
     if (!(eff$from %in% names(nodes))) {
       # Not a bare node name: must be a valid R expression whose free
       # variables are all covariate/process names (or `t`); last_time()/
@@ -272,6 +273,8 @@ sim_graph <- function(..., effects = list()) {
           paste(unknown, collapse = ", ")
         )
       }
+      eff$parsed_from <- parsed
+      effects[[i]] <- eff
     }
     if (!(eff$to %in% process_names)) {
       stop(

@@ -35,19 +35,19 @@ compare_graph <- function(wrapper_data, graph_data) {
 }
 ```
 
-`compare_graph()` checks that a `sim_event_graph()` reproduction draws the exact
-same random numbers, in the same order, as the wrapper it's reproducing. That
-only holds below for `simSurvData()`/`simCRdata()`.
+`compare_graph()` checks that a `sim_event_graph()` reproduction draws the same
+random numbers, in the same order, as the wrapper it reproduces. Only holds
+below for `simSurvData()`/`simCRdata()`.
 
-`simDisease()`/`simTreatment()` each have a `"transient"` process, so some
-individuals finish before others; `sim_event_graph()` draws random numbers only
-for whoever's still being simulated, while the wrapper always draws for everyone
-(including those already finished) and discards the unused draws.
+`simDisease()`/`simTreatment()` have a `"transient"` process, so individuals
+finish at different times: `sim_event_graph()` only draws for whoever's still
+running, while the wrapper draws for everyone and discards the unused draws for
+those already finished.
 
 # Introduction
 
-This introduces the new API with `sim_event_graph()`, which is (probably?) a
-better interface.
+Introduces the `sim_event_graph()` API, a graph-based front end to the same
+simulator as `sim.generic()`.
 
 # The `sim_graph()` Interface
 
@@ -95,12 +95,12 @@ head(data_intervened)
 ## Non-Linear and History-Dependent Effects
 
 `sim_effect()`'s `from` doesn't have to name a single covariate or process. Any
-other string is parsed and evaluated as an R expression against every
-covariate/process value, the current time `t`, and two history accessors,
-`last_time(proc)` and `nth_time(proc, k)`. This covers thresholds, interactions,
-and nonlinear transforms inline, without predefining a `sim_derived()` covariate
-for them, and effects that depend on a process's full occurrence history, not
-just its current count.
+other string is parsed and evaluated as an R expression, against every
+covariate/process value plus the current time `t` and two history accessors,
+`last_time(proc)` and `nth_time(proc, k)`. Covers thresholds, interactions, and
+nonlinear transforms inline, and effects depending on a process's full
+occurrence history, not just its current count, without a separate
+`sim_derived()` covariate.
 
 For example, an effect that only fires on a process's 3rd occurrence, not the
 1st or 2nd:
@@ -254,8 +254,7 @@ rbind(
 `simTreatment()` (with `op = 1`, the default) adds a second `"transient"`
 process, treatment (`A`), which can itself affect and be affected by the
 covariate process `L`. `simTreatment()` doesn't declare its own `A0`, so its
-reproduction doesn't need one either -- `sim_graph()` forces no default
-covariates:
+reproduction skips it too: `sim_graph()` has no default covariates.
 
 ```{r}
 #| label: simtreatment-equivalence
@@ -434,6 +433,81 @@ plot_event_data(
 )
 ```
 
+## Calibrating a Coefficient to a Target Effect
+
+Hitting a specific target effect by hand means repeating the comparison above
+many times: a 1-D search. Risk is monotonic in a Cox-type coefficient, so
+`uniroot()` finds it directly from a function returning the simulated effect for
+a given coefficient.
+
+Use the same `n`/`tau` on every call, and the same random seed for the natural
+and intervened runs (common random numbers), so only the coefficient and the
+intervention vary, not independent Monte Carlo noise too. Otherwise the search
+target is too noisy for `uniroot()` to bracket a root.
+
+Take `disease_graph` from above, but suppose disease's effect on death (fixed at
+`1` there) is unknown, and the target is: halving the disease hazard should
+lower 5-year death risk by 5 percentage points.
+
+```{r}
+#| label: calibration-objective
+
+disease_effect_on_death <- function(coef, n = 3000, tau = 5, seed = 1) {
+  graph <- sim_graph(
+    L0 = sim_covariate(function(N) runif(N)),
+    A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
+    censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+    death = sim_process("terminal", eta = 0.1, nu = 1.1),
+    L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
+    effects = list(
+      sim_effect("L0", "death", 1),
+      sim_effect("L0", "L", 1),
+      sim_effect("L", "death", coef)
+    )
+  )
+
+  set.seed(seed)
+  natural <- sim_event_graph(graph, n = n, cens = 0)
+  set.seed(seed)
+  intervened <- sim_event_graph(
+    graph,
+    n = n,
+    cens = 0,
+    intervene = list(L = 0.5)
+  )
+
+  risk_natural <- event_risk(natural, graph, "death", tau = tau)$risk
+  risk_intervened <- event_risk(intervened, graph, "death", tau = tau)$risk
+  risk_natural - risk_intervened
+}
+```
+
+Larger coefficients make disease matter more for death, so halving its hazard
+lowers death risk by more: `disease_effect_on_death()` is increasing in `coef`.
+
+```{r}
+#| label: calibration-check-monotone
+
+sapply(c(0, 1, 2, 3), disease_effect_on_death)
+```
+
+`uniroot()` finds the coefficient giving a 5 percentage point reduction:
+
+```{r}
+#| label: calibration-uniroot
+
+calibrated <- uniroot(
+  function(coef) disease_effect_on_death(coef) - 0.05,
+  interval = c(0, 3),
+  tol = 0.01
+)
+calibrated$root
+```
+
+For several coefficients and targets at once, wrap the sum of squared deviations
+into one objective (still with common random numbers) and use `optim()` instead
+of `uniroot()`.
+
 # Building a `sim_graph()` from Fitted Cox Models
 
 `sim_graph_from_fits()` is the graph-native replacement for `sim.from.data()`:
@@ -467,8 +541,7 @@ observed_graph <- sim_graph(
 )
 observed_data <- sim_event_graph(observed_graph, n = 1000)
 
-# Refit each process from that "observed" data, then rebuild a sim_graph()
-# from the fits, as if observed_data came from an outside source and
+# Refit from "observed" data, then rebuild a sim_graph(), as if
 # observed_graph were unknown:
 fits <- list(
   censoring = coxph(Surv(time, delta == 0) ~ L0 + A0, data = observed_data),
@@ -491,8 +564,7 @@ Weibull hazard is linear on that scale).
 new_data <- sim_event_graph(graph, n = 1000)
 head(new_data)
 
-# Event-type distribution should be comparable between the observed and
-# newly simulated data:
+# Event-type distribution should match between observed and simulated data:
 rbind(
   observed = prop.table(table(observed_data$delta)),
   simulated = prop.table(table(new_data$delta))
