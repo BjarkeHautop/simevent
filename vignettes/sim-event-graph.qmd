@@ -92,6 +92,63 @@ data_intervened <- sim_event_graph(
 head(data_intervened)
 ```
 
+## Non-Linear and History-Dependent Effects
+
+`sim_effect()`'s `from` doesn't have to name a single covariate or process. Any
+other string is parsed and evaluated as an R expression against every
+covariate/process value, the current time `t`, and two history accessors,
+`last_time(proc)` and `nth_time(proc, k)`. This covers thresholds, interactions,
+and nonlinear transforms inline, without predefining a `sim_derived()` covariate
+for them, and effects that depend on a process's full occurrence history, not
+just its current count.
+
+For example, an effect that only fires on a process's 3rd occurrence, not the
+1st or 2nd:
+
+```{r}
+#| label: sim-graph-nonlinear-effect
+
+relapse_graph <- sim_graph(
+  censoring = sim_process("censoring", eta = 0.01, nu = 1),
+  relapse = sim_process("transient", eta = 0.3, nu = 1, limit = 5),
+  death = sim_process("terminal", eta = 0.01, nu = 1),
+  effects = list(
+    sim_effect("relapse == 3", "death", coef = 8)
+  )
+)
+
+set.seed(1405)
+relapse_data <- sim_event_graph(relapse_graph, n = 2000, max_events = 40)
+
+deaths <- relapse_data[relapse_data$delta == 1, ]
+mean(deaths$relapse == 3)
+```
+
+Most deaths happen right at the 3rd relapse, not before or after.
+
+`last_time()`/`nth_time()` give the same access to timing, not just counts. Here
+the death hazard drops for one time unit right after each checkup:
+
+```{r}
+#| label: sim-graph-history-effect
+
+checkup_graph <- sim_graph(
+  censoring = sim_process("censoring", eta = 0.05, nu = 1.1),
+  checkup = sim_process("transient", eta = 0.3, nu = 1),
+  death = sim_process("terminal", eta = 0.05, nu = 1.1),
+  effects = list(
+    sim_effect("t - last_time(checkup) < 1", "death", coef = -2)
+  )
+)
+
+checkup_data <- sim_event_graph(checkup_graph, n = 2000)
+head(checkup_data)
+```
+
+`last_time(proc)` is `-Inf` before `proc`'s first occurrence, and
+`nth_time(proc, k)` is `Inf` before its `k`-th, so both work directly in
+comparisons with no `NA` handling required.
+
 # Reproducing the Preset Wrappers
 
 ## `simSurvData()`

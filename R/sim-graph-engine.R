@@ -44,15 +44,100 @@ apply_intervention <- function(graph, intervene) {
   list(covs = covs, eta = eta)
 }
 
+# The time of a process's most recent occurrence so far (per alive
+# individual, i.e. per column of type_log/time_log), or -Inf where it hasn't
+# occurred yet. type_log/time_log hold only the first n_rows rows (the
+# individual's events so far); proc_idx indexes process_names.
+.sim_graph_last_time <- function(type_log, time_log, proc_idx, n_rows) {
+  n <- ncol(time_log)
+  if (n_rows == 0) {
+    return(rep(-Inf, n))
+  }
+  hit <- type_log[seq_len(n_rows), , drop = FALSE] == proc_idx
+  vapply(
+    seq_len(n),
+    function(j) {
+      w <- which(hit[, j])
+      if (length(w) == 0) -Inf else time_log[max(w), j]
+    },
+    numeric(1)
+  )
+}
+
+# The time of a process's k-th occurrence so far (per column), or Inf where
+# fewer than k occurrences have happened yet.
+.sim_graph_nth_time <- function(type_log, time_log, proc_idx, k, n_rows) {
+  n <- ncol(time_log)
+  if (n_rows == 0) {
+    return(rep(Inf, n))
+  }
+  hit <- type_log[seq_len(n_rows), , drop = FALSE] == proc_idx
+  vapply(
+    seq_len(n),
+    function(j) {
+      w <- which(hit[, j])
+      if (length(w) < k) Inf else time_log[w[k], j]
+    },
+    numeric(1)
+  )
+}
+
+# Evaluation environment for a sim_effect() `from` expression: covariates and
+# event counts bound by name (as before), plus `t` (current time) and the
+# history accessors `last_time()`/`nth_time()`, which read the process name
+# out of their unevaluated argument (so e.g. `last_time(checkup)` doesn't
+# require `checkup` to resolve to anything itself).
+.sim_graph_effect_env <- function(
+  covariates,
+  event_counts,
+  process_names,
+  t,
+  event_time_log,
+  event_type_log,
+  n_events_so_far
+) {
+  env <- list2env(c(covariates, event_counts), parent = parent.frame())
+  env$t <- t
+  env$last_time <- function(proc) {
+    nm <- deparse(substitute(proc))
+    idx <- match(nm, process_names)
+    if (is.na(idx)) {
+      stop("last_time(): unknown process '", nm, "'")
+    }
+    .sim_graph_last_time(event_type_log, event_time_log, idx, n_events_so_far)
+  }
+  env$nth_time <- function(proc, k) {
+    nm <- deparse(substitute(proc))
+    idx <- match(nm, process_names)
+    if (is.na(idx)) {
+      stop("nth_time(): unknown process '", nm, "'")
+    }
+    .sim_graph_nth_time(
+      event_type_log,
+      event_time_log,
+      idx,
+      k,
+      n_events_so_far
+    )
+  }
+  env
+}
+
 # For each process, the multiplicative hazard effect exp(sum of incoming
-# sim_effect() coefs * current value of their `from`), evaluated by name
-# against covariates/event counts. Returns a length(covariates[[1]]) x
-# length(process_names) matrix.
+# sim_effect() coefs * current value of their `from`). `from` naming a
+# covariate or process directly is looked up by name; anything else is
+# parsed and evaluated as an R expression against covariates/event
+# counts/`t`/last_time()/nth_time().
+# Returns a length(covariates[[1]]) x length(process_names) matrix.
 process_hazard_multipliers <- function(
   effects,
   covariates,
   event_counts,
-  process_names
+  process_names,
+  t = NULL,
+  event_time_log = NULL,
+  event_type_log = NULL,
+  n_events_so_far = 0
 ) {
   n <- length(event_counts[[1]])
   log_phi <- matrix(
@@ -61,10 +146,25 @@ process_hazard_multipliers <- function(
     ncol = length(process_names),
     dimnames = list(NULL, process_names)
   )
+  env <- NULL
   for (eff in effects) {
     value <- covariates[[eff$from]]
     if (is.null(value)) {
       value <- event_counts[[eff$from]]
+    }
+    if (is.null(value)) {
+      if (is.null(env)) {
+        env <- .sim_graph_effect_env(
+          covariates,
+          event_counts,
+          process_names,
+          t,
+          event_time_log,
+          event_type_log,
+          n_events_so_far
+        )
+      }
+      value <- eval(str2lang(eff$from), envir = env)
     }
     log_phi[, eff$to] <- log_phi[, eff$to] + eff$coef * value
   }
@@ -172,6 +272,11 @@ run_sim_graph <- function(
     process_order
   )
 
+  # Full per-individual event log (time + which process, one row per event
+  # so far), so sim_effect() expressions can use last_time()/nth_time().
+  event_time_log <- matrix(0, nrow = max_events, ncol = n)
+  event_type_log <- matrix(0L, nrow = max_events, ncol = n)
+
   t_k <- rep(0, n)
   alive <- seq_len(n)
   res_list <- vector("list", max_events)
@@ -185,7 +290,11 @@ run_sim_graph <- function(
       graph$effects,
       covariates_alive,
       event_counts_alive,
-      process_order
+      process_order,
+      t = t_k[alive],
+      event_time_log = event_time_log[, alive, drop = FALSE],
+      event_type_log = event_type_log[, alive, drop = FALSE],
+      n_events_so_far = idx - 1
     )
     risk_alive <- at_risk_fn(event_counts_alive)
 
@@ -219,6 +328,9 @@ run_sim_graph <- function(
       ] +
         1
     }
+
+    event_time_log[idx, ] <- t_k
+    event_type_log[idx, alive] <- deltas + 1L
 
     result_cols <- c(
       list(id = alive, time = t_k[alive], delta = deltas),

@@ -38,6 +38,25 @@ test_that("sim_graph validates node types, effect endpoints, and requires a proc
   )
   expect_error(sim_graph(a = cov, a = proc), "unique")
 
+  expect_error(
+    sim_graph(
+      a = cov,
+      d = proc,
+      effects = list(sim_effect("bogus + 1", "d", 1))
+    ),
+    "not found in graph: bogus"
+  )
+  expect_error(
+    sim_graph(a = cov, d = proc, effects = list(sim_effect("a +* 1", "d", 1))),
+    "neither a node name nor a parseable"
+  )
+  g <- sim_graph(
+    a = cov,
+    d = proc,
+    effects = list(sim_effect("a^2", "d", 1), sim_effect("t >= 0", "d", 0.1))
+  )
+  expect_s3_class(g, "sim_graph")
+
   graph <- sim_graph(a = cov, d = proc, effects = list(sim_effect("a", "d", 1)))
   expect_s3_class(graph, "sim_graph")
   expect_named(graph$covariates, "a")
@@ -145,6 +164,24 @@ test_that("sim_event_graph recovers effect coefficients", {
 
   fit_cens <- coxph(Surv(time, delta == 0) ~ L0, data = data)
   expect_true(confint(fit_cens)[1, 1] <= -0.5 & -0.5 <= confint(fit_cens)[1, 2])
+})
+
+test_that("sim_event_graph: a threshold sim_effect() fires specifically on the k-th jump", {
+  set.seed(1)
+
+  graph <- sim_graph(
+    censoring = sim_process("censoring", eta = 0.01, nu = 1),
+    relapse = sim_process("transient", eta = 0.3, nu = 1, limit = 5),
+    death = sim_process("terminal", eta = 0.01, nu = 1),
+    effects = list(sim_effect("relapse == 3", "death", coef = 8))
+  )
+  data <- sim_event_graph(graph, n = 2000, max_events = 40)
+
+  deaths <- data[data$delta == 1, ]
+  expect_gt(nrow(deaths), 0)
+  # A large jump in the death hazard right at relapse == 3 should mean most
+  # deaths happen exactly there, not before or after.
+  expect_gt(mean(deaths$relapse == 3), 0.8)
 })
 
 test_that("sim_event_graph reports named transient-process event counts", {

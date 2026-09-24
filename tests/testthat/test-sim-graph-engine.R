@@ -98,6 +98,83 @@ test_that("process_hazard_multipliers sums coefs from covariates and event count
   expect_equal(phi[, "relapse"], rep(1, 3))
 })
 
+test_that("process_hazard_multipliers evaluates a non-name `from` as an expression", {
+  effects <- list(sim_effect("age^2", "death", coef = -0.1))
+  phi <- process_hazard_multipliers(
+    effects,
+    covariates = list(age = c(2, 3, 10)),
+    event_counts = list(death = c(0, 0, 0)),
+    process_names = "death"
+  )
+  expect_equal(phi[, "death"], exp(-0.1 * c(2, 3, 10)^2))
+})
+
+test_that("process_hazard_multipliers expressions can threshold/interact with counts", {
+  effects <- list(
+    sim_effect("relapse == 3", "death", coef = 2),
+    sim_effect("L0 * relapse", "death", coef = 0.5)
+  )
+  phi <- process_hazard_multipliers(
+    effects,
+    covariates = list(L0 = c(1, 2)),
+    event_counts = list(relapse = c(3, 2), death = c(0, 0)),
+    process_names = c("relapse", "death")
+  )
+  expect_equal(
+    phi[, "death"],
+    exp(2 * c(1, 0) + 0.5 * c(1 * 3, 2 * 2))
+  )
+})
+
+test_that("process_hazard_multipliers: last_time() gives -Inf before any occurrence", {
+  # individual 1: 'a' occurred at t=1 (n_events_so_far row 1); individual 2:
+  # no events yet.
+  time_log <- matrix(c(1, 0), nrow = 1)
+  type_log <- matrix(c(1L, 0L), nrow = 1)
+
+  phi <- process_hazard_multipliers(
+    list(sim_effect("t - last_time(a) < 1", "d", coef = 2)),
+    covariates = list(),
+    event_counts = list(a = c(1, 0), d = c(0, 0)),
+    process_names = c("a", "d"),
+    t = c(1.5, 5),
+    event_time_log = time_log,
+    event_type_log = type_log,
+    n_events_so_far = 1
+  )
+  # individual 1: t - last_time = 0.5 < 1 -> active; individual 2: -Inf -> inactive
+  expect_equal(phi[, "d"], c(exp(2), 1))
+})
+
+test_that("process_hazard_multipliers: nth_time() gives Inf before the k-th occurrence", {
+  time_log <- matrix(c(0.5, 1, 1.5), nrow = 3)
+  type_log <- matrix(c(1L, 1L, 1L), nrow = 3)
+
+  phi <- process_hazard_multipliers(
+    list(sim_effect("t >= nth_time(a, 3)", "d", coef = 1)),
+    covariates = list(),
+    event_counts = list(a = 3, d = 0),
+    process_names = c("a", "d"),
+    t = 1.2,
+    event_time_log = time_log,
+    event_type_log = type_log,
+    n_events_so_far = 3
+  )
+  expect_equal(unname(phi[, "d"]), 1) # t=1.2 hasn't reached the 3rd occurrence (t=1.5) yet
+
+  phi2 <- process_hazard_multipliers(
+    list(sim_effect("t >= nth_time(a, 3)", "d", coef = 1)),
+    covariates = list(),
+    event_counts = list(a = 3, d = 0),
+    process_names = c("a", "d"),
+    t = 2,
+    event_time_log = time_log,
+    event_type_log = type_log,
+    n_events_so_far = 3
+  )
+  expect_equal(unname(phi2[, "d"]), exp(1))
+})
+
 test_that("process_hazard_multipliers is all-ones with no effects", {
   phi <- process_hazard_multipliers(
     list(),

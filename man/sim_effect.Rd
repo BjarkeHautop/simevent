@@ -7,8 +7,9 @@
 sim_effect(from, to, coef)
 }
 \arguments{
-\item{from}{Character. Name of a covariate, \code{\link[=sim_derived]{sim_derived()}} covariate, or
-process defined in the same \code{\link[=sim_graph]{sim_graph()}} call.}
+\item{from}{Character. The name of a covariate, \code{\link[=sim_derived]{sim_derived()}}
+covariate, or process defined in the same \code{\link[=sim_graph]{sim_graph()}} call, or an R
+expression referencing them (see Details).}
 
 \item{to}{Character. Name of a process defined in the same \code{\link[=sim_graph]{sim_graph()}}
 call.}
@@ -21,11 +22,39 @@ An object of class \code{sim_effect}, for use in \code{\link[=sim_graph]{sim_gra
 \description{
 An effect is a directed, weighted edge from a baseline covariate or
 process to a process's intensity: multiplying that process's baseline
-hazard by \code{exp(coef)} while \code{from} is "active" (its drawn value for a
-covariate, or its current event count for a process). For an effect that
-isn't linear in an existing covariate (a categorical level, an
-interaction, a threshold), define a \code{\link[=sim_derived]{sim_derived()}} covariate for it first
-and point \code{from} at that.
+hazard by \code{exp(coef * from)}, where \code{from}'s value is either looked up
+directly (a covariate's drawn value, or a process's current event count)
+or, for anything not naming a single node, evaluated as an R expression.
+}
+\details{
+\code{from} may be:
+\describe{
+\item{A bare node name}{e.g. \code{"age"} or \code{"relapse"}: the covariate's
+drawn value, or the process's current cumulative event count.}
+\item{Any other R expression}{parsed and evaluated per individual
+against every covariate/process name in the graph (by value, as
+above), plus:
+\describe{
+\item{\code{t}}{The current time in the individual's risk interval.}
+\item{\code{last_time(proc)}}{Time of \code{proc}'s most recent occurrence so
+far, or \code{-Inf} if it hasn't occurred yet.}
+\item{\code{nth_time(proc, k)}}{Time of \code{proc}'s \code{k}-th occurrence so
+far, or \code{Inf} if fewer than \code{k} have happened yet. So e.g.
+\code{"t >= nth_time(relapse, 3)"} is simply \code{FALSE} until it applies.}
+}
+\code{proc} is written unquoted, the same as any other node name in the
+expression (e.g. \code{"t - last_time(checkup) < 1"}).
+Covers thresholds (\code{"relapse == 3"}), interactions
+(\code{"age * relapse"}), and nonlinear transforms (\code{"age^2"}) inline,
+without predefining a \code{\link[=sim_derived]{sim_derived()}} covariate for them.}
+}
+}
+\examples{
+sim_effect("age", "death", coef = 0.03)
+sim_effect("age^2", "death", coef = -0.001)
+sim_effect("relapse == 3", "death", coef = 1.2)
+sim_effect("t - last_time(checkup) < 1", "death", coef = 0.5)
+sim_effect("t >= nth_time(relapse, 3)", "death", coef = 0.8)
 }
 \seealso{
 \code{\link[=sim_graph]{sim_graph()}}

@@ -124,20 +124,47 @@ sim_process <- function(
 #'
 #' An effect is a directed, weighted edge from a baseline covariate or
 #' process to a process's intensity: multiplying that process's baseline
-#' hazard by `exp(coef)` while `from` is "active" (its drawn value for a
-#' covariate, or its current event count for a process). For an effect that
-#' isn't linear in an existing covariate (a categorical level, an
-#' interaction, a threshold), define a [sim_derived()] covariate for it first
-#' and point `from` at that.
+#' hazard by `exp(coef * from)`, where `from`'s value is either looked up
+#' directly (a covariate's drawn value, or a process's current event count)
+#' or, for anything not naming a single node, evaluated as an R expression.
 #'
-#' @param from Character. Name of a covariate, [sim_derived()] covariate, or
-#'   process defined in the same [sim_graph()] call.
+#' `from` may be:
+#' \describe{
+#'   \item{A bare node name}{e.g. `"age"` or `"relapse"`: the covariate's
+#'     drawn value, or the process's current cumulative event count.}
+#'   \item{Any other R expression}{parsed and evaluated per individual
+#'     against every covariate/process name in the graph (by value, as
+#'     above), plus:
+#'     \describe{
+#'       \item{`t`}{The current time in the individual's risk interval.}
+#'       \item{`last_time(proc)`}{Time of `proc`'s most recent occurrence so
+#'         far, or `-Inf` if it hasn't occurred yet.}
+#'       \item{`nth_time(proc, k)`}{Time of `proc`'s `k`-th occurrence so
+#'         far, or `Inf` if fewer than `k` have happened yet. So e.g.
+#'         `"t >= nth_time(relapse, 3)"` is simply `FALSE` until it applies.}
+#'     }
+#'     `proc` is written unquoted, the same as any other node name in the
+#'     expression (e.g. `"t - last_time(checkup) < 1"`).
+#'     Covers thresholds (`"relapse == 3"`), interactions
+#'     (`"age * relapse"`), and nonlinear transforms (`"age^2"`) inline,
+#'     without predefining a [sim_derived()] covariate for them.}
+#' }
+#'
+#' @param from Character. The name of a covariate, [sim_derived()]
+#'   covariate, or process defined in the same [sim_graph()] call, or an R
+#'   expression referencing them (see Details).
 #' @param to Character. Name of a process defined in the same [sim_graph()]
 #'   call.
 #' @param coef Numeric. Cox-type coefficient.
 #'
 #' @return An object of class `sim_effect`, for use in [sim_graph()].
 #' @seealso [sim_graph()]
+#' @examples
+#' sim_effect("age", "death", coef = 0.03)
+#' sim_effect("age^2", "death", coef = -0.001)
+#' sim_effect("relapse == 3", "death", coef = 1.2)
+#' sim_effect("t - last_time(checkup) < 1", "death", coef = 0.5)
+#' sim_effect("t >= nth_time(relapse, 3)", "death", coef = 0.8)
 #' @export
 sim_effect <- function(from, to, coef) {
   checkmate::assert_string(from)
@@ -220,7 +247,31 @@ sim_graph <- function(..., effects = list()) {
   process_names <- names(nodes)[is_process]
   for (eff in effects) {
     if (!(eff$from %in% names(nodes))) {
-      stop("sim_effect() 'from' not found in graph: '", eff$from, "'")
+      # Not a bare node name: must be a valid R expression whose free
+      # variables are all covariate/process names (or `t`); last_time()/
+      # nth_time() take a process name as an unevaluated argument, which
+      # all.vars() still picks up as a reference to validate here.
+      parsed <- tryCatch(
+        str2lang(eff$from),
+        error = function(e) {
+          stop(
+            "sim_effect() 'from' is neither a node name nor a parseable R ",
+            "expression: '",
+            eff$from,
+            "'"
+          )
+        }
+      )
+      used <- setdiff(all.vars(parsed), "t")
+      unknown <- setdiff(used, names(nodes))
+      if (length(unknown) > 0) {
+        stop(
+          "sim_effect() 'from' expression '",
+          eff$from,
+          "' references name(s) not found in graph: ",
+          paste(unknown, collapse = ", ")
+        )
+      }
     }
     if (!(eff$to %in% process_names)) {
       stop(
