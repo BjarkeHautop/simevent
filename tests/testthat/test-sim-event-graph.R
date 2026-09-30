@@ -384,3 +384,96 @@ test_that("sim_graph_from_fits wires a cross-process effect, not a bogus covaria
   new_data <- sim_event_graph(graph, n = 100)
   expect_setequal(names(new_data), c("id", "time", "delta", "L0", "relapse"))
 })
+
+test_that("sim_graph rejects reserved names, missing terminal, and duplicate effects", {
+  cov <- sim_covariate(function(N) rnorm(N))
+  term <- sim_process("terminal", eta = 0.1, nu = 1.1)
+  trans <- sim_process("transient", eta = 0.1, nu = 1.1)
+
+  expect_error(sim_graph(time = cov, d = term), "reserved: time")
+  expect_error(sim_graph(d = term, id = trans), "reserved: id")
+  expect_error(sim_graph(t = cov, d = term), "reserved: t")
+  expect_error(
+    sim_graph(r = trans),
+    "at least one sim_process\\(\"terminal\"\\)"
+  )
+  expect_error(
+    sim_graph(
+      a = cov,
+      d = term,
+      effects = list(sim_effect("a", "d", 1), sim_effect("a", "d", 2))
+    ),
+    "duplicate sim_effect"
+  )
+})
+
+test_that("sim_graph rejects effects from censoring/terminal processes", {
+  term <- sim_process("terminal", eta = 0.1, nu = 1.1)
+  cens <- sim_process("censoring", eta = 0.1, nu = 1.1)
+  trans <- sim_process("transient", eta = 0.1, nu = 1.1)
+
+  expect_error(
+    sim_graph(d = term, r = trans, effects = list(sim_effect("d", "r", 1))),
+    "cannot use censoring/terminal process\\(es\\) d"
+  )
+  expect_error(
+    sim_graph(
+      d = term,
+      c = cens,
+      effects = list(sim_effect("c == 1", "d", 1))
+    ),
+    "cannot use censoring/terminal process\\(es\\) c"
+  )
+  # transient -> itself is allowed
+  expect_no_error(
+    sim_graph(d = term, r = trans, effects = list(sim_effect("r", "r", 0.1)))
+  )
+})
+
+test_that("sim_graph checks sim_covariate() generator arguments", {
+  term <- sim_process("terminal", eta = 0.1, nu = 1.1)
+
+  expect_error(
+    sim_graph(a = sim_covariate(function(N, zzz) rnorm(N)), d = term),
+    "sim_covariate\\(\\) 'a' has argument\\(s\\) 'zzz'"
+  )
+  # forward reference
+  expect_error(
+    sim_graph(
+      a = sim_covariate(function(N, b) rnorm(N)),
+      b = sim_covariate(function(N) rnorm(N)),
+      d = term
+    ),
+    "'a' has argument\\(s\\) 'b'"
+  )
+  expect_no_error(
+    sim_graph(
+      a = sim_covariate(function(N) rnorm(N)),
+      b = sim_covariate(function(N, a) rnorm(N, a)),
+      d = term
+    )
+  )
+})
+
+test_that("sim_event_graph is reproducible with seed and leaves the global RNG alone", {
+  graph <- sim_graph(
+    a = sim_covariate(function(N) rnorm(N)),
+    c = sim_process("censoring", eta = 0.1, nu = 1.1),
+    d = sim_process("terminal", eta = 0.1, nu = 1.1),
+    effects = list(sim_effect("a", "d", 0.5))
+  )
+
+  x <- sim_event_graph(graph, n = 50, seed = 1)
+  y <- sim_event_graph(graph, n = 50, seed = 1)
+  z <- sim_event_graph(graph, n = 50, seed = 2)
+  expect_equal(x, y)
+  expect_false(isTRUE(all.equal(x, z)))
+
+  set.seed(10)
+  expected <- runif(1)
+  set.seed(10)
+  sim_event_graph(graph, n = 50, seed = 1)
+  expect_equal(runif(1), expected)
+
+  expect_error(sim_event_graph(graph, n = 5, seed = 1.5))
+})

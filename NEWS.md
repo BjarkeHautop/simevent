@@ -15,6 +15,12 @@
 
 ## New features
 
+- `sim_event_graph()` gains a `seed` argument for reproducible simulation
+  without touching the global RNG stream.
+- `sim_graph()` now rejects: reserved node names (`id`, `time`, `delta`, `t`,
+  `last_time`, `nth_time`), graphs without a terminal process, duplicate
+  effects, effects from censoring/terminal processes, and `sim_covariate()`
+  generators whose arguments don't name an earlier covariate.
 - Added a `summary()` method for `sim_graph()` objects.
 - Added the graph-based API: `sim_graph()`, `sim_covariate()`, `sim_derived()`,
   `sim_process()`, `sim_effect()`, `sim_event_graph()` and

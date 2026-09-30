@@ -12,7 +12,8 @@ sim_event_graph(
   max_cens = Inf,
   max_events = 50,
   lower = 1e-25,
-  upper = 1e+08
+  upper = 1e+08,
+  seed = NULL
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ individual before an error is raised. Default 50.}
 \item{lower, upper}{Numeric. Root-finding bounds for the inverse cumulative
 hazard, used only when processes don't all share the same Weibull
 shape/scale. Defaults \code{1e-25}/\code{1e8}.}
+
+\item{seed}{Integer or \code{NULL} (default).}
 }
 \value{
 A \code{data.table} with columns \code{id}, \code{time}, \code{delta} (the 0-indexed

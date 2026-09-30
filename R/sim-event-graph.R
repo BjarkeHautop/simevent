@@ -224,11 +224,45 @@ sim_graph <- function(..., effects = list()) {
     stop("sim_graph() needs at least one sim_process().")
   }
 
+  # Names that would collide with sim_event_graph()'s output columns or with
+  # the variables available inside a sim_effect() expression.
+  reserved <- intersect(
+    names(nodes),
+    c("id", "time", "delta", "t", "last_time", "nth_time")
+  )
+  if (length(reserved) > 0) {
+    stop(
+      "sim_graph() node name(s) are reserved: ",
+      paste(reserved, collapse = ", "),
+      ". Reserved names are id, time, delta, t, last_time and nth_time."
+    )
+  }
+  process_types <- vapply(nodes[is_process], `[[`, character(1), "type")
+  if (!any(process_types == "terminal")) {
+    stop(
+      "sim_graph() needs at least one sim_process(\"terminal\"): without ",
+      "one, follow-up never ends."
+    )
+  }
+
   baseline_names <- names(nodes)[is_baseline]
   for (nm in baseline_names) {
     node <- nodes[[nm]]
+    earlier <- baseline_names[seq_len(match(nm, baseline_names) - 1)]
+    if (inherits(node, "sim_covariate")) {
+      missing <- setdiff(names(formals(node$generator)), c("N", earlier))
+      if (length(missing) > 0) {
+        stop(
+          "sim_covariate() '",
+          nm,
+          "' has argument(s) '",
+          paste(missing, collapse = ", "),
+          "' that do not name an earlier sim_covariate()/sim_derived() in ",
+          "the same sim_graph() call."
+        )
+      }
+    }
     if (inherits(node, "sim_derived")) {
-      earlier <- baseline_names[seq_len(match(nm, baseline_names) - 1)]
       missing <- setdiff(names(formals(node$fn)), earlier)
       if (length(missing) > 0) {
         stop(
@@ -245,6 +279,21 @@ sim_graph <- function(..., effects = list()) {
 
   checkmate::assert_list(effects, types = "sim_effect")
   process_names <- names(nodes)[is_process]
+  effect_keys <- vapply(
+    effects,
+    function(eff) paste(eff$from, eff$to, sep = " -> "),
+    character(1)
+  )
+  if (anyDuplicated(effect_keys) > 0) {
+    stop(
+      "sim_graph() has duplicate sim_effect()s: ",
+      paste(unique(effect_keys[duplicated(effect_keys)]), collapse = "; "),
+      ". Combine them into a single effect."
+    )
+  }
+  # A censoring or terminal process ends follow-up, so it can never be
+  # observed as a cause of a later event.
+  ended <- names(nodes)[is_process][process_types != "transient"]
   for (i in seq_along(effects)) {
     eff <- effects[[i]]
     if (!(eff$from %in% names(nodes))) {
@@ -281,6 +330,19 @@ sim_graph <- function(..., effects = list()) {
         "sim_effect() 'to' must name a sim_process() in the graph; '",
         eff$to,
         "' is not one."
+      )
+    }
+    sources <- if (eff$from %in% names(nodes)) {
+      eff$from
+    } else {
+      setdiff(all.vars(eff$parsed_from), "t")
+    }
+    bad_source <- intersect(sources, ended)
+    if (length(bad_source) > 0) {
+      stop(
+        "sim_effect() 'from' cannot use censoring/terminal process(es) ",
+        paste(bad_source, collapse = ", "),
+        ": they end follow-up, so never precede another event."
       )
     }
   }
@@ -390,6 +452,7 @@ print.sim_graph <- function(x, ...) {
 #'   hazard, used only when processes don't all share the same Weibull
 #'   shape/scale. Defaults `1e-25`/`1e8`.
 #'
+#' @param seed Integer or `NULL` (default).
 #' @return A `data.table` with columns `id`, `time`, `delta` (the 0-indexed
 #'   position of the firing process in `graph`'s process order: censoring
 #'   processes first, then terminal, then the rest in declared order), the
@@ -442,10 +505,12 @@ sim_event_graph <- function(
   max_cens = Inf,
   max_events = 50,
   lower = 1e-25,
-  upper = 1e8
+  upper = 1e8,
+  seed = NULL
 ) {
   checkmate::assert_class(graph, "sim_graph")
   checkmate::assert_count(n, positive = TRUE)
+  checkmate::assert_int(seed, null.ok = TRUE)
   checkmate::assert_list(intervene, names = "unique")
   checkmate::assert_number(cens, finite = TRUE)
 
@@ -460,16 +525,19 @@ sim_event_graph <- function(
     )
   }
 
-  run_sim_graph(
-    graph,
-    n = n,
-    intervene = intervene,
-    cens = cens,
-    max_cens = max_cens,
-    max_events = max_events,
-    lower = lower,
-    upper = upper
-  )
+  run <- function() {
+    run_sim_graph(
+      graph,
+      n = n,
+      intervene = intervene,
+      cens = cens,
+      max_cens = max_cens,
+      max_events = max_events,
+      lower = lower,
+      upper = upper
+    )
+  }
+  if (is.null(seed)) run() else withr::with_seed(seed, run())
 }
 
 # Approximates a coxph() fit's baseline cumulative hazard with a Weibull
