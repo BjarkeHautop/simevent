@@ -1,7 +1,7 @@
 # Simulate Continuous Time-to-Event Data with Multiple Event Types and time dependent effects
 
 `simEventDataTdPhi()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
 instead.
 
 ## Usage
@@ -193,12 +193,12 @@ sim_data <- simEventDataTdPhi(N = 10, beta2 = rep(0.01, 4))
 #> ℹ Please use `sim_event_graph()` instead.
 head(sim_data)
 #> Key: <ID>
-#>       ID      Time Delta        L0    A0    N0    N1    N2    N3
-#>    <int>     <num> <int>     <num> <num> <num> <num> <num> <num>
-#> 1:     1 1.3156016     0 0.2791934     0     1     0     0     0
-#> 2:     2 0.4370052     2 0.1776163     1     0     0     1     0
-#> 3:     2 4.0326162     0 0.1776163     1     1     0     1     0
-#> 4:     3 4.3247029     0 0.6790462     0     1     0     0     0
-#> 5:     4 0.6396897     1 0.4552875     0     0     1     0     0
-#> 6:     5 2.9408255     2 0.6404929     1     0     0     1     0
+#>       ID      Time Delta         L0    A0    N0    N1    N2    N3
+#>    <int>     <num> <int>      <num> <num> <num> <num> <num> <num>
+#> 1:     1 1.2151333     1 0.05128551     1     0     1     0     0
+#> 2:     2 0.8178867     0 0.75659749     1     1     0     0     0
+#> 3:     3 1.8580365     1 0.22235960     0     0     1     0     0
+#> 4:     4 0.3177454     3 0.96176853     0     0     0     0     1
+#> 5:     4 4.7641714     2 0.96176853     0     0     0     1     1
+#> 6:     4 6.0051249     3 0.96176853     0     0     0     1     2
 ```

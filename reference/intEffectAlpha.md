@@ -1,7 +1,7 @@
 # Estimate Effect of Intervention: Modifying Eta Parameter of Process
 
 `intEffectAlpha()` is deprecated as of simevent 0.2.0. Use
-[`event_risk()`](https://github.com/miclukacova/simevent/reference/event_risk.md)
+[`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md)
 instead.
 
 ## Usage

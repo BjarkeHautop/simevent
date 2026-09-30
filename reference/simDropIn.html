@@ -24,7 +24,7 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="nav-link" href="https://github.com/miclukacova/simevent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="https://github.com/BjarkeHautop/simevent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -34,7 +34,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Simulate Event Data from a "Drop In" Setting</h1>
-      <small class="dont-index">Source: <a href="https://github.com/miclukacova/simevent/blob/master/R/simDropIn.R"><code>R/simDropIn.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/simevent/blob/master/R/simDropIn.R"><code>R/simDropIn.R</code></a></small>
       <div class="d-none name"><code>simDropIn.Rd</code></div>
     </div>
 
@@ -352,21 +352,23 @@ Covariate Process (L), and optionally Treatment (A).</p>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`simDropIn()` was deprecated in simevent 0.2.0.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Please use `sim_event_graph()` instead.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;ID&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        ID      Time Delta         L0    A0     Z     L</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;     &lt;num&gt; &lt;int&gt;      &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 0.8766354     3 0.61365827     0     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1 0.8906562     2 0.61365827     0     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     1 1.2610102     1 0.61365827     0     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     2 0.0555191     0 0.42873140     1     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     3 1.0986734     0 0.62374420     1     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     4 0.7702323     1 0.44107873     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     5 2.2145951     0 0.38280491     1     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     6 0.8373543     1 0.58696464     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     7 0.2401367     0 0.44966624     1     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     8 3.9872386     2 0.94810572     1     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     8 5.9808914     0 0.94810572     1     1     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     9 0.6184420     1 0.24808635     0     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13:    10 0.2359333     1 0.08420893     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        ID        Time Delta        L0    A0     Z     L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;       &lt;num&gt; &lt;int&gt;     &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 0.347523842     1 0.5356882     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     2 0.126795823     3 0.7599675     0     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     2 0.168468846     1 0.7599675     0     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     3 0.296676143     0 0.1945671     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     4 0.539585184     2 0.6732054     1     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     4 0.660999777     0 0.6732054     1     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     5 0.008829953     3 0.5294817     1     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     5 0.363922588     2 0.5294817     1     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     5 1.599919076     1 0.5294817     1     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     6 0.069783487     0 0.6131512     1     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     7 0.072338125     0 0.5844032     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     8 1.549368479     3 0.8516780     1     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13:     8 1.584988966     0 0.8516780     1     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14:     9 0.705091878     1 0.1411444     0     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15:    10 0.269897022     1 0.7835836     0     0     0</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

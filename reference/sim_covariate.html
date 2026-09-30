@@ -24,7 +24,7 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="nav-link" href="https://github.com/miclukacova/simevent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="https://github.com/BjarkeHautop/simevent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -34,7 +34,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Define a Baseline Covariate for <code>sim_graph()</code></h1>
-      <small class="dont-index">Source: <a href="https://github.com/miclukacova/simevent/blob/master/R/sim-event-graph.R"><code>R/sim-event-graph.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/simevent/blob/master/R/sim-event-graph.R"><code>R/sim-event-graph.R</code></a></small>
       <div class="d-none name"><code>sim_covariate.Rd</code></div>
     </div>
 
@@ -52,9 +52,9 @@
 
 
 <dl><dt id="arg-generator">generator<a class="anchor" aria-label="anchor" href="#arg-generator"></a></dt>
-<dd><p>Function generating the covariate. Takes <code>N</code> and,
-optionally, any subset of the names of other covariates defined earlier
-in the same <code><a href="sim_graph.html">sim_graph()</a></code> call, matched by argument name.</p></dd>
+<dd><p>Function of <code>N</code> (number of individuals) returning the
+covariate's values. May also take covariates defined earlier in the same
+<code><a href="sim_graph.html">sim_graph()</a></code> call, by name.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -73,7 +73,7 @@ in the same <code><a href="sim_graph.html">sim_graph()</a></code> call, matched 
 <span class="r-out co"><span class="r-pr">#&gt;</span> $generator</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> function (N) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> rnorm(N, mean = 50, sd = 10)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x564c63d5a5d0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x5639a416ef60&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "sim_covariate"</span>
@@ -84,7 +84,7 @@ in the same <code><a href="sim_graph.html">sim_graph()</a></code> call, matched 
 <span class="r-out co"><span class="r-pr">#&gt;</span> $generator</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> function (N, age) </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> rbinom(N, 1, plogis(-2 + 0.03 * age))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x564c63d5a5d0&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x5639a416ef60&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "sim_covariate"</span>

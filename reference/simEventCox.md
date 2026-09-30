@@ -1,7 +1,7 @@
 # Simulate Event History Data Based on Cox Models
 
 `simEventCox()` is deprecated as of simevent 0.2.0. Use
-[`sim_graph_from_fits()`](https://github.com/miclukacova/simevent/reference/sim_graph_from_fits.md)
+[`sim_graph_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
 instead.
 
 ## Usage

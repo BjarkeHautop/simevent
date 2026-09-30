@@ -1,7 +1,7 @@
 # Simulate Event History Data from a Generic Process Specification
 
 `sim.generic()` is deprecated as of simevent 0.2.0. Use
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
 instead.
 
 ## Usage
@@ -85,13 +85,13 @@ non-terminal process.
 user-specified baseline covariates, event processes (with Weibull
 intensities and Cox-type effects), and their effects on one another, by
 translating the specification into a
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
 and simulating from it.
 
 Where the preset wrapper functions
-([`simCRdata`](https://github.com/miclukacova/simevent/reference/simCRdata.md),
-[`simDisease`](https://github.com/miclukacova/simevent/reference/simDisease.md),
-[`simSurvData`](https://github.com/miclukacova/simevent/reference/simSurvData.md),
+([`simCRdata`](https://github.com/BjarkeHautop/simevent/reference/simCRdata.md),
+[`simDisease`](https://github.com/BjarkeHautop/simevent/reference/simDisease.md),
+[`simSurvData`](https://github.com/BjarkeHautop/simevent/reference/simSurvData.md),
 etc.) hard-code a fixed set of processes and effects, `sim.generic` lets
 you describe an arbitrary number of named processes and baseline
 covariates directly.
@@ -110,12 +110,12 @@ data <- sim.generic(baseline, processes, effects, n = 100)
 #> ℹ Please use `sim_graph()` instead.
 head(data)
 #> Key: <id>
-#>       id     time delta    L0
-#>    <int>    <num> <int> <int>
-#> 1:     1 2.275337     1     1
-#> 2:     2 2.393501     0     0
-#> 3:     3 1.430317     0     0
-#> 4:     4 3.304294     0     1
-#> 5:     5 4.697775     0     0
-#> 6:     6 3.190218     1     0
+#>       id       time delta    L0
+#>    <int>      <num> <int> <int>
+#> 1:     1  2.2735968     1     0
+#> 2:     2  0.5792321     1     0
+#> 3:     3  6.9642730     1     1
+#> 4:     4 12.0749279     0     1
+#> 5:     5  7.5603019     0     0
+#> 6:     6  5.3536769     0     0
 ```

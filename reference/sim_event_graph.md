@@ -1,7 +1,7 @@
 # Simulate Event History Data from a `sim_graph()`
 
 `sim_event_graph` simulates multistate event history data from a
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
 specification.
 
 ## Usage
@@ -16,6 +16,7 @@ sim_event_graph(
   max_events = 50,
   lower = 1e-25,
   upper = 1e+08,
+  time_step = 0.01,
   seed = NULL
 )
 ```
@@ -25,7 +26,7 @@ sim_event_graph(
 - graph:
 
   A
-  [`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md).
+  [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md).
 
 - n:
 
@@ -33,59 +34,50 @@ sim_event_graph(
 
 - intervene:
 
-  Named list implementing a `do()`-style intervention on `graph`, for
-  simulating counterfactual data without redefining the whole graph.
-  Keyed by a covariate or process name from `graph`:
-
-  Covariate name
-
-  :   Overrides that
-      [`sim_covariate()`](https://github.com/miclukacova/simevent/reference/sim_covariate.md)/
-      [`sim_derived()`](https://github.com/miclukacova/simevent/reference/sim_derived.md)'s
-      draw, fixing it to the given constant for every individual instead
-      of generating/deriving it.
-
-  Process name
-
-  :   Multiplies that process's baseline `eta`, scaling its hazard for
-      everyone (e.g. `0.5` halves it, `2` doubles it).
+  Named list of interventions. A covariate name fixes that covariate to
+  the given value for everyone; a process name multiplies that process's
+  hazard by the given value.
 
 - cens:
 
-  Numeric. At-risk indicator scaling for `"censoring"`-type processes.
+  Numeric. Multiplier on censoring hazards; `0` turns censoring off.
   Default 1.
 
 - max_cens:
 
-  Numeric. Maximum censoring time. Default `Inf`.
+  Numeric. End of follow-up: anyone still followed is censored then,
+  with `event = "max_cens"`. Default `Inf`.
 
 - max_events:
 
-  Integer. Maximum number of events simulated per individual before an
-  error is raised. Default 50.
+  Integer. Maximum number of events per individual. Default 50.
 
 - lower, upper:
 
-  Numeric. Root-finding bounds for the inverse cumulative hazard, used
-  only when processes don't all share the same Weibull shape/scale.
-  Defaults `1e-25`/`1e8`.
+  Numeric. Root-finding bounds, used when processes have different
+  Weibull parameters. Defaults `1e-25`/`1e8`.
+
+- time_step:
+
+  Numeric. Grid step on which
+  [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)s
+  using `t` are evaluated; ignored if none do. Smaller is more accurate
+  but slower. Default `0.01`.
 
 - seed:
 
-  Integer or `NULL` (default).
+  Integer. Random seed. Default `NULL` (no seed set).
 
 ## Value
 
-A `data.table` with columns `id`, `time`, `delta` (the 0-indexed
-position of the firing process in `graph`'s process order: censoring
-processes first, then terminal, then the rest in declared order), the
-graph's covariates, and one column per non-terminal, non-censoring
-process (its cumulative event count).
+A `data.table` with one row per event: `id`, `time`, `event` (factor
+naming the process, or `"max_cens"`), the covariates, and each
+`"transient"` process's number of events so far.
 
 ## See also
 
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md),
-[`event_risk()`](https://github.com/miclukacova/simevent/reference/event_risk.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md),
+[`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md)
 
 ## Examples
 
@@ -112,14 +104,14 @@ graph <- sim_graph(
 data <- sim_event_graph(graph, n = 100)
 head(data)
 #> Key: <id>
-#>       id     time delta      age treated illness checkup
-#>    <int>    <num> <int>    <num>   <int>   <num>   <num>
-#> 1:     1 1.292550     1 34.91989       1       0       0
-#> 2:     2 1.027427     2 58.33178       1       1       0
-#> 3:     2 1.151174     1 58.33178       1       1       0
-#> 4:     3 1.602050     1 62.13573       0       0       0
-#> 5:     4 1.124954     0 61.29368       1       0       0
-#> 6:     5 1.141964     1 70.90688       1       0       0
+#>       id      time     event      age treated illness checkup
+#>    <int>     <num>    <fctr>    <num>   <int>   <num>   <num>
+#> 1:     1 0.7428918   illness 46.77483       0       1       0
+#> 2:     1 0.9429819     death 46.77483       0       1       0
+#> 3:     2 5.6927650   illness 32.54406       1       1       0
+#> 4:     2 6.2212544     death 32.54406       1       1       0
+#> 5:     3 1.2254362 censoring 59.39440       1       0       0
+#> 6:     4 0.5906562     death 42.24647       0       0       0
 
 # illness has fired at most twice for everyone (limit = 2):
 all(data$illness <= 2)
@@ -135,12 +127,12 @@ data_intervened <- sim_event_graph(
 )
 head(data_intervened)
 #> Key: <id>
-#>       id      time delta      age treated illness checkup
-#>    <int>     <num> <int>    <num>   <num>   <num>   <num>
-#> 1:     1 1.0137010     0 58.86335       1       0       0
-#> 2:     2 0.9827744     2 66.71151       1       1       0
-#> 3:     2 1.4415732     3 66.71151       1       1       1
-#> 4:     2 2.5331236     1 66.71151       1       1       1
-#> 5:     3 1.4827995     1 50.03613       1       0       0
-#> 6:     4 1.5151934     2 41.96813       1       1       0
+#>       id      time   event      age treated illness checkup
+#>    <int>     <num>  <fctr>    <num>   <num>   <num>   <num>
+#> 1:     1 0.7511419   death 55.77246       1       0       0
+#> 2:     2 0.4602298 checkup 50.99660       1       0       1
+#> 3:     2 2.0036459 checkup 50.99660       1       0       2
+#> 4:     2 2.4155036 illness 50.99660       1       1       2
+#> 5:     2 2.4245824   death 50.99660       1       1       2
+#> 6:     3 2.7165851 checkup 39.97823       1       0       1
 ```

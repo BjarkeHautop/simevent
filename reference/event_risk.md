@@ -1,14 +1,21 @@
 # Risk of, or Time Lost to, an Event by a Time Horizon
 
-`event_risk` summarises
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
-output by the proportion of individuals who have experienced a process
-by time `tau` (the absolute risk / cumulative incidence), or by the
-expected time lost to it before `tau`. Combined with
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)'s
-`intervene` argument, this is how to estimate the effect of an
-intervention: simulate once with and once without the intervention, and
-compare the two summaries.
+With \\T\\ the time of an individual's first `process` event (\\\infty\\
+if none):
+
+- `"risk"`:
+
+  \\P(T \le \tau)\\.
+
+- `"time_lost"`:
+
+  \\E\[\tau - \min(T, \tau)\]\\, the restricted mean time lost.
+
+Compare runs with and without
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)'s
+`intervene` to estimate an intervention's effect. Estimates are biased
+if anyone is censored before `tau` (a warning is given); simulate with
+`cens = 0` to avoid this.
 
 ## Usage
 
@@ -27,63 +34,39 @@ event_risk(
 
 - data:
 
-  A `data.table` as returned by
-  [`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md).
+  Output of
+  [`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md).
 
 - graph:
 
   The
-  [`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
-  `data` was simulated from, used to map process names to `data`'s
-  `delta` codes.
+  [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+  `data` was simulated from.
 
 - process:
 
-  Character vector. Name(s) of processes in `graph` to summarise, each
-  separately.
+  Character vector. Process(es) to summarise.
 
 - tau:
 
-  Numeric scalar. Time horizon.
+  Numeric. Time horizon.
 
 - type:
 
-  Either `"risk"` (default) or `"time_lost"`.
+  `"risk"` (default) or `"time_lost"`.
 
 - by:
 
-  Character vector. Names of `data` columns (typically baseline
-  covariates) to summarise within levels of. Default `character(0)` (all
-  individuals together).
+  Character vector. Columns of `data` to summarise within.
 
 ## Value
 
-A `data.table` with the `by` columns, `process`, and a column named
-after `type` holding the estimate.
-
-## Details
-
-For each individual, only the *first* event of `process` counts
-(relevant for a `"transient"` process that can fire more than once).
-With \\T\\ that first event time (infinite if it never occurs):
-
-- `"risk"`:
-
-  \\P(T \le \tau)\\.
-
-- `"time_lost"`:
-
-  \\E\[\tau - \min(T, \tau)\]\\, the restricted mean time lost, i.e. the
-  area under the risk curve on \\\[0, \tau\]\\.
-
-Both are plain empirical averages over individuals, which are only
-unbiased when no one is censored before `tau`. Simulate with `cens = 0`
-(or a graph without a `"censoring"` process) to get the uncensored
-counterfactual; a warning is given otherwise.
+A `data.table` with the `by` columns, `process`, and the estimate
+(column named after `type`).
 
 ## See also
 
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
 
 ## Examples
 

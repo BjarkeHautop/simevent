@@ -2,7 +2,7 @@
 
 `sim_derived` builds a covariate that is a deterministic transform of
 one or more other covariates defined earlier in the same
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
 call.
 
 ## Usage
@@ -15,20 +15,20 @@ sim_derived(fn)
 
 - fn:
 
-  Function of one or more covariates defined earlier in the same
-  [`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
-  call, matched by argument name.
+  Function of covariates defined earlier in the same
+  [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+  call, by name.
 
 ## Value
 
 An object of class `sim_derived`, for use in
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md).
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md).
 
 ## See also
 
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md),
-[`sim_covariate()`](https://github.com/miclukacova/simevent/reference/sim_covariate.md),
-[`sim_effect()`](https://github.com/miclukacova/simevent/reference/sim_effect.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md),
+[`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md),
+[`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
 
 ## Examples
 
@@ -38,7 +38,7 @@ sim_derived(function(region) as.numeric(region == 2))
 #> $fn
 #> function (region) 
 #> as.numeric(region == 2)
-#> <environment: 0x564c5c3887c8>
+#> <environment: 0x5639987146a8>
 #> 
 #> attr(,"class")
 #> [1] "sim_derived"
@@ -48,7 +48,7 @@ sim_derived(function(L0, A0) L0 * A0)
 #> $fn
 #> function (L0, A0) 
 #> L0 * A0
-#> <environment: 0x564c5c3887c8>
+#> <environment: 0x5639987146a8>
 #> 
 #> attr(,"class")
 #> [1] "sim_derived"

@@ -1,12 +1,12 @@
 # Build a Simulation Graph for `sim_event_graph()`
 
 `sim_graph` assembles a set of named
-[`sim_covariate()`](https://github.com/miclukacova/simevent/reference/sim_covariate.md)/[`sim_derived()`](https://github.com/miclukacova/simevent/reference/sim_derived.md)/
-[`sim_process()`](https://github.com/miclukacova/simevent/reference/sim_process.md)
+[`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)/[`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md)/
+[`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md)
 nodes and
-[`sim_effect()`](https://github.com/miclukacova/simevent/reference/sim_effect.md)
+[`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
 edges between them into a single specification, which
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
 can then simulate from.
 
 ## Usage
@@ -20,18 +20,13 @@ sim_graph(..., effects = list())
 - ...:
 
   Named
-  [`sim_covariate()`](https://github.com/miclukacova/simevent/reference/sim_covariate.md)/[`sim_derived()`](https://github.com/miclukacova/simevent/reference/sim_derived.md)/[`sim_process()`](https://github.com/miclukacova/simevent/reference/sim_process.md)
-  objects. Every name must be unique across all three. A
-  [`sim_derived()`](https://github.com/miclukacova/simevent/reference/sim_derived.md)
-  covariate's dependencies must each name an earlier
-  [`sim_covariate()`](https://github.com/miclukacova/simevent/reference/sim_covariate.md)/[`sim_derived()`](https://github.com/miclukacova/simevent/reference/sim_derived.md)
-  in the same call.
+  [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)/[`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md)/[`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md)
+  objects. A covariate may only depend on covariates listed before it.
 
 - effects:
 
   List of
-  [`sim_effect()`](https://github.com/miclukacova/simevent/reference/sim_effect.md)
-  objects between nodes named in `...`.
+  [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)s.
 
 ## Value
 
@@ -39,11 +34,11 @@ An object of class `sim_graph`.
 
 ## See also
 
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md),
-[`sim_covariate()`](https://github.com/miclukacova/simevent/reference/sim_covariate.md),
-[`sim_derived()`](https://github.com/miclukacova/simevent/reference/sim_derived.md),
-[`sim_process()`](https://github.com/miclukacova/simevent/reference/sim_process.md),
-[`sim_effect()`](https://github.com/miclukacova/simevent/reference/sim_effect.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md),
+[`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md),
+[`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md),
+[`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md),
+[`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
 
 ## Examples
 

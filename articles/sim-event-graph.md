@@ -8,8 +8,11 @@ library(survival)
 compare_graph <- function(wrapper_data, graph_data) {
   wrapper_data <- as.data.frame(wrapper_data)
   graph_data <- as.data.frame(graph_data)
-  names(graph_data)[match(c("id", "time", "delta"), names(graph_data))] <-
-    c("ID", "Time", "Delta")
+  # The wrappers code events as integers; the graphs below declare their
+  # processes in the same order as those codes.
+  graph_data$Delta <- as.integer(graph_data$event) - 1L
+  names(graph_data)[match(c("id", "time"), names(graph_data))] <-
+    c("ID", "Time")
   isTRUE(all.equal(
     wrapper_data,
     graph_data[names(wrapper_data)],
@@ -19,37 +22,37 @@ compare_graph <- function(wrapper_data, graph_data) {
 ```
 
 `compare_graph()` checks that a
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
 reproduction draws the same random numbers, in the same order, as the
 wrapper it reproduces. Only holds below for
-[`simSurvData()`](https://github.com/miclukacova/simevent/reference/simSurvData.md)/[`simCRdata()`](https://github.com/miclukacova/simevent/reference/simCRdata.md).
+[`simSurvData()`](https://github.com/BjarkeHautop/simevent/reference/simSurvData.md)/[`simCRdata()`](https://github.com/BjarkeHautop/simevent/reference/simCRdata.md).
 
-[`simDisease()`](https://github.com/miclukacova/simevent/reference/simDisease.md)/[`simTreatment()`](https://github.com/miclukacova/simevent/reference/simTreatment.md)
+[`simDisease()`](https://github.com/BjarkeHautop/simevent/reference/simDisease.md)/[`simTreatment()`](https://github.com/BjarkeHautop/simevent/reference/simTreatment.md)
 have a `"transient"` process, so individuals finish at different times:
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
 only draws for whoever’s still running, while the wrapper draws for
 everyone and discards the unused draws for those already finished.
 
 ## Introduction
 
 Introduces the
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
 API, a graph-based front end to the same simulator as
-[`sim.generic()`](https://github.com/miclukacova/simevent/reference/sim.generic.md).
+[`sim.generic()`](https://github.com/BjarkeHautop/simevent/reference/sim.generic.md).
 
 ## The `sim_graph()` Interface
 
 A
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
 call has three kinds of possible inputs:
 
-- [`sim_covariate()`](https://github.com/miclukacova/simevent/reference/sim_covariate.md):
+- [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md):
   a baseline covariate generator. Takes `N` and, optionally, any other
   covariate defined earlier in the same call (matched by argument name).
-- [`sim_process()`](https://github.com/miclukacova/simevent/reference/sim_process.md):
+- [`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md):
   a `"censoring"`, `"terminal"`, or `"transient"` (fires at most `limit`
   times, default `Inf`) process, with Weibull `eta`/`nu` parameters.
-- [`sim_effect()`](https://github.com/miclukacova/simevent/reference/sim_effect.md):
+- [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md):
   a `from -> to` edge with a Cox-type `coef`, where `from` is a
   covariate or process name and `to` is a process name.
 
@@ -70,19 +73,19 @@ graph
 data <- sim_event_graph(graph, n = 100)
 head(data)
 #> Key: <id>
-#>       id       time delta    L0
-#>    <int>      <num> <int> <int>
-#> 1:     1  2.6236054     1     0
-#> 2:     2  2.3546678     0     0
-#> 3:     3  4.2218555     0     0
-#> 4:     4  1.8635759     0     0
-#> 5:     5 11.0996574     1     0
-#> 6:     6  0.6577807     1     1
+#>       id      time  event    L0
+#>    <int>     <num> <fctr> <int>
+#> 1:     1 0.2233362  death     1
+#> 2:     2 0.2076477  death     0
+#> 3:     3 1.2185489  death     1
+#> 4:     4 2.3822576  death     1
+#> 5:     5 1.4014857  death     1
+#> 6:     6 0.7351919  death     1
 ```
 
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)’s
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)’s
 `intervene` argument replaces
-[`sim.generic()`](https://github.com/miclukacova/simevent/reference/sim.generic.md)’s
+[`sim.generic()`](https://github.com/BjarkeHautop/simevent/reference/sim.generic.md)’s
 `alpha.intervention`/`baseline.intervention` pair with a single named
 list: give a process name to scale its `eta`, or a covariate name to fix
 it to a constant.
@@ -96,19 +99,19 @@ data_intervened <- sim_event_graph(
 )
 head(data_intervened)
 #> Key: <id>
-#>       id      time delta    L0
-#>    <int>     <num> <int> <num>
-#> 1:     1  4.076111     0     1
-#> 2:     2 10.855135     1     1
-#> 3:     3  3.166310     1     1
-#> 4:     4  8.132163     1     1
-#> 5:     5  8.682585     0     1
-#> 6:     6  2.327825     1     1
+#>       id      time     event    L0
+#>    <int>     <num>    <fctr> <num>
+#> 1:     1 2.0776644 censoring     1
+#> 2:     2 5.9606750 censoring     1
+#> 3:     3 8.8677118 censoring     1
+#> 4:     4 1.5959188 censoring     1
+#> 5:     5 0.2747708 censoring     1
+#> 6:     6 0.9189447     death     1
 ```
 
 ### Non-Linear and History-Dependent Effects
 
-[`sim_effect()`](https://github.com/miclukacova/simevent/reference/sim_effect.md)’s
+[`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)’s
 `from` doesn’t have to name a single covariate or process. Any other
 string is parsed and evaluated as an R expression, against every
 covariate/process value plus the current time `t` and two history
@@ -116,7 +119,7 @@ accessors, `last_time(proc)` and `nth_time(proc, k)`. Covers thresholds,
 interactions, and nonlinear transforms inline, and effects depending on
 a process’s full occurrence history, not just its current count, without
 a separate
-[`sim_derived()`](https://github.com/miclukacova/simevent/reference/sim_derived.md)
+[`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md)
 covariate.
 
 For example, an effect that only fires on a process’s 3rd occurrence,
@@ -136,9 +139,9 @@ relapse_graph <- sim_graph(
 set.seed(1405)
 relapse_data <- sim_event_graph(relapse_graph, n = 2000, max_events = 40)
 
-deaths <- relapse_data[relapse_data$delta == 1, ]
+deaths <- relapse_data[relapse_data$event == "death", ]
 mean(deaths$relapse == 3)
-#> [1] 0.9031199
+#> [1] 0.893956
 ```
 
 Most deaths happen right at the 3rd relapse, not before or after.
@@ -161,14 +164,14 @@ checkup_graph <- sim_graph(
 checkup_data <- sim_event_graph(checkup_graph, n = 2000)
 head(checkup_data)
 #> Key: <id>
-#>       id      time delta checkup
-#>    <int>     <num> <int>   <num>
-#> 1:     1  2.549686     2       1
-#> 2:     1  7.749251     2       2
-#> 3:     1 10.457539     2       3
-#> 4:     1 10.639773     2       4
-#> 5:     1 11.778381     1       4
-#> 6:     2  2.685184     2       1
+#>       id      time     event checkup
+#>    <int>     <num>    <fctr>   <num>
+#> 1:     1 3.1549063   checkup       1
+#> 2:     1 6.0285366 censoring       1
+#> 3:     2 1.3811345   checkup       1
+#> 4:     2 1.7033600   checkup       2
+#> 5:     2 4.5970780     death       2
+#> 6:     3 0.3504053     death       0
 ```
 
 `last_time(proc)` is `-Inf` before `proc`’s first occurrence, and
@@ -179,7 +182,7 @@ comparisons with no `NA` handling required.
 
 ### `simSurvData()`
 
-[`simSurvData()`](https://github.com/miclukacova/simevent/reference/simSurvData.md)’s
+[`simSurvData()`](https://github.com/BjarkeHautop/simevent/reference/simSurvData.md)’s
 default (`beta = NULL`, i.e. no covariate effects) is two terminal
 processes, censoring and death, both with `eta = 0.1`, `nu = 1.1`:
 
@@ -205,7 +208,7 @@ compare_graph(wrapper_data, graph_data)
 
 ### `simCRdata()`
 
-[`simCRdata()`](https://github.com/miclukacova/simevent/reference/simCRdata.md)
+[`simCRdata()`](https://github.com/BjarkeHautop/simevent/reference/simCRdata.md)
 adds a third terminal process (a second competing cause):
 
 ``` r
@@ -239,14 +242,14 @@ compare_graph(wrapper_data, graph_data)
 
 ### `simDisease()`
 
-[`simDisease()`](https://github.com/miclukacova/simevent/reference/simDisease.md)
+[`simDisease()`](https://github.com/BjarkeHautop/simevent/reference/simDisease.md)
 has a censoring process, a terminal death process, and a covariate
 process `L` that can happen at most once and can itself affect death; a
 `"transient"` process with `limit = 1`. Since `L` can fire, the
 simulation loop can run more than once per individual, so
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)’s
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)’s
 random draws no longer line up one-to-one with
-[`simDisease()`](https://github.com/miclukacova/simevent/reference/simDisease.md)’s
+[`simDisease()`](https://github.com/BjarkeHautop/simevent/reference/simDisease.md)’s
 (see the note on `compare_graph()` above); event-type proportions are
 compared instead:
 
@@ -282,7 +285,7 @@ graph_data <- sim_event_graph(graph, n = 5000)
 
 rbind(
   simDisease = prop.table(table(wrapper_data$Delta)),
-  sim_graph = prop.table(table(graph_data$delta))
+  sim_graph = prop.table(table(graph_data$event))
 )
 #>                    0         1         2
 #> simDisease 0.1687941 0.6709775 0.1602284
@@ -291,13 +294,13 @@ rbind(
 
 ### `simTreatment()`
 
-[`simTreatment()`](https://github.com/miclukacova/simevent/reference/simTreatment.md)
+[`simTreatment()`](https://github.com/BjarkeHautop/simevent/reference/simTreatment.md)
 (with `op = 1`, the default) adds a second `"transient"` process,
 treatment (`A`), which can itself affect and be affected by the
 covariate process `L`.
-[`simTreatment()`](https://github.com/miclukacova/simevent/reference/simTreatment.md)
+[`simTreatment()`](https://github.com/BjarkeHautop/simevent/reference/simTreatment.md)
 doesn’t declare its own `A0`, so its reproduction skips it too:
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
 has no default covariates.
 
 ``` r
@@ -338,7 +341,7 @@ graph_data <- sim_event_graph(graph, n = 5000)
 
 rbind(
   simTreatment = prop.table(table(wrapper_data$Delta)),
-  sim_graph = prop.table(table(graph_data$delta))
+  sim_graph = prop.table(table(graph_data$event))
 )
 #>                      0         1         2         3
 #> simTreatment 0.2233639 0.3350458 0.2285012 0.2130891
@@ -347,9 +350,9 @@ rbind(
 
 ### `simStatinData()`
 
-[`simStatinData()`](https://github.com/miclukacova/simevent/reference/simStatinData.md)
+[`simStatinData()`](https://github.com/BjarkeHautop/simevent/reference/simStatinData.md)
 mainly demonstrates non-default baseline covariate generators.
-[`sim_covariate()`](https://github.com/miclukacova/simevent/reference/sim_covariate.md)
+[`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)
 reproduces this directly, with no forced covariate names to work around:
 
 ``` r
@@ -369,9 +372,9 @@ summary(graph_data$A0)
 
 ## Estimating Intervention Effects
 
-[`alphaSim()`](https://github.com/miclukacova/simevent/reference/alphaSim.md)
+[`alphaSim()`](https://github.com/BjarkeHautop/simevent/reference/alphaSim.md)
 and
-[`intEffectAlpha()`](https://github.com/miclukacova/simevent/reference/intEffectAlpha.md)
+[`intEffectAlpha()`](https://github.com/BjarkeHautop/simevent/reference/intEffectAlpha.md)
 simulate one of the preset settings with the shape parameter `eta` of
 one process multiplied by `alpha`, and summarise the result as the
 proportion of individuals experiencing death and the intervened process
@@ -380,17 +383,17 @@ this splits into two general steps, which work for any process in any
 graph:
 
 1.  Simulate under the intervention with
-    [`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)’s
+    [`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)’s
     `intervene` argument: `intervene = list(<process> = alpha)`
     multiplies that process’s `eta` by `alpha`.
 2.  Summarise with
-    [`event_risk()`](https://github.com/miclukacova/simevent/reference/event_risk.md):
+    [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md):
     the risk P(T \le \tau) of each process’s first event, or
     (`type = "time_lost"`) the expected time lost to it before \tau,
     E\[\tau - \min(T, \tau)\].
 
 Take
-[`alphaSim()`](https://github.com/miclukacova/simevent/reference/alphaSim.md)’s
+[`alphaSim()`](https://github.com/BjarkeHautop/simevent/reference/alphaSim.md)’s
 `"Disease"` setting with `alpha = 0.5`, which halves the hazard of the
 disease process `L`:
 
@@ -432,7 +435,7 @@ disease_graph <- sim_graph(
 )
 ```
 
-[`alphaSim()`](https://github.com/miclukacova/simevent/reference/alphaSim.md)
+[`alphaSim()`](https://github.com/BjarkeHautop/simevent/reference/alphaSim.md)
 switches censoring off by default (`cens = 0`). Simulating both with and
 without the intervention gives the effect directly:
 
@@ -469,7 +472,7 @@ Halving the disease hazard lowers the risk of disease, and, since
 disease raises the death hazard (`sim_effect("L", "death", 1)`), the
 risk of death too.
 
-[`alphaSim()`](https://github.com/miclukacova/simevent/reference/alphaSim.md)/[`intEffectAlpha()`](https://github.com/miclukacova/simevent/reference/intEffectAlpha.md)’s
+[`alphaSim()`](https://github.com/BjarkeHautop/simevent/reference/alphaSim.md)/[`intEffectAlpha()`](https://github.com/BjarkeHautop/simevent/reference/intEffectAlpha.md)’s
 `years_lost = TRUE` corresponds to `type = "time_lost"`, and their `a0`
 argument (summarise only individuals with `A0 == a0`) to `by = "A0"`,
 which summarises every group at once:
@@ -497,9 +500,9 @@ contrast, where everyone’s `A0` is set to a value, fix it with
 `intervene` instead, e.g. `intervene = list(L = 0.5, A0 = 1)`.
 
 Finally,
-[`intEffectAlpha()`](https://github.com/miclukacova/simevent/reference/intEffectAlpha.md)’s
+[`intEffectAlpha()`](https://github.com/BjarkeHautop/simevent/reference/intEffectAlpha.md)’s
 `plot = TRUE` is
-[`plot_event_data()`](https://github.com/miclukacova/simevent/reference/plot_event_data.md)
+[`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md)
 on the intervened data:
 
 ``` r
@@ -593,23 +596,23 @@ deviations into one objective (still with common random numbers) and use
 
 ## Building a `sim_graph()` from Fitted Cox Models
 
-[`sim_graph_from_fits()`](https://github.com/miclukacova/simevent/reference/sim_graph_from_fits.md)
+[`sim_graph_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
 is the graph-native replacement for
-[`sim.from.data()`](https://github.com/miclukacova/simevent/reference/sim.from.data.md):
+[`sim.from.data()`](https://github.com/BjarkeHautop/simevent/reference/sim.from.data.md):
 instead of user-specified effects, it builds a
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
 from a set of fitted
 [`coxph()`](https://rdrr.io/pkg/survival/man/coxph.html) models (one per
 process) and the data they were fit to, so simulated data mimics an
 observed dataset’s distribution.
 
 Unlike
-[`sim.from.data()`](https://github.com/miclukacova/simevent/reference/sim.from.data.md),
+[`sim.from.data()`](https://github.com/BjarkeHautop/simevent/reference/sim.from.data.md),
 which requires building a `sim.parameters` list, including a
 `baseline.summary` computed by hand from
 [`mean()`](https://rdrr.io/r/base/mean.html)/
 [`sd()`](https://rdrr.io/r/stats/sd.html)/[`min()`](https://rdrr.io/r/base/Extremes.html)/[`max()`](https://rdrr.io/r/base/Extremes.html),
-[`sim_graph_from_fits()`](https://github.com/miclukacova/simevent/reference/sim_graph_from_fits.md)
+[`sim_graph_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
 reads baseline covariate distributions straight from the data itself.
 
 ``` r
@@ -635,9 +638,12 @@ observed_data <- sim_event_graph(observed_graph, n = 1000)
 # Refit from "observed" data, then rebuild a sim_graph(), as if
 # observed_graph were unknown:
 fits <- list(
-  censoring = coxph(Surv(time, delta == 0) ~ L0 + A0, data = observed_data),
-  cause1 = coxph(Surv(time, delta == 1) ~ L0 + A0, data = observed_data),
-  cause2 = coxph(Surv(time, delta == 2) ~ L0 + A0, data = observed_data)
+  censoring = coxph(
+    Surv(time, event == "censoring") ~ L0 + A0,
+    data = observed_data
+  ),
+  cause1 = coxph(Surv(time, event == "cause1") ~ L0 + A0, data = observed_data),
+  cause2 = coxph(Surv(time, event == "cause2") ~ L0 + A0, data = observed_data)
 )
 types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 
@@ -659,23 +665,23 @@ Weibull hazard is linear on that scale).
 new_data <- sim_event_graph(graph, n = 1000)
 head(new_data)
 #> Key: <id>
-#>       id     time delta        L0    A0
-#>    <int>    <num> <int>     <num> <int>
-#> 1:     1 4.549795     0 1.0532139     1
-#> 2:     2 3.550653     0 0.5385115     0
-#> 3:     3 1.797275     1 0.8235271     1
-#> 4:     4 1.095931     2 0.7444320     0
-#> 5:     5 8.083563     0 0.4030154     0
-#> 6:     6 1.474290     0 0.4556481     1
+#>       id     time     event        L0    A0
+#>    <int>    <num>    <fctr>     <num> <int>
+#> 1:     1 4.549795 censoring 1.0532139     1
+#> 2:     2 3.550653 censoring 0.5385115     0
+#> 3:     3 1.797275    cause1 0.8235271     1
+#> 4:     4 1.095931    cause2 0.7444320     0
+#> 5:     5 8.083563 censoring 0.4030154     0
+#> 6:     6 1.474290 censoring 0.4556481     1
 
 # Event-type distribution should match between observed and simulated data:
 rbind(
-  observed = prop.table(table(observed_data$delta)),
-  simulated = prop.table(table(new_data$delta))
+  observed = prop.table(table(observed_data$event)),
+  simulated = prop.table(table(new_data$event))
 )
-#>               0     1     2
-#> observed  0.294 0.316 0.390
-#> simulated 0.280 0.327 0.393
+#>           censoring cause1 cause2
+#> observed      0.294  0.316  0.390
+#> simulated     0.280  0.327  0.393
 ```
 
 ### Categorical Baseline Covariates
@@ -684,15 +690,15 @@ A categorical baseline covariate must be a factor column in `data`,
 referenced directly in the
 [`coxph()`](https://rdrr.io/pkg/survival/man/coxph.html) formula (not
 wrapped in [`factor()`](https://rdrr.io/r/base/factor.html) there).
-[`sim_graph_from_fits()`](https://github.com/miclukacova/simevent/reference/sim_graph_from_fits.md)
+[`sim_graph_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
 regenerates it as a categorical draw from its observed level
 proportions, plus one
-[`sim_derived()`](https://github.com/miclukacova/simevent/reference/sim_derived.md)
+[`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md)
 dummy per non-reference level, named to match
 [`coxph()`](https://rdrr.io/pkg/survival/man/coxph.html)’s own
 coefficient names (`"<variable><level>"`). The graph-native replacement
 for
-[`sim.from.data()`](https://github.com/miclukacova/simevent/reference/sim.from.data.md)’s
+[`sim.from.data()`](https://github.com/BjarkeHautop/simevent/reference/sim.from.data.md)’s
 `"(region==2)"`-style expression matching.
 
 ``` r
@@ -706,11 +712,14 @@ observed_data$region <- factor(sample(
 
 fits_region <- list(
   censoring = coxph(
-    Surv(time, delta == 0) ~ L0 + region,
+    Surv(time, event == "censoring") ~ L0 + region,
     data = observed_data
   ),
-  cause1 = coxph(Surv(time, delta == 1) ~ L0 + region, data = observed_data),
-  cause2 = coxph(Surv(time, delta == 2) ~ L0, data = observed_data)
+  cause1 = coxph(
+    Surv(time, event == "cause1") ~ L0 + region,
+    data = observed_data
+  ),
+  cause2 = coxph(Surv(time, event == "cause2") ~ L0, data = observed_data)
 )
 
 graph_region <- sim_graph_from_fits(fits_region, observed_data, types)

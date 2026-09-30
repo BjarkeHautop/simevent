@@ -1,7 +1,7 @@
 # Plot Simulated Event History Data
 
 `plotEventData()` is deprecated as of simevent 0.2.0. Use
-[`plot_event_data()`](https://github.com/miclukacova/simevent/reference/plot_event_data.md)
+[`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md)
 instead.
 
 ## Usage

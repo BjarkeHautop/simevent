@@ -1,7 +1,7 @@
 # Simulate Event History Data from Parameters Fitted to Observed Data
 
 `sim.from.data()` is deprecated as of simevent 0.2.0. Use
-[`sim_graph_from_fits()`](https://github.com/miclukacova/simevent/reference/sim_graph_from_fits.md)
+[`sim_graph_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
 instead.
 
 ## Usage
@@ -86,16 +86,16 @@ non-terminal process.
 `sim.from.data` simulates new multistate event history data using
 process/baseline parameters previously estimated from observed data
 (e.g. Weibull and Cox parameters extracted from `coxph` fits, as
-[`simEventCox`](https://github.com/miclukacova/simevent/reference/simEventCox.md)
+[`simEventCox`](https://github.com/BjarkeHautop/simevent/reference/simEventCox.md)
 does with its `cox_fits` argument), via
-[`simEventData`](https://github.com/miclukacova/simevent/reference/simEventData.md).
+[`simEventData`](https://github.com/BjarkeHautop/simevent/reference/simEventData.md).
 
 Unlike
-[`sim.generic`](https://github.com/miclukacova/simevent/reference/sim.generic.md),
+[`sim.generic`](https://github.com/BjarkeHautop/simevent/reference/sim.generic.md),
 which takes user-specified effects directly, `sim.from.data` is meant to
 be fed parameters estimated from real data, so that the simulated data
 mimics an observed dataset's distribution (optionally under an
 intervention via `alpha.intervention`/`baseline.intervention`). See
-[`sim_graph_from_fits`](https://github.com/miclukacova/simevent/reference/sim_graph_from_fits.md)
+[`sim_graph_from_fits`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
 for a more convenient way to do this directly from `coxph` fits and the
 data they were fit to, without hand-building `sim.parameters`.

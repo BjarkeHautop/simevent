@@ -1,7 +1,7 @@
 # Transform Event Data into Interval Format for Classical Inference
 
 `IntFormatData()` is deprecated as of simevent 0.2.0. Use
-[`interval_format_data()`](https://github.com/miclukacova/simevent/reference/interval_format_data.md)
+[`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)
 instead.
 
 ## Usage

@@ -9,9 +9,9 @@ creating a flexible simulation framework.
 
 Useful links:
 
-- <https://github.com/miclukacova/simevent>
+- <https://github.com/BjarkeHautop/simevent>
 
-- Report bugs at <https://github.com/miclukacova/simevent/issues>
+- Report bugs at <https://github.com/BjarkeHautop/simevent/issues>
 
 ## Author
 

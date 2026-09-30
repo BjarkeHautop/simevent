@@ -18,7 +18,7 @@ or the development version of simevent from GitHub using pak:
 
 ``` r
 
-pak::pak("miclukacova/simevent")
+pak::pak("BjarkeHautop/simevent")
 ```
 
 ## Usage
@@ -31,22 +31,22 @@ library(simevent)
 The package builds event history data from a *graph*: baseline
 covariates, event processes (censoring, terminal, or transient, with
 Weibull intensities), and the Cox-type effects between them.
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
 defines the graph and
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
 simulates from it. On top of this, the package provides:
 
-- [`sim_graph_from_fits()`](https://github.com/miclukacova/simevent/reference/sim_graph_from_fits.md)
+- [`sim_graph_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
   for building a graph from `coxph()` fits to observed data, to simulate
   new data resembling it.
-- [`interval_format_data()`](https://github.com/miclukacova/simevent/reference/interval_format_data.md)
+- [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)
   and
-  [`plot_event_data()`](https://github.com/miclukacova/simevent/reference/plot_event_data.md)
+  [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md)
   for reformatting and plotting simulated data.
 - The `intervene` argument of
-  [`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md),
+  [`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md),
   together with
-  [`event_risk()`](https://github.com/miclukacova/simevent/reference/event_risk.md),
+  [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md),
   for simulating and evaluating interventions on processes and
   covariates.
 
@@ -67,7 +67,7 @@ plot_event_data(data, title = "Survival Data")
 
 For a full walkthrough of the simulation framework and all of the
 functions above, see
-[`vignette("sim-event-graph")`](https://github.com/miclukacova/simevent/articles/sim-event-graph.md).
+[`vignette("sim-event-graph")`](https://github.com/BjarkeHautop/simevent/articles/sim-event-graph.md).
 
 ## Contributing
 

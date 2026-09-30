@@ -1,11 +1,10 @@
 # Build a `sim_graph()` from Fitted Cox Models
 
-`sim_graph_from_fits` builds a
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
-automatically from a set of fitted
-[`survival::coxph()`](https://rdrr.io/pkg/survival/man/coxph.html)
-models (one per process) and the data they were fit to, so simulated
-data mimics an observed dataset's distribution.
+Builds a
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+from one fitted
+[`survival::coxph()`](https://rdrr.io/pkg/survival/man/coxph.html) model
+per process, so simulated data resembles the data they were fit to.
 
 ## Usage
 
@@ -19,20 +18,16 @@ sim_graph_from_fits(fits, data, types, limits = list())
 
   Named list of
   [`survival::coxph()`](https://rdrr.io/pkg/survival/man/coxph.html)
-  fits, one per process, named after the process. Every process
-  referenced as a covariate in any fit's formula (a cross-process
-  effect) must also have its own entry here.
+  fits, one per process.
 
 - data:
 
-  The `data.frame` the fits were estimated from; must contain every
-  covariate referenced in `fits` that isn't itself one of `fits`'
-  processes.
+  The `data.frame` the fits were estimated from.
 
 - types:
 
   Named character vector giving each process's
-  [`sim_process()`](https://github.com/miclukacova/simevent/reference/sim_process.md)
+  [`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md)
   `type` (`"censoring"`, `"terminal"`, or `"transient"`), with the same
   names as `fits`.
 
@@ -44,49 +39,29 @@ sim_graph_from_fits(fits, data, types, limits = list())
 ## Value
 
 A
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md),
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md),
 ready for
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md).
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md).
 
 ## Details
 
-Baseline covariates are regenerated from `data`'s own columns: numeric
-columns as Normal(mean, sd) (or Bernoulli(mean) if the column is 0/1
-valued), and factor columns as a categorical draw from their observed
-proportions, with one
-[`sim_derived()`](https://github.com/miclukacova/simevent/reference/sim_derived.md)
-dummy per non-reference level, matching how
-[`survival::coxph()`](https://rdrr.io/pkg/survival/man/coxph.html)'s
-default treatment contrasts name coefficients (`"<variable><level>"`).
-Categorical covariates must therefore be factor columns in `data`,
-referenced directly in each
-[`coxph()`](https://rdrr.io/pkg/survival/man/coxph.html) formula (not
-wrapped in [`factor()`](https://rdrr.io/r/base/factor.html) there).
+Covariates are regenerated from `data`: numeric columns as Normal (or
+Bernoulli if 0/1), factor columns from their observed proportions.
+Categorical covariates must be factor columns, used as-is in the
+[`coxph()`](https://rdrr.io/pkg/survival/man/coxph.html) formulas (not
+wrapped in [`factor()`](https://rdrr.io/r/base/factor.html)). Each
+process's Weibull parameters are fit to its baseline cumulative hazard.
 
-Each process's Weibull `eta`/`nu` is approximated from its
-[`coxph()`](https://rdrr.io/pkg/survival/man/coxph.html) fit's baseline
-cumulative hazard.
-
-A [`coxph()`](https://rdrr.io/pkg/survival/man/coxph.html) term that
-names another process in `fits`/`types` (rather than a column of `data`)
-is a cross-process effect – e.g. `coxph(Surv(...) ~ L0 + relapse)`,
-where `relapse` is itself one of the processes being modeled – and is
-wired as a
-[`sim_effect()`](https://github.com/miclukacova/simevent/reference/sim_effect.md)
-from that process directly, not regenerated as a (meaningless, since its
-true value evolves over follow-up rather than being fixed at baseline)
-covariate. Note that such a term must itself have been fit as a properly
-time-varying covariate (e.g. via
-[`coxph()`](https://rdrr.io/pkg/survival/man/coxph.html) on tstart-tstop
-data built with
-[`interval_format_data()`](https://github.com/miclukacova/simevent/reference/interval_format_data.md))
-for its coefficient to be a valid estimate in the first place;
-`sim_graph_from_fits()` only wires whatever coefficient `fits` already
-contains, it does not check how that fit was estimated.
+A formula term naming another process (e.g. `relapse` in
+`~ L0 + relapse`) becomes a
+[`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
+from that process. Its coefficient is only valid if that fit treated it
+as time-varying (e.g. using
+[`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)).
 
 ## See also
 
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
 
 ## Examples
 
@@ -115,9 +90,12 @@ observed_data <- sim_event_graph(observed_graph, n = 1000)
 # from the fits, as if observed_data came from an outside source and
 # observed_graph were unknown:
 fits <- list(
-  censoring = coxph(Surv(time, delta == 0) ~ L0 + A0, data = observed_data),
-  cause1 = coxph(Surv(time, delta == 1) ~ L0 + A0, data = observed_data),
-  cause2 = coxph(Surv(time, delta == 2) ~ L0 + A0, data = observed_data)
+  censoring = coxph(
+    Surv(time, event == "censoring") ~ L0 + A0,
+    data = observed_data
+  ),
+  cause1 = coxph(Surv(time, event == "cause1") ~ L0 + A0, data = observed_data),
+  cause2 = coxph(Surv(time, event == "cause2") ~ L0 + A0, data = observed_data)
 )
 types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 
@@ -125,22 +103,22 @@ graph <- sim_graph_from_fits(fits, observed_data, types)
 new_data <- sim_event_graph(graph, n = 1000)
 head(new_data)
 #> Key: <id>
-#>       id     time delta        L0    A0
-#>    <int>    <num> <int>     <num> <int>
-#> 1:     1 4.549795     0 1.0532139     1
-#> 2:     2 3.550653     0 0.5385115     0
-#> 3:     3 1.797275     1 0.8235271     1
-#> 4:     4 1.095931     2 0.7444320     0
-#> 5:     5 8.083563     0 0.4030154     0
-#> 6:     6 1.474290     0 0.4556481     1
+#>       id     time     event        L0    A0
+#>    <int>    <num>    <fctr>     <num> <int>
+#> 1:     1 4.549795 censoring 1.0532139     1
+#> 2:     2 3.550653 censoring 0.5385115     0
+#> 3:     3 1.797275    cause1 0.8235271     1
+#> 4:     4 1.095931    cause2 0.7444320     0
+#> 5:     5 8.083563 censoring 0.4030154     0
+#> 6:     6 1.474290 censoring 0.4556481     1
 
 # Event-type distribution should be comparable between the observed and
 # newly simulated data:
 rbind(
-  observed = prop.table(table(observed_data$delta)),
-  simulated = prop.table(table(new_data$delta))
+  observed = prop.table(table(observed_data$event)),
+  simulated = prop.table(table(new_data$event))
 )
-#>               0     1     2
-#> observed  0.294 0.316 0.390
-#> simulated 0.280 0.327 0.393
+#>           censoring cause1 cause2
+#> observed      0.294  0.316  0.390
+#> simulated     0.280  0.327  0.393
 ```

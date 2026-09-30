@@ -1,7 +1,7 @@
 # Summarise a `sim_graph()`
 
 Tabulates a
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)'s
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)'s
 covariates, processes and effects.
 
 ## Usage
@@ -19,7 +19,7 @@ print(x, ...)
 - object:
 
   A
-  [`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md).
+  [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md).
 
 - ...:
 
@@ -32,14 +32,11 @@ print(x, ...)
 
 ## Value
 
-[`summary()`](https://rdrr.io/r/base/summary.html) returns an object of
-class `summary.sim_graph`, a list of three `data.frame`s: `covariates`
-(`name`, `kind`), `processes` (`name`, `type`, `eta`, `nu`, `limit`) and
-`effects` (`from`, `to`, `coef`).
+A list of three `data.frame`s: `covariates`, `processes` and `effects`.
 
 ## See also
 
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
 
 ## Examples
 

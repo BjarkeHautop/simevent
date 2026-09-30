@@ -46,7 +46,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="nav-link" href="https://github.com/miclukacova/simevent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="https://github.com/BjarkeHautop/simevent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -61,7 +61,7 @@
 
 
 
-      <small class="dont-index">Source: <a href="https://github.com/miclukacova/simevent/blob/master/vignettes/sim-event-graph.qmd"><code>vignettes/sim-event-graph.qmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/simevent/blob/master/vignettes/sim-event-graph.qmd"><code>vignettes/sim-event-graph.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
     </div>
 
@@ -72,14 +72,17 @@
 
     <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/miclukacova/simevent">simevent</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/BjarkeHautop/simevent">simevent</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival" class="external-link">survival</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">compare_graph</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">wrapper_data</span>, <span class="va">graph_data</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">wrapper_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">wrapper_data</span><span class="op">)</span></span>
 <span>  <span class="va">graph_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">graph_data</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">graph_data</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"time"</span>, <span class="st">"delta"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">graph_data</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ID"</span>, <span class="st">"Time"</span>, <span class="st">"Delta"</span><span class="op">)</span></span>
+<span>  <span class="co"># The wrappers code events as integers; the graphs below declare their</span></span>
+<span>  <span class="co"># processes in the same order as those codes.</span></span>
+<span>  <span class="va">graph_data</span><span class="op">$</span><span class="va">Delta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="va">graph_data</span><span class="op">$</span><span class="va">event</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1L</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">graph_data</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"time"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">graph_data</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ID"</span>, <span class="st">"Time"</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/all.equal.html" class="external-link">all.equal</a></span><span class="op">(</span></span>
 <span>    <span class="va">wrapper_data</span>,</span>
 <span>    <span class="va">graph_data</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">wrapper_data</span><span class="op">)</span><span class="op">]</span>,</span>
@@ -120,14 +123,14 @@
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_event_graph.html">sim_event_graph</a></span><span class="op">(</span><span class="va">graph</span>, n <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;id&gt;</span></span>
-<span><span class="co">#&gt;       id       time delta    L0</span></span>
-<span><span class="co">#&gt;    &lt;int&gt;      &lt;num&gt; &lt;int&gt; &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1:     1  2.6236054     1     0</span></span>
-<span><span class="co">#&gt; 2:     2  2.3546678     0     0</span></span>
-<span><span class="co">#&gt; 3:     3  4.2218555     0     0</span></span>
-<span><span class="co">#&gt; 4:     4  1.8635759     0     0</span></span>
-<span><span class="co">#&gt; 5:     5 11.0996574     1     0</span></span>
-<span><span class="co">#&gt; 6:     6  0.6577807     1     1</span></span></code></pre></div>
+<span><span class="co">#&gt;       id      time  event    L0</span></span>
+<span><span class="co">#&gt;    &lt;int&gt;     &lt;num&gt; &lt;fctr&gt; &lt;int&gt;</span></span>
+<span><span class="co">#&gt; 1:     1 0.2233362  death     1</span></span>
+<span><span class="co">#&gt; 2:     2 0.2076477  death     0</span></span>
+<span><span class="co">#&gt; 3:     3 1.2185489  death     1</span></span>
+<span><span class="co">#&gt; 4:     4 2.3822576  death     1</span></span>
+<span><span class="co">#&gt; 5:     5 1.4014857  death     1</span></span>
+<span><span class="co">#&gt; 6:     6 0.7351919  death     1</span></span></code></pre></div>
 </div>
 <p><code><a href="../reference/sim_event_graph.html">sim_event_graph()</a></code>’s <code>intervene</code> argument replaces <code><a href="../reference/sim.generic.html">sim.generic()</a></code>’s <code>alpha.intervention</code>/<code>baseline.intervention</code> pair with a single named list: give a process name to scale its <code>eta</code>, or a covariate name to fix it to a constant.</p>
 <div class="cell">
@@ -139,14 +142,14 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data_intervened</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;id&gt;</span></span>
-<span><span class="co">#&gt;       id      time delta    L0</span></span>
-<span><span class="co">#&gt;    &lt;int&gt;     &lt;num&gt; &lt;int&gt; &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     1  4.076111     0     1</span></span>
-<span><span class="co">#&gt; 2:     2 10.855135     1     1</span></span>
-<span><span class="co">#&gt; 3:     3  3.166310     1     1</span></span>
-<span><span class="co">#&gt; 4:     4  8.132163     1     1</span></span>
-<span><span class="co">#&gt; 5:     5  8.682585     0     1</span></span>
-<span><span class="co">#&gt; 6:     6  2.327825     1     1</span></span></code></pre></div>
+<span><span class="co">#&gt;       id      time     event    L0</span></span>
+<span><span class="co">#&gt;    &lt;int&gt;     &lt;num&gt;    &lt;fctr&gt; &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:     1 2.0776644 censoring     1</span></span>
+<span><span class="co">#&gt; 2:     2 5.9606750 censoring     1</span></span>
+<span><span class="co">#&gt; 3:     3 8.8677118 censoring     1</span></span>
+<span><span class="co">#&gt; 4:     4 1.5959188 censoring     1</span></span>
+<span><span class="co">#&gt; 5:     5 0.2747708 censoring     1</span></span>
+<span><span class="co">#&gt; 6:     6 0.9189447     death     1</span></span></code></pre></div>
 </div>
 <section class="level2"><h3 id="non-linear-and-history-dependent-effects">Non-Linear and History-Dependent Effects<a class="anchor" aria-label="anchor" href="#non-linear-and-history-dependent-effects"></a>
 </h3>
@@ -166,9 +169,9 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1405</span><span class="op">)</span></span>
 <span><span class="va">relapse_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_event_graph.html">sim_event_graph</a></span><span class="op">(</span><span class="va">relapse_graph</span>, n <span class="op">=</span> <span class="fl">2000</span>, max_events <span class="op">=</span> <span class="fl">40</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">deaths</span> <span class="op">&lt;-</span> <span class="va">relapse_data</span><span class="op">[</span><span class="va">relapse_data</span><span class="op">$</span><span class="va">delta</span> <span class="op">==</span> <span class="fl">1</span>, <span class="op">]</span></span>
+<span><span class="va">deaths</span> <span class="op">&lt;-</span> <span class="va">relapse_data</span><span class="op">[</span><span class="va">relapse_data</span><span class="op">$</span><span class="va">event</span> <span class="op">==</span> <span class="st">"death"</span>, <span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">deaths</span><span class="op">$</span><span class="va">relapse</span> <span class="op">==</span> <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.9031199</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.893956</span></span></code></pre></div>
 </div>
 <p>Most deaths happen right at the 3rd relapse, not before or after.</p>
 <p><code>last_time()</code>/<code>nth_time()</code> give the same access to timing, not just counts. Here the death hazard drops for one time unit right after each checkup:</p>
@@ -186,14 +189,14 @@
 <span><span class="va">checkup_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_event_graph.html">sim_event_graph</a></span><span class="op">(</span><span class="va">checkup_graph</span>, n <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">checkup_data</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;id&gt;</span></span>
-<span><span class="co">#&gt;       id      time delta checkup</span></span>
-<span><span class="co">#&gt;    &lt;int&gt;     &lt;num&gt; &lt;int&gt;   &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     1  2.549686     2       1</span></span>
-<span><span class="co">#&gt; 2:     1  7.749251     2       2</span></span>
-<span><span class="co">#&gt; 3:     1 10.457539     2       3</span></span>
-<span><span class="co">#&gt; 4:     1 10.639773     2       4</span></span>
-<span><span class="co">#&gt; 5:     1 11.778381     1       4</span></span>
-<span><span class="co">#&gt; 6:     2  2.685184     2       1</span></span></code></pre></div>
+<span><span class="co">#&gt;       id      time     event checkup</span></span>
+<span><span class="co">#&gt;    &lt;int&gt;     &lt;num&gt;    &lt;fctr&gt;   &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:     1 3.1549063   checkup       1</span></span>
+<span><span class="co">#&gt; 2:     1 6.0285366 censoring       1</span></span>
+<span><span class="co">#&gt; 3:     2 1.3811345   checkup       1</span></span>
+<span><span class="co">#&gt; 4:     2 1.7033600   checkup       2</span></span>
+<span><span class="co">#&gt; 5:     2 4.5970780     death       2</span></span>
+<span><span class="co">#&gt; 6:     3 0.3504053     death       0</span></span></code></pre></div>
 </div>
 <p><code>last_time(proc)</code> is <code>-Inf</code> before <code>proc</code>’s first occurrence, and <code>nth_time(proc, k)</code> is <code>Inf</code> before its <code>k</code>-th, so both work directly in comparisons with no <code>NA</code> handling required.</p>
 </section></section><section class="section level2"><h2 id="reproducing-the-preset-wrappers">Reproducing the Preset Wrappers<a class="anchor" aria-label="anchor" href="#reproducing-the-preset-wrappers"></a>
@@ -289,7 +292,7 @@
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
 <span>  simDisease <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/proportions.html" class="external-link">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">wrapper_data</span><span class="op">$</span><span class="va">Delta</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  sim_graph <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/proportions.html" class="external-link">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">graph_data</span><span class="op">$</span><span class="va">delta</span><span class="op">)</span><span class="op">)</span></span>
+<span>  sim_graph <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/proportions.html" class="external-link">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">graph_data</span><span class="op">$</span><span class="va">event</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;                    0         1         2</span></span>
 <span><span class="co">#&gt; simDisease 0.1687941 0.6709775 0.1602284</span></span>
@@ -337,7 +340,7 @@
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
 <span>  simTreatment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/proportions.html" class="external-link">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">wrapper_data</span><span class="op">$</span><span class="va">Delta</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  sim_graph <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/proportions.html" class="external-link">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">graph_data</span><span class="op">$</span><span class="va">delta</span><span class="op">)</span><span class="op">)</span></span>
+<span>  sim_graph <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/proportions.html" class="external-link">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">graph_data</span><span class="op">$</span><span class="va">event</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;                      0         1         2         3</span></span>
 <span><span class="co">#&gt; simTreatment 0.2233639 0.3350458 0.2285012 0.2130891</span></span>
@@ -548,9 +551,12 @@
 <span><span class="co"># Refit from "observed" data, then rebuild a sim_graph(), as if</span></span>
 <span><span class="co"># observed_graph were unknown:</span></span>
 <span><span class="va">fits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  censoring <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">delta</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">A0</span>, data <span class="op">=</span> <span class="va">observed_data</span><span class="op">)</span>,</span>
-<span>  cause1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">delta</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">A0</span>, data <span class="op">=</span> <span class="va">observed_data</span><span class="op">)</span>,</span>
-<span>  cause2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">delta</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">A0</span>, data <span class="op">=</span> <span class="va">observed_data</span><span class="op">)</span></span>
+<span>  censoring <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">event</span> <span class="op">==</span> <span class="st">"censoring"</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">A0</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">observed_data</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  cause1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">event</span> <span class="op">==</span> <span class="st">"cause1"</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">A0</span>, data <span class="op">=</span> <span class="va">observed_data</span><span class="op">)</span>,</span>
+<span>  cause2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">event</span> <span class="op">==</span> <span class="st">"cause2"</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">A0</span>, data <span class="op">=</span> <span class="va">observed_data</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">types</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>censoring <span class="op">=</span> <span class="st">"censoring"</span>, cause1 <span class="op">=</span> <span class="st">"terminal"</span>, cause2 <span class="op">=</span> <span class="st">"terminal"</span><span class="op">)</span></span>
 <span></span>
@@ -567,23 +573,23 @@
 <code class="sourceCode R"><span><span class="va">new_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_event_graph.html">sim_event_graph</a></span><span class="op">(</span><span class="va">graph</span>, n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">new_data</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;id&gt;</span></span>
-<span><span class="co">#&gt;       id     time delta        L0    A0</span></span>
-<span><span class="co">#&gt;    &lt;int&gt;    &lt;num&gt; &lt;int&gt;     &lt;num&gt; &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1:     1 4.549795     0 1.0532139     1</span></span>
-<span><span class="co">#&gt; 2:     2 3.550653     0 0.5385115     0</span></span>
-<span><span class="co">#&gt; 3:     3 1.797275     1 0.8235271     1</span></span>
-<span><span class="co">#&gt; 4:     4 1.095931     2 0.7444320     0</span></span>
-<span><span class="co">#&gt; 5:     5 8.083563     0 0.4030154     0</span></span>
-<span><span class="co">#&gt; 6:     6 1.474290     0 0.4556481     1</span></span>
+<span><span class="co">#&gt;       id     time     event        L0    A0</span></span>
+<span><span class="co">#&gt;    &lt;int&gt;    &lt;num&gt;    &lt;fctr&gt;     &lt;num&gt; &lt;int&gt;</span></span>
+<span><span class="co">#&gt; 1:     1 4.549795 censoring 1.0532139     1</span></span>
+<span><span class="co">#&gt; 2:     2 3.550653 censoring 0.5385115     0</span></span>
+<span><span class="co">#&gt; 3:     3 1.797275    cause1 0.8235271     1</span></span>
+<span><span class="co">#&gt; 4:     4 1.095931    cause2 0.7444320     0</span></span>
+<span><span class="co">#&gt; 5:     5 8.083563 censoring 0.4030154     0</span></span>
+<span><span class="co">#&gt; 6:     6 1.474290 censoring 0.4556481     1</span></span>
 <span></span>
 <span><span class="co"># Event-type distribution should match between observed and simulated data:</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
-<span>  observed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/proportions.html" class="external-link">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">observed_data</span><span class="op">$</span><span class="va">delta</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  simulated <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/proportions.html" class="external-link">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">new_data</span><span class="op">$</span><span class="va">delta</span><span class="op">)</span><span class="op">)</span></span>
+<span>  observed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/proportions.html" class="external-link">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">observed_data</span><span class="op">$</span><span class="va">event</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  simulated <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/proportions.html" class="external-link">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">new_data</span><span class="op">$</span><span class="va">event</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;               0     1     2</span></span>
-<span><span class="co">#&gt; observed  0.294 0.316 0.390</span></span>
-<span><span class="co">#&gt; simulated 0.280 0.327 0.393</span></span></code></pre></div>
+<span><span class="co">#&gt;           censoring cause1 cause2</span></span>
+<span><span class="co">#&gt; observed      0.294  0.316  0.390</span></span>
+<span><span class="co">#&gt; simulated     0.280  0.327  0.393</span></span></code></pre></div>
 </div>
 <section class="level2"><h3 id="categorical-baseline-covariates">Categorical Baseline Covariates<a class="anchor" aria-label="anchor" href="#categorical-baseline-covariates"></a>
 </h3>
@@ -599,11 +605,14 @@
 <span></span>
 <span><span class="va">fits_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  censoring <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">delta</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">region</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">event</span> <span class="op">==</span> <span class="st">"censoring"</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">region</span>,</span>
 <span>    data <span class="op">=</span> <span class="va">observed_data</span></span>
 <span>  <span class="op">)</span>,</span>
-<span>  cause1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">delta</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">region</span>, data <span class="op">=</span> <span class="va">observed_data</span><span class="op">)</span>,</span>
-<span>  cause2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">delta</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span>, data <span class="op">=</span> <span class="va">observed_data</span><span class="op">)</span></span>
+<span>  cause1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">event</span> <span class="op">==</span> <span class="st">"cause1"</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">region</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">observed_data</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  cause2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">event</span> <span class="op">==</span> <span class="st">"cause2"</span><span class="op">)</span> <span class="op">~</span> <span class="va">L0</span>, data <span class="op">=</span> <span class="va">observed_data</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">graph_region</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_graph_from_fits.html">sim_graph_from_fits</a></span><span class="op">(</span><span class="va">fits_region</span>, <span class="va">observed_data</span>, <span class="va">types</span><span class="op">)</span></span>

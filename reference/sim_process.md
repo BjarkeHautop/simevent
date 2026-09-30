@@ -1,7 +1,11 @@
 # Define an Event Process for `sim_graph()`
 
-Define an Event Process for
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+`sim_process` builds an event process whose baseline intensity is
+Weibull, \$\$\lambda_0(t) = \eta \nu t^{\nu - 1},\$\$ i.e. cumulative
+baseline hazard \\\eta t^\nu\\.
+[`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)s
+into the process multiply this baseline by \\\exp(\text{coef} \times
+\text{from})\\.
 
 ## Usage
 
@@ -18,50 +22,78 @@ sim_process(
 
 - type:
 
-  What kind of process this is, and in particular whether it ends an
-  individual's follow-up:
+  One of:
 
   `"censoring"`
 
-  :   Right-censoring: ends follow-up, but isn't an outcome event. At
-      most one per individual.
+  :   Ends follow-up without an outcome event.
 
   `"terminal"`
 
-  :   An absorbing outcome event (e.g. death, or one cause in a
-      competing-risks setting): ends follow-up. At most one per
-      individual.
+  :   An outcome event ending follow-up (e.g. death).
 
   `"transient"`
 
-  :   Doesn't end follow-up, and can fire more than once (up to `limit`
-      times, default unlimited). Because follow-up continues, its
-      running event count can itself be used as a time-varying
-      [`sim_effect()`](https://github.com/miclukacova/simevent/reference/sim_effect.md)
-      `from` for other processes (e.g. a relapse process raising the
-      hazard of a later terminal event).
+  :   An event that doesn't end follow-up and can recur (e.g. relapse).
 
 - eta:
 
-  Numeric. Weibull shape parameter of the process's baseline intensity.
+  Numeric. Weibull scale parameter.
 
 - nu:
 
-  Numeric. Weibull scale parameter of the process's baseline intensity.
+  Numeric. Weibull shape parameter: `nu > 1` gives an increasing hazard,
+  `nu < 1` a decreasing one, `nu = 1` a constant one.
 
 - limit:
 
-  Integer, or `Inf`. For `type = "transient"` only: the maximum number
-  of times this process can fire. Default `Inf` (unlimited, i.e.
-  recurrent); `limit = 1` gives a "one-jump" process (at most a single
-  event). Ignored for other types.
+  Integer or `Inf`. Maximum number of events of a `"transient"` process.
+  Default `Inf`.
 
 ## Value
 
 An object of class `sim_process`, for use in
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md).
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md).
 
 ## See also
 
-[`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md),
-[`sim_covariate()`](https://github.com/miclukacova/simevent/reference/sim_covariate.md)
+[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md),
+[`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)
+
+## Examples
+
+``` r
+# Death, with a slowly increasing hazard:
+sim_process("terminal", eta = 0.1, nu = 1.1)
+#> $type
+#> [1] "terminal"
+#> 
+#> $eta
+#> [1] 0.1
+#> 
+#> $nu
+#> [1] 1.1
+#> 
+#> $limit
+#> [1] Inf
+#> 
+#> attr(,"class")
+#> [1] "sim_process"
+
+# A relapse process that can fire at most twice:
+sim_process("transient", eta = 0.2, nu = 1, limit = 2)
+#> $type
+#> [1] "transient"
+#> 
+#> $eta
+#> [1] 0.2
+#> 
+#> $nu
+#> [1] 1
+#> 
+#> $limit
+#> [1] 2
+#> 
+#> attr(,"class")
+#> [1] "sim_process"
+```

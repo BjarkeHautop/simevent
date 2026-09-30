@@ -24,7 +24,7 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="nav-link" href="https://github.com/miclukacova/simevent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="nav-link" href="https://github.com/BjarkeHautop/simevent/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -34,7 +34,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Simulate Data in a Disease Setting</h1>
-      <small class="dont-index">Source: <a href="https://github.com/miclukacova/simevent/blob/master/R/simDisease.R"><code>R/simDisease.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/simevent/blob/master/R/simDisease.R"><code>R/simDisease.R</code></a></small>
       <div class="d-none name"><code>simDisease.Rd</code></div>
     </div>
 
@@ -189,24 +189,24 @@ Time-varying effects can be included via <code>beta_L_D_t_prime</code> and <code
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>`simDisease()` was deprecated in simevent 0.2.0.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Please use `sim_event_graph()` instead.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;ID&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        ID       Time Delta         L0    A0     L</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;      &lt;num&gt; &lt;int&gt;      &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 0.42962291     2 0.73434487     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1 3.85626073     1 0.73434487     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     2 0.10735355     0 0.35737817     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     3 0.70575722     1 0.38044179     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     4 4.93022171     2 0.01007393     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     4 7.92271276     1 0.01007393     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     5 0.07979234     2 0.51933362     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     5 1.36707562     1 0.51933362     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     6 1.12857585     2 0.49378098     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     6 1.93852293     1 0.49378098     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     7 0.44891364     1 0.91582416     0     0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     8 6.53847484     2 0.47776159     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13:     8 7.19345556     1 0.47776159     1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14:     9 0.13960266     2 0.77614838     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15:     9 1.02106907     1 0.77614838     0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16:    10 1.35950493     1 0.66430565     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        ID       Time Delta        L0    A0     L</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;      &lt;num&gt; &lt;int&gt;     &lt;num&gt; &lt;num&gt; &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 1.70766020     2 0.8713111     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1 3.65762894     1 0.8713111     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     2 1.06445313     2 0.8427792     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     2 2.39412873     0 0.8427792     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     3 3.80699208     2 0.5846733     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     3 5.49992537     1 0.5846733     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     4 1.53826788     1 0.8195638     1     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     5 2.52110909     1 0.7748722     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     6 1.55072375     1 0.8291892     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     7 3.41081449     2 0.2580890     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11:     7 4.19517566     1 0.2580890     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12:     8 0.06626588     2 0.7470290     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13:     8 2.56621946     0 0.7470290     0     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14:     9 3.00139532     1 0.9934259     0     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15:    10 1.98943166     2 0.7537237     1     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16:    10 2.04684101     1 0.7537237     1     1</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

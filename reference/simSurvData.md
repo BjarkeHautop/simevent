@@ -1,7 +1,7 @@
 # Simulate Survival Data with Censoring and Event Times
 
 `simSurvData()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
 instead.
 
 ## Usage
@@ -65,16 +65,16 @@ simSurvData(10)
 #> Warning: `simSurvData()` was deprecated in simevent 0.2.0.
 #> ℹ Please use `sim_event_graph()` instead.
 #> Key: <ID>
-#>        ID      Time Delta          L0    A0
-#>     <int>     <num> <int>       <num> <num>
-#>  1:     1  7.986616     0 0.460997913     1
-#>  2:     2  7.398976     0 0.604622570     1
-#>  3:     3 10.505991     0 0.009191813     0
-#>  4:     4  3.950963     1 0.202736926     1
-#>  5:     5  4.853135     0 0.162263735     0
-#>  6:     6  4.091087     0 0.551314138     1
-#>  7:     7  3.768537     0 0.073273248     1
-#>  8:     8  5.389963     1 0.875944501     0
-#>  9:     9  7.097592     1 0.765253324     1
-#> 10:    10  9.828971     0 0.680900069     1
+#>        ID       Time Delta         L0    A0
+#>     <int>      <num> <int>      <num> <num>
+#>  1:     1  1.1127873     0 0.55928713     1
+#>  2:     2 12.3736248     1 0.59689334     0
+#>  3:     3  9.6191188     0 0.98844695     0
+#>  4:     4  1.7185592     0 0.45875155     0
+#>  5:     5  0.3525454     0 0.60826728     1
+#>  6:     6  3.6778012     0 0.11794972     1
+#>  7:     7  0.8459066     0 0.60990657     1
+#>  8:     8  9.3370267     0 0.71560176     1
+#>  9:     9  5.9411253     1 0.01457063     1
+#> 10:    10  4.6452499     0 0.87532608     0
 ```

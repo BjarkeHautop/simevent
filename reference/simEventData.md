@@ -1,7 +1,7 @@
 # Simulate Continuous Time-to-Event Data with Multiple Event Types
 
 `simEventData()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
 instead.
 
 ## Usage
@@ -188,10 +188,10 @@ head(sim_data)
 #> Key: <ID>
 #>       ID      Time Delta         L0    A0    N0    N1    N2    N3
 #>    <int>     <num> <int>      <num> <num> <num> <num> <num> <num>
-#> 1:     1 0.7685405     3 0.96263514     1     0     0     0     1
-#> 2:     1 3.9906223     2 0.96263514     1     0     0     1     1
-#> 3:     1 6.7972661     0 0.96263514     1     1     0     1     1
-#> 4:     2 0.9621105     1 0.01141535     0     0     1     0     0
-#> 5:     3 3.9906696     0 0.24988251     0     1     0     0     0
-#> 6:     4 0.2759365     2 0.21641406     1     0     0     1     0
+#> 1:     1 3.3789170     2 0.73861940     1     0     0     1     0
+#> 2:     1 3.4566890     0 0.73861940     1     1     0     1     0
+#> 3:     2 0.6417590     3 0.76829044     0     0     0     0     1
+#> 4:     2 6.8045245     1 0.76829044     0     0     1     0     1
+#> 5:     3 0.6039859     1 0.06049626     0     0     1     0     0
+#> 6:     4 7.0391005     0 0.07109475     0     1     0     0     0
 ```

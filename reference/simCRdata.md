@@ -1,7 +1,7 @@
 # Simulate Competing Risks Data
 
 `simCRdata()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
 instead.
 
 ## Usage
@@ -40,7 +40,7 @@ simCRdata(N, beta = NULL, eta = rep(0.1, 3), nu = rep(1.1, 3), cens = 1, ...)
 - ...:
 
   Additional arguments passed to
-  [`simEventData`](https://github.com/miclukacova/simevent/reference/simEventData.md),
+  [`simEventData`](https://github.com/BjarkeHautop/simevent/reference/simEventData.md),
   including `add_cov` for extra covariates.
 
 ## Value
@@ -75,16 +75,16 @@ simCRdata(10)
 #> Warning: `simCRdata()` was deprecated in simevent 0.2.0.
 #> ℹ Please use `sim_event_graph()` instead.
 #> Key: <ID>
-#>        ID         Time Delta        L0    A0
-#>     <int>        <num> <int>     <num> <num>
-#>  1:     1 4.2505898708     1 0.5730568     0
-#>  2:     2 1.2761060193     2 0.3918552     1
-#>  3:     3 0.5794530904     0 0.9767038     0
-#>  4:     4 1.3945334842     2 0.5483564     1
-#>  5:     5 2.8643767672     1 0.3391972     1
-#>  6:     6 3.0443682824     0 0.4441971     1
-#>  7:     7 0.1212712415     0 0.9792817     0
-#>  8:     8 1.9057723041     2 0.7248830     1
-#>  9:     9 1.5560375853     1 0.9670641     1
-#> 10:    10 0.0006683806     1 0.0302455     0
+#>        ID      Time Delta        L0    A0
+#>     <int>     <num> <int>     <num> <num>
+#>  1:     1 6.0442668     0 0.3162765     0
+#>  2:     2 4.4386148     1 0.3821263     0
+#>  3:     3 1.1367909     0 0.2157253     1
+#>  4:     4 5.5481918     0 0.2025056     1
+#>  5:     5 1.5611560     0 0.8611681     0
+#>  6:     6 9.9367915     0 0.7248675     0
+#>  7:     7 0.7154495     2 0.7474930     0
+#>  8:     8 1.5399186     2 0.3956398     0
+#>  9:     9 4.7857215     2 0.9002984     1
+#> 10:    10 4.4892693     1 0.2064856     0
 ```
