@@ -1,5 +1,7 @@
 #' Simulation and Estimation with Modified Shape Parameter
 #'
+#' `alphaSim()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#'
 #' This function simulates event history data from the Disease, Treatment, Drop In, or Statin
 #' setting (see \code{simDisease}, \code{simTreatment}, \code{simDropIn}, and \code{simStatinData}).
 #' The shape parameter \eqn{\eta} of the disease/treatment/drop-in/MACE process is multiplied by
@@ -38,6 +40,39 @@
 #' alphaSim(N = 100, eta = rep(0.1,3), nu = rep(1.1,3), alpha = 0.5, setting = "Disease")
 #' alphaSim(N = 100, setting = "Drop In", beta_A0_Z = 1)
 alphaSim <- function(
+  N = 10000,
+  eta = rep(0.1, 4),
+  nu = rep(1.1, 4),
+  alpha = 0.5,
+  tau = 5,
+  a0 = 1,
+  years_lost = FALSE,
+  setting = "Disease",
+  return_data = FALSE,
+  cens = 0,
+  ...
+) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "alphaSim()",
+    "sim_event_graph()"
+  )
+  .alphaSim(
+    N = N,
+    eta = eta,
+    nu = nu,
+    alpha = alpha,
+    tau = tau,
+    a0 = a0,
+    years_lost = years_lost,
+    setting = setting,
+    return_data = return_data,
+    cens = cens,
+    ...
+  )
+}
+
+.alphaSim <- function(
   N = 1e4,
   eta = rep(0.1, 4),
   nu = rep(1.1, 4),

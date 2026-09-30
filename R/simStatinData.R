@@ -1,5 +1,7 @@
 #' @title Simulate Data in a Statin Setting
 #'
+#' `simStatinData()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#'
 #' @description Simulates event history data in a statin treatment setting via
 #' \code{simEventData}, with defaults for age (\code{A0}), a binary baseline
 #' covariate (\code{L0}), and 12 event processes.
@@ -48,6 +50,41 @@ simStatinData <- function(
   at_risk = NULL,
   ...
 ) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "simStatinData()",
+    "sim_event_graph()"
+  )
+  .simStatinData(
+    N = N,
+    eta = eta,
+    nu = nu,
+    beta = beta,
+    followup = followup,
+    lower = lower,
+    upper = upper,
+    gen_A0 = gen_A0,
+    gen_L0 = gen_L0,
+    add_cov = add_cov,
+    at_risk = at_risk,
+    ...
+  )
+}
+
+.simStatinData <- function(
+  N,
+  eta = NULL,
+  nu = NULL,
+  beta = NULL,
+  followup = 5,
+  lower = 10^(-15),
+  upper = 200,
+  gen_A0 = function(N, L0) pmin(stats::rexp(N, 0.3) + 70, 100),
+  gen_L0 = function(N) stats::rbinom(N, 1, 0.4),
+  add_cov = NULL,
+  at_risk = NULL,
+  ...
+) {
   # Default values
   if (!is.null(beta)) {
     n_proc <- ncol(beta)
@@ -73,7 +110,7 @@ simStatinData <- function(
     }
   }
 
-  data <- simEventData(
+  data <- .simEventData(
     N,
     beta = beta,
     eta = eta,

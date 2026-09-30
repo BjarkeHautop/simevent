@@ -34,35 +34,36 @@ pak::pak("miclukacova/simevent")
 library(simevent)
 ```
 
-At the core of the package is the flexible function `simEventData`,
-which simulates event history data from a Cox proportional hazards model
-with Weibull hazards. Users specify the number of events, and their
-intensity parameters and covariate effects, to create custom scenarios.
-On top of this, the package provides:
+The package builds event history data from a *graph*: baseline
+covariates, event processes (censoring, terminal, or transient, with
+Weibull intensities), and the Cox-type effects between them.
+`sim_graph()` defines the graph and `sim_event_graph()` simulates from
+it. On top of this, the package provides:
 
-- Wrapper functions for common settings, e.g. `simSurvData` (survival
-  data), `simCRdata` (competing risks), `simDisease`, `simTreatment`,
-  `simDropIn`, and `simEventTV` (time-varying effects).
-- Functions for simulating new data from a model already fitted to
-  observed data: `simEventCox` (Cox models) and `simEventObj` (any model
-  with a `predict2` method).
-- `plotEventData` and `IntFormatData` for plotting and reformatting
-  simulated data.
-- `alphaSim` and `intEffectAlpha` for performing and evaluating
-  interventions on the shape parameter of a process.
+- `sim_graph_from_fits()` for building a graph from `coxph()` fits to
+  observed data, to simulate new data resembling it.
+- `interval_format_data()` and `plot_event_data()` for reformatting and
+  plotting simulated data.
+- The `intervene` argument of `sim_event_graph()`, together with
+  `event_risk()`, for simulating and evaluating interventions on
+  processes and covariates.
 
 A minimal example, simulating survival data for 100 individuals and
 plotting the event histories:
 
 ``` r
-data <- simSurvData(100)
-plotEventData(data, title = "Survival Data")
+graph <- sim_graph(
+  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+  death = sim_process("terminal", eta = 0.1, nu = 1.1)
+)
+data <- sim_event_graph(graph, n = 100)
+plot_event_data(data, title = "Survival Data")
 ```
 
 <img src="man/figures/README-quick-example-1.png" alt="" width="100%" />
 
 For a full walkthrough of the simulation framework and all of the
-functions above, see `vignette("simevent")`.
+functions above, see `vignette("sim-event-graph")`.
 
 ## Contributing
 

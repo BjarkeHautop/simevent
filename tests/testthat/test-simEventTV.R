@@ -84,7 +84,7 @@ test_that("That the simEventTV simulates correctly when no time varrying effects
   beta <- matrix(nrow = 4, ncol = 2, 0.1)
   t_prime <- 1000
 
-  data <- simEventTV(
+  data <- .simEventTV(
     N = 5 * 10^3,
     t_prime = t_prime,
     tv_eff = tv_eff,
@@ -96,7 +96,7 @@ test_that("That the simEventTV simulates correctly when no time varrying effects
     max_events = 50
   )
 
-  data <- IntFormatData(data, N_cols = 6:7)
+  data <- .IntFormatData(data, N_cols = 6:7)
 
   survfit0 <- coxph(Surv(tstart, tstop, Delta == 0) ~ L0 + A0 + N1, data = data)
   survfit1 <- coxph(Surv(tstart, tstop, Delta == 1) ~ L0 + A0 + N1, data = data)
@@ -109,7 +109,7 @@ test_that("That the simEventTV simulates correctly when no time varrying effects
   t_prime <- 1
   tv_eff <- matrix(0.1, ncol = 2, nrow = 4)
 
-  data <- simEventTV(
+  data <- .simEventTV(
     N = 2 * 10^4,
     t_prime = t_prime,
     tv_eff = tv_eff,
@@ -121,7 +121,7 @@ test_that("That the simEventTV simulates correctly when no time varrying effects
     max_events = 50
   )
 
-  data <- IntFormatData(data, N_cols = 6:7)
+  data <- .IntFormatData(data, N_cols = 6:7)
 
   survfit0 <- coxph(Surv(tstart, tstop, Delta == 0) ~ L0 + A0 + N1, data = data)
   survfit1 <- coxph(Surv(tstart, tstop, Delta == 1) ~ L0 + A0 + N1, data = data)
@@ -143,7 +143,7 @@ test_that("That the simEventTV simulates correctly when time varrying effects", 
   tv_eff <- matrix(0.3, ncol = 2, nrow = 4)
   t_prime <- 1
 
-  data <- simEventTV(
+  data <- .simEventTV(
     N = 5 * 10^3,
     t_prime = t_prime,
     tv_eff = tv_eff,
@@ -155,7 +155,7 @@ test_that("That the simEventTV simulates correctly when time varrying effects", 
     max_events = 50
   )
 
-  data <- IntFormatData(data, timeVar = TRUE, t_prime = t_prime, N_cols = 6:7)
+  data <- .IntFormatData(data, timeVar = TRUE, t_prime = t_prime, N_cols = 6:7)
 
   survfit0 <- coxph(
     Surv(tstart, tstop, Delta == 0) ~ L0:strata(t_group) +
@@ -183,7 +183,7 @@ test_that("That the simEventTV simulates correctly when time varrying effects", 
 test_that("simEventTV errors when max_events is exceeded", {
   set.seed(1)
   expect_error(
-    simEventTV(5, term_deltas = integer(0), max_events = 3),
+    .simEventTV(5, term_deltas = integer(0), max_events = 3),
     "max_events"
   )
 })
@@ -191,6 +191,6 @@ test_that("simEventTV errors when max_events is exceeded", {
 test_that("simEventTV does not error when max_events is sufficient", {
   set.seed(1)
   expect_no_error(
-    simEventTV(100, max_events = 1000)
+    .simEventTV(100, max_events = 1000)
   )
 })

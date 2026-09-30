@@ -366,8 +366,7 @@ print.sim_graph <- function(x, ...) {
 #' Simulate Event History Data from a `sim_graph()`
 #'
 #' `sim_event_graph` simulates multistate event history data from a
-#' [sim_graph()] specification, via the same underlying sampler as
-#' [simEventData()].
+#' [sim_graph()] specification.
 #'
 #' @param graph A [sim_graph()].
 #' @param n Integer. Number of individuals to simulate.
@@ -433,7 +432,7 @@ print.sim_graph <- function(x, ...) {
 #' )
 #' head(data_intervened)
 #'
-#' @seealso [sim_graph()], [simEventData()], [sim.generic()]
+#' @seealso [sim_graph()], [event_risk()]
 #' @export
 sim_event_graph <- function(
   graph,
@@ -559,7 +558,7 @@ sim_event_graph <- function(
 #' value evolves over follow-up rather than being fixed at baseline)
 #' covariate. Note that such a term must itself have been fit as a properly
 #' time-varying covariate (e.g. via `coxph()` on tstart-tstop data built
-#' with [IntFormatData()]) for its coefficient to be a valid estimate in
+#' with [interval_format_data()]) for its coefficient to be a valid estimate in
 #' the first place; `sim_graph_from_fits()` only wires whatever coefficient
 #' `fits` already contains, it does not check how that fit was estimated.
 #'
@@ -577,7 +576,7 @@ sim_event_graph <- function(
 #'   using the default (`limit = Inf`).
 #'
 #' @return A [sim_graph()], ready for [sim_event_graph()].
-#' @seealso [sim_event_graph()], [sim.from.data()]
+#' @seealso [sim_event_graph()]
 #' @examples
 #' library(survival)
 #'

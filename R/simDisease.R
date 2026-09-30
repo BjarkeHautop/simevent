@@ -1,5 +1,7 @@
 #' Simulate Data in a Disease Setting
 #'
+#' `simDisease()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#'
 #' Simulates event data representing three event types: Censoring (0), Death (1), and
 #' Change in Covariate Process (2). Death and Censoring are terminal events, while Change
 #' in Covariate Process can occur only once. Event intensities depend on covariates and
@@ -63,6 +65,57 @@ simDisease <- function(
   at_risk_cov = NULL,
   ...
 ) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "simDisease()",
+    "sim_event_graph()"
+  )
+  .simDisease(
+    N = N,
+    eta = eta,
+    nu = nu,
+    cens = cens,
+    beta_L0_D = beta_L0_D,
+    beta_L0_L = beta_L0_L,
+    beta_L_D = beta_L_D,
+    beta_A0_D = beta_A0_D,
+    beta_A0_L = beta_A0_L,
+    beta_L0_C = beta_L0_C,
+    beta_A0_C = beta_A0_C,
+    beta_L_C = beta_L_C,
+    followup = followup,
+    lower = lower,
+    upper = upper,
+    beta_L_D_t_prime = beta_L_D_t_prime,
+    t_prime = t_prime,
+    gen_A0 = gen_A0,
+    at_risk_cov = at_risk_cov,
+    ...
+  )
+}
+
+.simDisease <- function(
+  N,
+  eta = rep(0.1, 3),
+  nu = rep(1.1, 3),
+  cens = 1,
+  beta_L0_D = 1,
+  beta_L0_L = 1,
+  beta_L_D = 1,
+  beta_A0_D = 0,
+  beta_A0_L = 0,
+  beta_L0_C = 0,
+  beta_A0_C = 0,
+  beta_L_C = 0,
+  followup = Inf,
+  lower = 10^(-15),
+  upper = 200,
+  beta_L_D_t_prime = NULL,
+  t_prime = NULL,
+  gen_A0 = NULL,
+  at_risk_cov = NULL,
+  ...
+) {
   at_risk <- function(events) {
     return(c(
       cens, # If you have not yet  been censored you are at risk
@@ -88,7 +141,7 @@ simDisease <- function(
   if (!is.null(beta_L_D_t_prime) && !is.null(t_prime)) {
     tv_eff <- matrix(0, ncol = 3, nrow = 5)
     tv_eff[5, 2] <- beta_L_D_t_prime
-    data <- simEventTV(
+    data <- .simEventTV(
       N,
       beta = beta,
       eta = eta,
@@ -103,7 +156,7 @@ simDisease <- function(
       ...
     )
   } else {
-    data <- simEventData(
+    data <- .simEventData(
       N,
       beta = beta,
       eta = eta,

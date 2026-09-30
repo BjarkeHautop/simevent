@@ -14,7 +14,16 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
+# The functions in this vignette are deprecated in favour of the graph-based
+# API (see `vignette("sim-event-graph")`); keep their warnings out of the output.
+options(lifecycle_verbosity = "quiet")
 ```
+
+::: {.callout-warning}
+The functions described in this vignette are deprecated as of simevent 0.2.0.
+Use the graph-based API instead, described in `vignette("sim-event-graph")`.
+:::
 
 ```{r}
 #| label: setup

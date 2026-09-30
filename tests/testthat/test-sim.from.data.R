@@ -24,7 +24,7 @@ test_that("sim.from.data simulates data recovering the fitted parameters", {
   set.seed(857)
 
   sim.parameters <- make_sim_parameters()
-  data <- sim.from.data(n = 2000, sim.parameters = sim.parameters)
+  data <- .sim.from.data(n = 2000, sim.parameters = sim.parameters)
 
   expect_setequal(names(data), c("id", "time", "delta", "L0"))
 
@@ -45,7 +45,7 @@ test_that("sim.from.data baseline.intervention fixes the covariate", {
   set.seed(857)
 
   sim.parameters <- make_sim_parameters()
-  data <- sim.from.data(
+  data <- .sim.from.data(
     n = 100,
     sim.parameters = sim.parameters,
     baseline.intervention = list(L0 = 1)
@@ -59,8 +59,8 @@ test_that("sim.from.data alpha.intervention scales the intensity", {
 
   sim.parameters <- make_sim_parameters()
 
-  data_base <- sim.from.data(n = 5000, sim.parameters = sim.parameters)
-  data_high <- sim.from.data(
+  data_base <- .sim.from.data(n = 5000, sim.parameters = sim.parameters)
+  data_high <- .sim.from.data(
     n = 5000,
     sim.parameters = sim.parameters,
     alpha.intervention = list(death = 10)

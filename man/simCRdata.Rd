@@ -30,10 +30,12 @@ A \code{data.frame} with simulated competing risk data including:
 }
 }
 \description{
-Simulates competing risks data for \eqn{N} individuals who are at risk of mutually exclusive event types.
-Three event types are simulated, where one can be interpreted as censoring.
+\code{simCRdata()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.
 }
 \details{
+Simulates competing risks data for \eqn{N} individuals who are at risk of mutually exclusive event types.
+Three event types are simulated, where one can be interpreted as censoring.
+
 The event intensities follow Weibull hazard models parameterized by shape and scale parameters \eqn{\eta} and \eqn{\nu}.
 Covariate effects on the hazard are specified by the \code{beta} matrix, which models the effects of baseline covariates \code{L0} and \code{A0} on each event type.
 }

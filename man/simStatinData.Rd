@@ -2,7 +2,9 @@
 % Please edit documentation in R/simStatinData.R
 \name{simStatinData}
 \alias{simStatinData}
-\title{Simulate Data in a Statin Setting}
+\title{Simulate Data in a Statin Setting
+
+\code{simStatinData()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.}
 \usage{
 simStatinData(
   N,

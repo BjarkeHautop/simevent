@@ -17,6 +17,7 @@ Imports:
     utils,
     stats,
     checkmate,
+    lifecycle,
     data.table,
     ggplot2,
     survival,
@@ -24,6 +25,7 @@ Imports:
 Suggests:
     knitr,
     quarto,
+    withr,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 LinkingTo:

@@ -67,12 +67,14 @@ A \code{data.table} with columns:
 \item{N0, N1, ...}{Event counts up to the current event}
 }
 \description{
+\code{simEventData()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.
+}
+\details{
 \code{simEventData} simulates event times and types for a cohort of individuals in a
 counting process framework. It supports multiple event types (by default 4),
 including terminal events, with intensities influenced by baseline covariates
 and previous event history.
-}
-\details{
+
 The event intensities for event type \eqn{x} at time \eqn{t} are given by
 \deqn{
 \lambda^x(t) = \lambda_0^x(t) \exp(\beta_x^T L),

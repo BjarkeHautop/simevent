@@ -1,5 +1,7 @@
 #' Simulate Event History Data from a Generic Process Specification
 #'
+#' `sim.generic()` is deprecated as of simevent 0.2.0. Use [sim_graph()] instead.
+#'
 #' `sim.generic` simulates multistate event history data from a set of
 #' user-specified baseline covariates, event processes (with Weibull
 #' intensities and Cox-type effects), and their effects on one another, by
@@ -53,6 +55,35 @@
 #'
 #' @export
 sim.generic <- function(
+  baseline = list(),
+  processes = list(),
+  effects = list(),
+  sim.object = list(),
+  cens = 1,
+  alpha.intervention = list(),
+  baseline.intervention = list(),
+  n = 500,
+  browse = FALSE
+) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "sim.generic()",
+    "sim_graph()"
+  )
+  .sim.generic(
+    baseline = baseline,
+    processes = processes,
+    effects = effects,
+    sim.object = sim.object,
+    cens = cens,
+    alpha.intervention = alpha.intervention,
+    baseline.intervention = baseline.intervention,
+    n = n,
+    browse = browse
+  )
+}
+
+.sim.generic <- function(
   baseline = list(),
   processes = list(),
   effects = list(),

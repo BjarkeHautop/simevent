@@ -55,6 +55,9 @@ A list with two components:
 }
 }
 \description{
+\code{intEffectAlpha()} is deprecated as of simevent 0.2.0. Use \code{\link[=event_risk]{event_risk()}} instead.
+}
+\details{
 Simulates data from the Disease, Drop In, or Treatment setting under an intervention
 where the shape parameter \eqn{\eta} of the disease, drop-in, or treatment process
 (respectively) is multiplied by \code{alpha}. It computes the proportion of individuals

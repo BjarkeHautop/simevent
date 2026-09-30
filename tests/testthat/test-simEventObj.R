@@ -2,7 +2,7 @@ test_that("simEventObj simulates data consistent with the fitted Cox models", {
   set.seed(926489)
   # The observed data
   beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
-  data <- simCRdata(N = 5000, beta = beta)
+  data <- .simCRdata(N = 5000, beta = beta)
   old_vars <- data[, c("L0", "A0")]
 
   # Fit Cox Models
@@ -19,7 +19,7 @@ test_that("simEventObj simulates data consistent with the fitted Cox models", {
   cox_fits <- list("D" = cox1, "L" = cox2)
   class(cox_fits) <- "simevent"
 
-  # Equip with predict2 method. simEventObj() calls `predict2()` unqualified
+  # Equip with predict2 method. .simEventObj() calls `predict2()` unqualified
   # from within the package namespace, so the generic and method must be
   # made visible on the global search path (not just local to this test)
   # for the lookup to succeed -- hence `<<-` and cleanup via on.exit().
@@ -57,7 +57,7 @@ test_that("simEventObj simulates data consistent with the fitted Cox models", {
   }
 
   # Simulate new data
-  new_data <- simEventObj(5000, cox_fits, old_vars = old_vars)
+  new_data <- .simEventObj(5000, cox_fits, old_vars = old_vars)
 
   expect_true(all(
     c("ID", "Time", "Delta", "L0", "A0", "N0", "N1") %in%
@@ -91,7 +91,7 @@ test_that("simEventObj simulates data consistent with the fitted Cox models", {
 test_that("simEventObj supports custom event_names", {
   set.seed(10)
   beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
-  data <- simCRdata(N = 300, beta = beta)
+  data <- .simCRdata(N = 300, beta = beta)
   old_vars <- data[, c("L0", "A0")]
 
   cox1 <- survival::coxph(
@@ -125,7 +125,7 @@ test_that("simEventObj supports custom event_names", {
     list(time = basehazz_list[[1]][["time"]], chf = chf)
   }
 
-  new_data <- simEventObj(
+  new_data <- .simEventObj(
     100,
     cox_fits,
     old_vars = old_vars,
@@ -138,7 +138,7 @@ test_that("simEventObj supports custom event_names", {
 test_that("simEventObj supports useOldVars = TRUE (deterministic covariates)", {
   set.seed(11)
   beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
-  data <- simCRdata(N = 250, beta = beta)
+  data <- .simCRdata(N = 250, beta = beta)
   old_vars <- data[, c("L0", "A0")]
 
   cox1 <- survival::coxph(
@@ -172,7 +172,7 @@ test_that("simEventObj supports useOldVars = TRUE (deterministic covariates)", {
     list(time = basehazz_list[[1]][["time"]], chf = chf)
   }
 
-  new_data <- simEventObj(
+  new_data <- .simEventObj(
     nrow(old_vars),
     cox_fits,
     old_vars = old_vars,

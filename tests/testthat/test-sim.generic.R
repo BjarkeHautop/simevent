@@ -8,7 +8,7 @@ test_that("sim.generic simulates data in the right way", {
   )
   effects <- list(c("L0", "death", 1.5), c("L0", "censoring", -0.5))
 
-  data <- sim.generic(baseline, processes, effects, n = 5000)
+  data <- .sim.generic(baseline, processes, effects, n = 5000)
 
   expect_setequal(names(data), c("id", "time", "delta", "L0"))
 
@@ -33,7 +33,7 @@ test_that("sim.generic baseline.intervention fixes the covariate", {
   )
   effects <- list(c("L0", "death", 1.5))
 
-  data <- sim.generic(
+  data <- .sim.generic(
     baseline,
     processes,
     effects,
@@ -54,8 +54,8 @@ test_that("sim.generic alpha.intervention scales the intensity", {
   )
   effects <- list()
 
-  data_base <- sim.generic(baseline, processes, effects, n = 5000)
-  data_high <- sim.generic(
+  data_base <- .sim.generic(baseline, processes, effects, n = 5000)
+  data_high <- .sim.generic(
     baseline,
     processes,
     effects,
@@ -78,7 +78,7 @@ test_that("sim.generic falls back to sim.object", {
     effects = list(c("L0", "death", 1.5))
   )
 
-  data <- sim.generic(sim.object = sim.object, n = 100)
+  data <- .sim.generic(sim.object = sim.object, n = 100)
 
   expect_setequal(names(data), c("id", "time", "delta", "L0"))
 })

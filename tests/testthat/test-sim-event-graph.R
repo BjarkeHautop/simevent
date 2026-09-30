@@ -265,7 +265,7 @@ test_that("sim_event_graph's transient process respects a custom limit", {
 test_that("sim_graph_from_fits recovers the fitted event-type distribution", {
   set.seed(1405)
   beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
-  observed_data <- simCRdata(N = 2000, beta = beta)
+  observed_data <- .simCRdata(N = 2000, beta = beta)
 
   fits <- list(
     censoring = coxph(Surv(Time, Delta == 0) ~ L0 + A0, data = observed_data),
@@ -292,7 +292,7 @@ test_that("sim_graph_from_fits recovers the fitted event-type distribution", {
 test_that("sim_graph_from_fits builds sim_derived() dummies for a factor covariate", {
   set.seed(1405)
   beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
-  observed_data <- simCRdata(N = 3000, beta = beta)
+  observed_data <- .simCRdata(N = 3000, beta = beta)
   observed_data$region <- factor(sample(
     c("a", "b", "c"),
     nrow(observed_data),
@@ -324,20 +324,20 @@ test_that("sim_graph_from_fits builds sim_derived() dummies for a factor covaria
 })
 
 test_that("sim_graph_from_fits validates types/fits/limits", {
-  fit <- coxph(Surv(Time, Delta == 0) ~ L0, data = simSurvData(100))
+  fit <- coxph(Surv(Time, Delta == 0) ~ L0, data = .simSurvData(100))
 
   expect_error(
-    sim_graph_from_fits(list(a = fit), simSurvData(100), c(b = "censoring")),
+    sim_graph_from_fits(list(a = fit), .simSurvData(100), c(b = "censoring")),
     "permutation"
   )
   expect_error(
-    sim_graph_from_fits(list(a = fit), simSurvData(100), c(a = "bogus")),
+    sim_graph_from_fits(list(a = fit), .simSurvData(100), c(a = "bogus")),
     "subset"
   )
   expect_error(
     sim_graph_from_fits(
       list(a = "not a fit"),
-      simSurvData(100),
+      .simSurvData(100),
       c(a = "censoring")
     ),
     "coxph"

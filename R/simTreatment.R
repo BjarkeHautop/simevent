@@ -1,5 +1,7 @@
 #' Simulate Event History Data with Treatment and Time-Dependent Covariate
 #'
+#' `simTreatment()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#'
 #' Simulates event history data with four types of events representing censoring (0), death (1), treatment (2), and covariate change (3).
 #' Death and censoring are terminal events; treatment and covariate events can occur only once.
 #'
@@ -88,6 +90,79 @@ simTreatment <- function(
   followup = Inf,
   ...
 ) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "simTreatment()",
+    "sim_event_graph()"
+  )
+  .simTreatment(
+    N = N,
+    eta = eta,
+    nu = nu,
+    beta_L_A = beta_L_A,
+    beta_L_D = beta_L_D,
+    beta_A_D = beta_A_D,
+    beta_A_L = beta_A_L,
+    beta_L0_A = beta_L0_A,
+    beta_L0_L = beta_L0_L,
+    beta_L0_D = beta_L0_D,
+    beta_L0_C = beta_L0_C,
+    beta_L_C = beta_L_C,
+    beta_A_C = beta_A_C,
+    beta_L_A_prime = beta_L_A_prime,
+    beta_L_D_prime = beta_L_D_prime,
+    beta_A_D_prime = beta_A_D_prime,
+    beta_A_L_prime = beta_A_L_prime,
+    beta_L0_A_prime = beta_L0_A_prime,
+    beta_L0_L_prime = beta_L0_L_prime,
+    beta_L0_D_prime = beta_L0_D_prime,
+    beta_L0_C_prime = beta_L0_C_prime,
+    beta_L_C_prime = beta_L_C_prime,
+    beta_A_C_prime = beta_A_C_prime,
+    t_prime = t_prime,
+    at_risk_cov = at_risk_cov,
+    cens = cens,
+    op = op,
+    lower = lower,
+    upper = upper,
+    followup = followup,
+    ...
+  )
+}
+
+.simTreatment <- function(
+  N,
+  eta = rep(0.1, 4),
+  nu = rep(1.1, 4),
+  beta_L_A = 1,
+  beta_L_D = 1,
+  beta_A_D = -1,
+  beta_A_L = -0.5,
+  beta_L0_A = 1,
+  beta_L0_L = 1,
+  beta_L0_D = 1,
+  beta_L0_C = 0,
+  beta_L_C = 0,
+  beta_A_C = 0,
+  beta_L_A_prime = 0,
+  beta_L_D_prime = 0,
+  beta_A_D_prime = 0,
+  beta_A_L_prime = 0,
+  beta_L0_A_prime = 0,
+  beta_L0_L_prime = 0,
+  beta_L0_D_prime = 0,
+  beta_L0_C_prime = 0,
+  beta_L_C_prime = 0,
+  beta_A_C_prime = 0,
+  t_prime = NULL,
+  at_risk_cov = NULL,
+  cens = 1,
+  op = 1,
+  lower = 10^(-15),
+  upper = 200,
+  followup = Inf,
+  ...
+) {
   Time <- A0 <- N0 <- N1 <- ID <- NULL
 
   if (op == 0) {
@@ -140,7 +215,7 @@ simTreatment <- function(
     # The change in effect of L on the processes C, D, A, L
     tv_eff[6, ] <- c(beta_L_C_prime, beta_L_D_prime, beta_L_A_prime, 0)
 
-    data <- simEventTV(
+    data <- .simEventTV(
       N,
       beta = beta,
       eta = eta,
@@ -155,7 +230,7 @@ simTreatment <- function(
       ...
     )
   } else {
-    data <- simEventData(
+    data <- .simEventData(
       N,
       beta = beta,
       eta = eta,

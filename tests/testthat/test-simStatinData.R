@@ -7,7 +7,7 @@ test_that("simStatinData simulates data in the right way (explicit beta)", {
   beta[1, ] <- c(0.5, -0.5, 0.5) # effect of L0 on events 0, 1, 2
   beta[2, ] <- c(-0.02, 0.03, -0.01) # effect of A0 on events 0, 1, 2
 
-  data_test <- simStatinData(
+  data_test <- .simStatinData(
     4000,
     eta = rep(0.2, 3),
     nu = rep(1.1, 3),
@@ -44,7 +44,7 @@ test_that("simStatinData simulates data in the right way (explicit beta)", {
 
 test_that("simStatinData default arguments produce the expected 12-process structure", {
   set.seed(201)
-  data_test <- simStatinData(500)
+  data_test <- .simStatinData(500)
 
   expected_names <- c("ID", "Time", "Delta", "L0", "A0", paste0("N", 0:11))
   expect_true(all(expected_names %in% names(data_test)))
@@ -54,14 +54,14 @@ test_that("simStatinData default arguments produce the expected 12-process struc
 
 test_that("simStatinData determines number of processes from eta alone", {
   set.seed(202)
-  data_test <- simStatinData(300, eta = rep(0.15, 4))
+  data_test <- .simStatinData(300, eta = rep(0.15, 4))
   expect_true(all(c("N0", "N1", "N2", "N3") %in% names(data_test)))
   expect_false("N4" %in% names(data_test))
 })
 
 test_that("simStatinData determines number of processes from nu alone", {
   set.seed(203)
-  data_test <- simStatinData(300, nu = rep(1.2, 5))
+  data_test <- .simStatinData(300, nu = rep(1.2, 5))
   expect_true(all(c("N0", "N1", "N2", "N3", "N4") %in% names(data_test)))
   expect_false("N5" %in% names(data_test))
 })
@@ -69,7 +69,7 @@ test_that("simStatinData determines number of processes from nu alone", {
 test_that("simStatinData works with a custom at_risk function", {
   set.seed(204)
   at_risk_once <- function(events) as.numeric(events == 0)
-  data_test <- simStatinData(
+  data_test <- .simStatinData(
     300,
     eta = rep(0.15, 3),
     nu = rep(1.1, 3),

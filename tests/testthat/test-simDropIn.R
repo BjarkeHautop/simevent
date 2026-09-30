@@ -1,6 +1,6 @@
 test_that("simDropIn simulates data in the right way (adherence = FALSE)", {
   set.seed(101)
-  data_test <- simDropIn(5000)
+  data_test <- .simDropIn(5000)
 
   expect_true(all(
     c("ID", "Time", "Delta", "L0", "A0", "Z", "L") %in% names(data_test)
@@ -8,7 +8,7 @@ test_that("simDropIn simulates data in the right way (adherence = FALSE)", {
   expect_false(any(c("N0", "N1") %in% names(data_test)))
 
   # Transform data into tstart tstop format (C, D, Z, L -> 4 processes)
-  data_int <- IntFormatData(data_test, N_cols = 6:7)
+  data_int <- .IntFormatData(data_test, N_cols = 6:7)
 
   survfit_death <- coxph(
     Surv(tstart, tstop, Delta == 1) ~ L0 + A0 + Z + L,
@@ -70,13 +70,13 @@ test_that("simDropIn simulates data in the right way (adherence = FALSE)", {
 
 test_that("simDropIn works with cens = 0 (no censoring events)", {
   set.seed(102)
-  data_test <- simDropIn(500, cens = 0)
+  data_test <- .simDropIn(500, cens = 0)
   expect_false(0 %in% data_test$Delta)
 })
 
 test_that("simDropIn works with a t_prime time-varying effect", {
   set.seed(103)
-  data_test <- simDropIn(500, t_prime = 1, beta_A0_D_prime = 1)
+  data_test <- .simDropIn(500, t_prime = 1, beta_A0_D_prime = 1)
   expect_true(all(
     c("ID", "Time", "Delta", "L0", "A0", "Z", "L") %in% names(data_test)
   ))
@@ -85,13 +85,13 @@ test_that("simDropIn works with a t_prime time-varying effect", {
 
 test_that("simDropIn works with a custom followup (censoring time)", {
   set.seed(104)
-  data_test <- simDropIn(300, followup = 2)
+  data_test <- .simDropIn(300, followup = 2)
   expect_true(all(data_test[, max(Time), by = ID]$V1 <= 2))
 })
 
 test_that("simDropIn simulates data in the right way (adherence = TRUE)", {
   set.seed(105)
-  data_test <- simDropIn(4000, adherence = TRUE)
+  data_test <- .simDropIn(4000, adherence = TRUE)
 
   expect_true(all(
     c("ID", "Time", "Delta", "L0", "A0", "Z", "L", "A") %in% names(data_test)
@@ -99,7 +99,7 @@ test_that("simDropIn simulates data in the right way (adherence = TRUE)", {
   expect_true(all(data_test$A %in% c(0, 1)))
 
   # Transform data into tstart tstop format (C, D, Z, L, A -> 5 processes)
-  data_int <- IntFormatData(data_test, N_cols = 6:8)
+  data_int <- .IntFormatData(data_test, N_cols = 6:8)
 
   survfit_death <- coxph(
     Surv(tstart, tstop, Delta == 1) ~ L0 + A0 + Z + L + A,
@@ -132,7 +132,7 @@ test_that("simDropIn simulates data in the right way (adherence = TRUE)", {
 
 test_that("simDropIn works with adherence = TRUE and a t_prime time-varying effect", {
   set.seed(106)
-  data_test <- simDropIn(
+  data_test <- .simDropIn(
     500,
     adherence = TRUE,
     t_prime = 1,

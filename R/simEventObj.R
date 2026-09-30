@@ -1,5 +1,7 @@
 #' Simulate Survival and Competing Risk Data Based on a General Model
 #'
+#' `simEventObj()` is deprecated as of simevent 0.2.0. Use [sim_graph_from_fits()] instead.
+#'
 #' The `simEventObj` function simulates survival or competing risk data for a cohort
 #' of individuals based on a general model with a `predict2` method. The function is useful
 #' for simulating additional data under the same distribution as an original data set.
@@ -61,6 +63,27 @@
 #'
 #' @export
 simEventObj <- function(
+  N,
+  obj,
+  event_names = NULL,
+  old_vars = NULL,
+  useOldVars = FALSE
+) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "simEventObj()",
+    "sim_graph_from_fits()"
+  )
+  .simEventObj(
+    N = N,
+    obj = obj,
+    event_names = event_names,
+    old_vars = old_vars,
+    useOldVars = useOldVars
+  )
+}
+
+.simEventObj <- function(
   N,
   obj,
   event_names = NULL,

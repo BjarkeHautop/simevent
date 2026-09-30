@@ -54,6 +54,9 @@ A list with two components:
 Or the simulated data, if \code{return_data = TRUE}.
 }
 \description{
+\code{alphaSim()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.
+}
+\details{
 This function simulates event history data from the Disease, Treatment, Drop In, or Statin
 setting (see \code{simDisease}, \code{simTreatment}, \code{simDropIn}, and \code{simStatinData}).
 The shape parameter \eqn{\eta} of the disease/treatment/drop-in/MACE process is multiplied by

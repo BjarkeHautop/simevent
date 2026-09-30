@@ -1,5 +1,7 @@
 #' Simulate Continuous Time-to-Event Data with Multiple Event Types and time dependent effects
 #'
+#' `simEventDataTdPhi()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#'
 #' `simEventDataTdPhi` simulates event times and types for a cohort of individuals in a
 #' counting process framework. It supports multiple event types (by default 4),
 #' including terminal events, with intensities influenced by baseline covariates
@@ -37,6 +39,51 @@
 #'
 #' @export
 simEventDataTdPhi <- function(
+  N,
+  beta = NULL,
+  beta2 = NULL,
+  eta = NULL,
+  nu = NULL,
+  at_risk = NULL,
+  term_deltas = c(0, 1),
+  max_cens = Inf,
+  add_cov = NULL,
+  override_beta = NULL,
+  max_events = 10,
+  lower = 10^(-15),
+  upper = 200,
+  gen_A0 = NULL,
+  gen_L0 = NULL,
+  at_risk_cov = NULL,
+  ...
+) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "simEventDataTdPhi()",
+    "sim_event_graph()"
+  )
+  .simEventDataTdPhi(
+    N = N,
+    beta = beta,
+    beta2 = beta2,
+    eta = eta,
+    nu = nu,
+    at_risk = at_risk,
+    term_deltas = term_deltas,
+    max_cens = max_cens,
+    add_cov = add_cov,
+    override_beta = override_beta,
+    max_events = max_events,
+    lower = lower,
+    upper = upper,
+    gen_A0 = gen_A0,
+    gen_L0 = gen_L0,
+    at_risk_cov = at_risk_cov,
+    ...
+  )
+}
+
+.simEventDataTdPhi <- function(
   N, # Number of individuals
   beta = NULL, # Effects of covariates and processes
   beta2 = NULL, # Effect of time since last event

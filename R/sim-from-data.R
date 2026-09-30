@@ -1,5 +1,7 @@
 #' Simulate Event History Data from Parameters Fitted to Observed Data
 #'
+#' `sim.from.data()` is deprecated as of simevent 0.2.0. Use [sim_graph_from_fits()] instead.
+#'
 #' `sim.from.data` simulates new multistate event history data using
 #' process/baseline parameters previously estimated from observed data (e.g.
 #' Weibull and Cox parameters extracted from \code{coxph} fits, as
@@ -57,6 +59,31 @@
 #'
 #' @export
 sim.from.data <- function(
+  n = 500,
+  sim.parameters,
+  cens = 1,
+  alpha.intervention = list(),
+  baseline.intervention = list(),
+  browse = FALSE,
+  verbose = FALSE
+) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "sim.from.data()",
+    "sim_graph_from_fits()"
+  )
+  .sim.from.data(
+    n = n,
+    sim.parameters = sim.parameters,
+    cens = cens,
+    alpha.intervention = alpha.intervention,
+    baseline.intervention = baseline.intervention,
+    browse = browse,
+    verbose = verbose
+  )
+}
+
+.sim.from.data <- function(
   n = 500,
   sim.parameters,
   cens = 1,
@@ -250,7 +277,7 @@ sim.from.data <- function(
   non.term.processes <- setdiff(process.order, term.processes)
   non.term.deltas <- match(non.term.processes, process.order) - 1L
 
-  data <- simEventData(
+  data <- .simEventData(
     N = n,
     beta = beta,
     eta = eta,

@@ -1,7 +1,7 @@
 test_that("simSurvData simulates data in the right way", {
   set.seed(857)
   beta <- matrix(rnorm(4, 0, 3), ncol = 2, nrow = 2)
-  data <- simSurvData(N = 1000, beta = beta)
+  data <- .simSurvData(N = 1000, beta = beta)
 
   survfit_death <- coxph(Surv(Time, Delta == 1) ~ L0 + A0, data = data)
   expect_true(

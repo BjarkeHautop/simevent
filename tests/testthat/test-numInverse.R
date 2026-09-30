@@ -10,10 +10,10 @@ test_that("simEventData finds the inverse in the right way", {
     )) # Can experience event 3 once
   }
   beta <- matrix(rnorm(24, 0, 1), ncol = 4, nrow = 6)
-  data_test <- simEventData(6000, beta = beta, eta = c(0.1, 0.1, 0.2, 0.1))
+  data_test <- .simEventData(6000, beta = beta, eta = c(0.1, 0.1, 0.2, 0.1))
 
   # Transform data into tstart tstop format
-  data_int <- IntFormatData(data_test)
+  data_int <- .IntFormatData(data_test)
 
   # Fit models
   survfit_cens <- coxph(

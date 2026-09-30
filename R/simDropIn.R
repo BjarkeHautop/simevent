@@ -1,5 +1,7 @@
 #' Simulate Event Data from a "Drop In" Setting
 #'
+#' `simDropIn()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#'
 #' `simDropIn` simulates data corresponding to \code{N} individuals that are at risk
 #' for 4 or 5 events: Censoring (C), Death (D), Drop In Initiation (Z), Change in
 #' Covariate Process (L), and optionally Treatment (A).
@@ -70,6 +72,129 @@
 #' @examples
 #' simDropIn(10)
 simDropIn <- function(
+  N,
+  eta = c(0.5, 0.5, 0.1, 0.25),
+  nu = c(1.1, 1.1, 1.1, 1.1),
+  adherence = FALSE,
+  followup = Inf,
+  cens = 1,
+  generate.A0 = function(N, L0) stats::rbinom(N, 1, 0.5),
+  lower = 1e-200,
+  upper = 1e+10,
+  t_prime = NULL,
+  at_risk_cov = NULL,
+  beta_L_A = 1,
+  beta_L_Z = 2,
+  beta_L_D = 1.5,
+  beta_L_C = 0,
+  beta_A_L = -0.5,
+  beta_A_Z = -0.5,
+  beta_A_D = -1,
+  beta_A_C = 0,
+  beta_Z_L = -1,
+  beta_Z_A = 0,
+  beta_Z_D = -1,
+  beta_Z_C = 0,
+  beta_L0_L = 1,
+  beta_L0_A = 1,
+  beta_L0_Z = 1,
+  beta_L0_D = 1,
+  beta_L0_C = 0,
+  beta_A0_L = -1.5,
+  beta_A0_A = 0,
+  beta_A0_Z = 0,
+  beta_A0_D = -2,
+  beta_A0_C = 0,
+  beta_L_A_prime = 0,
+  beta_L_Z_prime = 0,
+  beta_L_D_prime = 0,
+  beta_L_C_prime = 0,
+  beta_A_L_prime = 0,
+  beta_A_Z_prime = 0,
+  beta_A_D_prime = 0,
+  beta_A_C_prime = 0,
+  beta_Z_L_prime = 0,
+  beta_Z_A_prime = 0,
+  beta_Z_D_prime = 0,
+  beta_Z_C_prime = 0,
+  beta_L0_L_prime = 0,
+  beta_L0_A_prime = 0,
+  beta_L0_Z_prime = 0,
+  beta_L0_D_prime = 0,
+  beta_L0_C_prime = 0,
+  beta_A0_L_prime = 0,
+  beta_A0_A_prime = 0,
+  beta_A0_Z_prime = 0,
+  beta_A0_D_prime = 0,
+  beta_A0_C_prime = 0,
+  ...
+) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "simDropIn()",
+    "sim_event_graph()"
+  )
+  .simDropIn(
+    N = N,
+    eta = eta,
+    nu = nu,
+    adherence = adherence,
+    followup = followup,
+    cens = cens,
+    generate.A0 = generate.A0,
+    lower = lower,
+    upper = upper,
+    t_prime = t_prime,
+    at_risk_cov = at_risk_cov,
+    beta_L_A = beta_L_A,
+    beta_L_Z = beta_L_Z,
+    beta_L_D = beta_L_D,
+    beta_L_C = beta_L_C,
+    beta_A_L = beta_A_L,
+    beta_A_Z = beta_A_Z,
+    beta_A_D = beta_A_D,
+    beta_A_C = beta_A_C,
+    beta_Z_L = beta_Z_L,
+    beta_Z_A = beta_Z_A,
+    beta_Z_D = beta_Z_D,
+    beta_Z_C = beta_Z_C,
+    beta_L0_L = beta_L0_L,
+    beta_L0_A = beta_L0_A,
+    beta_L0_Z = beta_L0_Z,
+    beta_L0_D = beta_L0_D,
+    beta_L0_C = beta_L0_C,
+    beta_A0_L = beta_A0_L,
+    beta_A0_A = beta_A0_A,
+    beta_A0_Z = beta_A0_Z,
+    beta_A0_D = beta_A0_D,
+    beta_A0_C = beta_A0_C,
+    beta_L_A_prime = beta_L_A_prime,
+    beta_L_Z_prime = beta_L_Z_prime,
+    beta_L_D_prime = beta_L_D_prime,
+    beta_L_C_prime = beta_L_C_prime,
+    beta_A_L_prime = beta_A_L_prime,
+    beta_A_Z_prime = beta_A_Z_prime,
+    beta_A_D_prime = beta_A_D_prime,
+    beta_A_C_prime = beta_A_C_prime,
+    beta_Z_L_prime = beta_Z_L_prime,
+    beta_Z_A_prime = beta_Z_A_prime,
+    beta_Z_D_prime = beta_Z_D_prime,
+    beta_Z_C_prime = beta_Z_C_prime,
+    beta_L0_L_prime = beta_L0_L_prime,
+    beta_L0_A_prime = beta_L0_A_prime,
+    beta_L0_Z_prime = beta_L0_Z_prime,
+    beta_L0_D_prime = beta_L0_D_prime,
+    beta_L0_C_prime = beta_L0_C_prime,
+    beta_A0_L_prime = beta_A0_L_prime,
+    beta_A0_A_prime = beta_A0_A_prime,
+    beta_A0_Z_prime = beta_A0_Z_prime,
+    beta_A0_D_prime = beta_A0_D_prime,
+    beta_A0_C_prime = beta_A0_C_prime,
+    ...
+  )
+}
+
+.simDropIn <- function(
   N,
   eta = c(0.5, 0.5, 0.1, 0.25),
   nu = c(1.1, 1.1, 1.1, 1.1),
@@ -215,7 +340,7 @@ simDropIn <- function(
       )
     }
 
-    data <- simEventTV(
+    data <- .simEventTV(
       N,
       beta = beta,
       eta = eta,
@@ -231,7 +356,7 @@ simDropIn <- function(
       ...
     )
   } else {
-    data <- simEventData(
+    data <- .simEventData(
       N,
       beta = beta,
       eta = eta,

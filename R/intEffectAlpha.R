@@ -1,5 +1,7 @@
 #' Estimate Effect of Intervention: Modifying Eta Parameter of Process
 #'
+#' `intEffectAlpha()` is deprecated as of simevent 0.2.0. Use [event_risk()] instead.
+#'
 #' Simulates data from the Disease, Drop In, or Treatment setting under an intervention
 #' where the shape parameter \eqn{\eta} of the disease, drop-in, or treatment process
 #' (respectively) is multiplied by \code{alpha}. It computes the proportion of individuals
@@ -32,6 +34,43 @@
 #' @examples
 #' intEffectAlpha(N = 1000, alpha = 0.7, tau = 5, years_lost = FALSE, a0 = 1, setting = "Drop In")
 intEffectAlpha <- function(
+  N = 10000,
+  setting = "Disease",
+  eta = rep(0.1, 4),
+  nu = rep(1.1, 4),
+  alpha = 0.5,
+  tau = 5,
+  a0 = 1,
+  years_lost = FALSE,
+  plot = TRUE,
+  lower = 10^(-30),
+  upper = 200,
+  cens = 0,
+  ...
+) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "intEffectAlpha()",
+    "event_risk()"
+  )
+  .intEffectAlpha(
+    N = N,
+    setting = setting,
+    eta = eta,
+    nu = nu,
+    alpha = alpha,
+    tau = tau,
+    a0 = a0,
+    years_lost = years_lost,
+    plot = plot,
+    lower = lower,
+    upper = upper,
+    cens = cens,
+    ...
+  )
+}
+
+.intEffectAlpha <- function(
   N = 1e4,
   setting = "Disease",
   eta = rep(0.1, 4),
@@ -61,7 +100,7 @@ intEffectAlpha <- function(
   )
 
   if (plot) {
-    plotEventData(data[1:250], title = "Under Intervention")
+    .plotEventData(data[1:250], title = "Under Intervention")
   }
 
   # Proportion of subjects dying before some time $\tau$

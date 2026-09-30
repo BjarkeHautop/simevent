@@ -34,6 +34,9 @@ A \code{data.table} with one row per event per individual containing:
 }
 }
 \description{
+\code{simEventObj()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_graph_from_fits]{sim_graph_from_fits()}} instead.
+}
+\details{
 The \code{simEventObj} function simulates survival or competing risk data for a cohort
 of individuals based on a general model with a \code{predict2} method. The function is useful
 for simulating additional data under the same distribution as an original data set.
@@ -43,8 +46,7 @@ and passed as an argument to the \code{simEventObj} function, which simulates ne
 the \code{predict2} method. The method should output the cumulative hazard array and the
 jump times of the cumulative hazard. Simulation proceeds by sampling from the uniform
 distribution and obtaining event times using the inverse of the cumulative hazard function(s).
-}
-\details{
+
 The function simulates individual event histories by:
 \enumerate{
 \item Sampling initial baseline covariates by resampling observed values.

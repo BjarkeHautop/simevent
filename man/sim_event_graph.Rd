@@ -53,8 +53,7 @@ process (its cumulative event count).
 }
 \description{
 \code{sim_event_graph} simulates multistate event history data from a
-\code{\link[=sim_graph]{sim_graph()}} specification, via the same underlying sampler as
-\code{\link[=simEventData]{simEventData()}}.
+\code{\link[=sim_graph]{sim_graph()}} specification.
 }
 \examples{
 # An illness-death graph: "age" is a plain covariate, "treated" is a
@@ -94,5 +93,5 @@ head(data_intervened)
 
 }
 \seealso{
-\code{\link[=sim_graph]{sim_graph()}}, \code{\link[=simEventData]{simEventData()}}, \code{\link[=sim.generic]{sim.generic()}}
+\code{\link[=sim_graph]{sim_graph()}}, \code{\link[=event_risk]{event_risk()}}
 }

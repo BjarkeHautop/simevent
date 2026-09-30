@@ -1,7 +1,7 @@
 test_that("simCRdata simulates data in the right way", {
   set.seed(857)
   beta <- matrix(rnorm(6, 0, 3), ncol = 3, nrow = 2)
-  data <- simCRdata(N = 5000, beta = beta)
+  data <- .simCRdata(N = 5000, beta = beta)
 
   survfit_proc1 <- coxph(Surv(Time, Delta == 1) ~ L0 + A0, data = data)
   expect_true(

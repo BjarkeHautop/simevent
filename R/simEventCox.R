@@ -1,5 +1,7 @@
 #' Simulate Event History Data Based on Cox Models
 #'
+#' `simEventCox()` is deprecated as of simevent 0.2.0. Use [sim_graph_from_fits()] instead.
+#'
 #' Simulates recurrent and terminal event data for a cohort of individuals based on a list
 #' of fitted Cox proportional hazards models. Each event type is governed by its own model,
 #' and simulation proceeds by iteratively sampling event times until a terminal event occurs.
@@ -62,6 +64,35 @@
 #'
 #' @export
 simEventCox <- function(
+  N,
+  cox_fits,
+  old_vars = NULL,
+  useOldVars = FALSE,
+  n_event_max = c(1, 1),
+  term_events = 1,
+  intervention1 = NULL,
+  intervention2 = NULL,
+  at_risk = NULL
+) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "simEventCox()",
+    "sim_graph_from_fits()"
+  )
+  .simEventCox(
+    N = N,
+    cox_fits = cox_fits,
+    old_vars = old_vars,
+    useOldVars = useOldVars,
+    n_event_max = n_event_max,
+    term_events = term_events,
+    intervention1 = intervention1,
+    intervention2 = intervention2,
+    at_risk = at_risk
+  )
+}
+
+.simEventCox <- function(
   N,
   cox_fits,
   old_vars = NULL,

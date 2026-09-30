@@ -63,13 +63,15 @@ A \code{data.table} of simulated event history data with columns
 column per non-terminal process.
 }
 \description{
+\code{sim.from.data()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_graph_from_fits]{sim_graph_from_fits()}} instead.
+}
+\details{
 \code{sim.from.data} simulates new multistate event history data using
 process/baseline parameters previously estimated from observed data (e.g.
 Weibull and Cox parameters extracted from \code{coxph} fits, as
 \code{\link{simEventCox}} does with its \code{cox_fits} argument), via
 \code{\link{simEventData}}.
-}
-\details{
+
 Unlike \code{\link{sim.generic}}, which takes user-specified effects
 directly, \code{sim.from.data} is meant to be fed parameters estimated
 from real data, so that the simulated data mimics an observed dataset's

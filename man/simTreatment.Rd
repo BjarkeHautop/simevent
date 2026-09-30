@@ -115,10 +115,12 @@ A \code{data.frame} with columns:
 }
 }
 \description{
-Simulates event history data with four types of events representing censoring (0), death (1), treatment (2), and covariate change (3).
-Death and censoring are terminal events; treatment and covariate events can occur only once.
+\code{simTreatment()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.
 }
 \details{
+Simulates event history data with four types of events representing censoring (0), death (1), treatment (2), and covariate change (3).
+Death and censoring are terminal events; treatment and covariate events can occur only once.
+
 Event intensities are modeled using Weibull hazards with parameters \eqn{\nu} (scale) and \eqn{\eta} (shape),
 and covariate effects controlled by specified \code{beta} parameters. For example, \code{beta_L_A} quantifies
 the effect of covariate \code{L = 1} on the hazard of treatment.

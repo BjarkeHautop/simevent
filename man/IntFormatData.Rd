@@ -22,6 +22,9 @@ A \code{data.table} with columns \code{tstart}, \code{tstop}, \code{k}, and othe
 formatted for survival analysis.
 }
 \description{
+\code{IntFormatData()} is deprecated as of simevent 0.2.0. Use \code{\link[=interval_format_data]{interval_format_data()}} instead.
+}
+\details{
 Converts simulated event history data with time-dependent covariates into an interval (start-stop) format,
 suitable for classical survival analysis functions like \code{coxph}.
 Adds interval start and stop times (\code{tstart}, \code{tstop}) and a counting variable \code{k} indexing events.

@@ -1,10 +1,10 @@
 test_that("simTreatment simulates data in the right way", {
   set.seed(858)
   # Generate data
-  data_test <- simTreatment(500)
+  data_test <- .simTreatment(500)
 
   # Transform data into tstart tstop format
-  data_int <- IntFormatData(data_test, N_cols = 5:6)
+  data_int <- .IntFormatData(data_test, N_cols = 5:6)
 
   # Fit models
   survfit_cens <- coxph(

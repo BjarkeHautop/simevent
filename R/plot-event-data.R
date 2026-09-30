@@ -28,7 +28,7 @@
 #'   ggplot2::scale_color_manual(values = c(start = "grey", `0` = "blue", `1` = "red"))
 #' @export
 plot_event_data <- function(data, title = "Event Data") {
-  time <- id <- delta <- NULL
+  time <- id <- delta <- max_time <- NULL
 
   data <- data.table::copy(data.table::as.data.table(data))[,
     c("id", "time", "delta")

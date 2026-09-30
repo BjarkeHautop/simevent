@@ -10,10 +10,10 @@ test_that("simEventData simulates data in the right way", {
     )) # Can experience event 3 once
   }
   beta <- matrix(rnorm(24, 0, 1), ncol = 4, nrow = 6)
-  data_test <- simEventData(6000, beta = beta, at_risk = at_risk)
+  data_test <- .simEventData(6000, beta = beta, at_risk = at_risk)
 
   # Transform data into tstart tstop format
-  data_int <- IntFormatData(data_test)
+  data_int <- .IntFormatData(data_test)
 
   # Fit models
   survfit_cens <- coxph(
@@ -96,7 +96,7 @@ test_that("simEventData errors when max_events is exceeded", {
   set.seed(1)
   # No terminal event type, so individuals accumulate events forever
   expect_error(
-    simEventData(5, term_deltas = integer(0), max_events = 3),
+    .simEventData(5, term_deltas = integer(0), max_events = 3),
     "max_events"
   )
 })
@@ -104,7 +104,7 @@ test_that("simEventData errors when max_events is exceeded", {
 test_that("simEventData does not error when max_events is sufficient", {
   set.seed(1)
   expect_no_error(
-    simEventData(100, max_events = 1000)
+    .simEventData(100, max_events = 1000)
   )
 })
 
@@ -114,7 +114,7 @@ test_that("a non-terminal event produces multiple rows per ID", {
   at_risk <- function(events) {
     c(0, 1, 1) # censoring off, outcome1 and z always at risk, z repeatable
   }
-  dt <- simEventData(
+  dt <- .simEventData(
     N,
     beta = matrix(0, nrow = 5, ncol = 3),
     eta = c(0.1, 0.3, 0.2),
@@ -154,7 +154,7 @@ test_that("an unrelated non-terminal process with a true zero effect does not bi
     out
   }
 
-  dt <- simEventData(
+  dt <- .simEventData(
     N,
     beta = beta,
     eta = eta,

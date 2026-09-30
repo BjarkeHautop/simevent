@@ -54,11 +54,13 @@ A \code{data.table} with one row per event per individual containing:
 }
 }
 \description{
+\code{simEventCox()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_graph_from_fits]{sim_graph_from_fits()}} instead.
+}
+\details{
 Simulates recurrent and terminal event data for a cohort of individuals based on a list
 of fitted Cox proportional hazards models. Each event type is governed by its own model,
 and simulation proceeds by iteratively sampling event times until a terminal event occurs.
-}
-\details{
+
 The function simulates individual event histories by:
 \enumerate{
 \item Sampling initial baseline covariates by resampling observed values.

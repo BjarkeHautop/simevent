@@ -1,5 +1,7 @@
 #' Simulate Survival Data with Censoring and Event Times
 #'
+#' `simSurvData()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#'
 #' Simulates survival data for \eqn{N} individuals who are at risk for censoring (0) and an event (1).
 #' The hazard functions for censoring and event times follow Weibull distributions parameterized by
 #' shape parameters \eqn{\eta} and scale parameters \eqn{\nu}. Covariate effects on censoring and event
@@ -24,6 +26,22 @@
 #' @export
 #'
 simSurvData <- function(
+  N,
+  beta = NULL,
+  eta = rep(0.1, 2),
+  nu = rep(1.1, 2),
+  cens = 1,
+  ...
+) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "simSurvData()",
+    "sim_event_graph()"
+  )
+  .simSurvData(N = N, beta = beta, eta = eta, nu = nu, cens = cens, ...)
+}
+
+.simSurvData <- function(
   N,
   beta = NULL,
   eta = rep(0.1, 2),
@@ -56,7 +74,7 @@ simSurvData <- function(
   }
 
   # Simulate data using underlying simEventData function
-  results <- simEventData(N, beta, eta = eta, nu = nu, at_risk = at_risk, ...)
+  results <- .simEventData(N, beta, eta = eta, nu = nu, at_risk = at_risk, ...)
 
   # Remove terminal event indicator columns
   results <- results[, !c("N0", "N1")]

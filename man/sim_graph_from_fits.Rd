@@ -52,7 +52,7 @@ process directly, not regenerated as a (meaningless, since its true
 value evolves over follow-up rather than being fixed at baseline)
 covariate. Note that such a term must itself have been fit as a properly
 time-varying covariate (e.g. via \code{coxph()} on tstart-tstop data built
-with \code{\link[=IntFormatData]{IntFormatData()}}) for its coefficient to be a valid estimate in
+with \code{\link[=interval_format_data]{interval_format_data()}}) for its coefficient to be a valid estimate in
 the first place; \code{sim_graph_from_fits()} only wires whatever coefficient
 \code{fits} already contains, it does not check how that fit was estimated.
 }
@@ -99,5 +99,5 @@ rbind(
 )
 }
 \seealso{
-\code{\link[=sim_event_graph]{sim_event_graph()}}, \code{\link[=sim.from.data]{sim.from.data()}}
+\code{\link[=sim_event_graph]{sim_event_graph()}}
 }

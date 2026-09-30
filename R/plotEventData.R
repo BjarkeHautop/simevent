@@ -1,5 +1,7 @@
 #' Plot Simulated Event History Data
 #'
+#' `plotEventData()` is deprecated as of simevent 0.2.0. Use [plot_event_data()] instead.
+#'
 #' Visualizes event history data by plotting individual event times colored and shaped by event type.
 #' Each individual's timeline is displayed horizontally with events marked along it.
 #'
@@ -13,6 +15,15 @@
 #' data <- simEventData(10)
 #' plotEventData(data)
 plotEventData <- function(data, title = "Event Data") {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "plotEventData()",
+    "plot_event_data()"
+  )
+  .plotEventData(data = data, title = title)
+}
+
+.plotEventData <- function(data, title = "Event Data") {
   max_time <- Time <- ID <- Delta <- NULL
 
   data <- data.table::copy(data)[, c("ID", "Time", "Delta")]

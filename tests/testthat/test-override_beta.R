@@ -10,7 +10,7 @@ test_that("override_beta works", {
       as.numeric(events[4] < 1)
     )) # Can experience event 3 once
   }
-  data_test <- simEventData(
+  data_test <- .simEventData(
     1000,
     override_beta = list("N2 > 1" = c("N1" = 2), "T1 > 1" = c("N1" = 1)),
     beta = beta,
@@ -18,7 +18,7 @@ test_that("override_beta works", {
   )
 
   # Transform data into tstart tstop format
-  data_int <- IntFormatData(data_test)
+  data_int <- .IntFormatData(data_test)
   data_int[, T1 := min(Time), by = ID]
   data_int[, Z := as.numeric((k != 1) & (T1 > 1)), by = ID]
   # Fit model

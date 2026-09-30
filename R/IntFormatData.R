@@ -1,5 +1,7 @@
 #' Transform Event Data into Interval Format for Classical Inference
 #'
+#' `IntFormatData()` is deprecated as of simevent 0.2.0. Use [interval_format_data()] instead.
+#'
 #' Converts simulated event history data with time-dependent covariates into an interval (start-stop) format,
 #' suitable for classical survival analysis functions like \code{coxph}.
 #' Adds interval start and stop times (\code{tstart}, \code{tstop}) and a counting variable \code{k} indexing events.
@@ -20,6 +22,25 @@
 #' data <- simEventData(10)
 #' IntFormatData(data)
 IntFormatData <- function(data, N_cols = 6:9, timeVar = FALSE, t_prime = NULL) {
+  lifecycle::deprecate_warn(
+    "0.2.0",
+    "IntFormatData()",
+    "interval_format_data()"
+  )
+  .IntFormatData(
+    data = data,
+    N_cols = N_cols,
+    timeVar = timeVar,
+    t_prime = t_prime
+  )
+}
+
+.IntFormatData <- function(
+  data,
+  N_cols = 6:9,
+  timeVar = FALSE,
+  t_prime = NULL
+) {
   k <- ID <- tstart <- tstop <- Time <- t_group <- NULL
   data <- copy(data)
 
