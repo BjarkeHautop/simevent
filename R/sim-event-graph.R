@@ -1,12 +1,14 @@
 #----------------------------------------------------------------------
-## A graph-based front-end to the simEventData() engine.
+## The graph-based API: node/edge constructors, sim_graph(),
+## sim_event_graph() and sim_graph_from_fits(). The engine itself lives in
+## sim-graph-engine.R.
 #----------------------------------------------------------------------
 
 #' Define a Baseline Covariate for `sim_graph()`
 #'
-#' @param generator Function generating the covariate. Takes `N` and,
-#'   optionally, any subset of the names of other covariates defined earlier
-#'   in the same [sim_graph()] call, matched by argument name.
+#' @param generator Function of `N` (number of individuals) returning the
+#'   covariate's values. May also take covariates defined earlier in the same
+#'   [sim_graph()] call, by name.
 #'
 #' @return An object of class `sim_covariate`, for use in [sim_graph()].
 #' @seealso [sim_graph()], [sim_process()]
@@ -35,8 +37,8 @@ sim_covariate <- function(generator) {
 #' `sim_derived` builds a covariate that is a deterministic transform of one
 #' or more other covariates defined earlier in the same [sim_graph()] call.
 #'
-#' @param fn Function of one or more covariates defined earlier in the same
-#'   [sim_graph()] call, matched by argument name.
+#' @param fn Function of covariates defined earlier in the same
+#'   [sim_graph()] call, by name.
 #'
 #' @return An object of class `sim_derived`, for use in [sim_graph()].
 #' @seealso [sim_graph()], [sim_covariate()], [sim_effect()]
@@ -75,31 +77,33 @@ sim_derived <- function(fn) {
 
 #' Define an Event Process for `sim_graph()`
 #'
-#' @param type What kind of process this is, and in particular whether it
-#'   ends an individual's follow-up:
+#' `sim_process` builds an event process whose baseline intensity is Weibull,
+#' \deqn{\lambda_0(t) = \eta \nu t^{\nu - 1},}
+#' i.e. cumulative baseline hazard \eqn{\eta t^\nu}. [sim_effect()]s into the
+#' process multiply this baseline by \eqn{\exp(\text{coef} \times
+#' \text{from})}.
+#'
+#' @param type One of:
 #'   \describe{
-#'     \item{`"censoring"`}{Right-censoring: ends follow-up, but isn't an
-#'       outcome event. At most one per individual.}
-#'     \item{`"terminal"`}{An absorbing outcome event (e.g. death, or one
-#'       cause in a competing-risks setting): ends follow-up. At most one
-#'       per individual.}
-#'     \item{`"transient"`}{Doesn't end follow-up, and can fire more than
-#'       once (up to `limit` times, default unlimited). Because follow-up
-#'       continues, its running event count can itself be used as a
-#'       time-varying [sim_effect()] `from` for other processes (e.g. a
-#'       relapse process raising the hazard of a later terminal event).}
+#'     \item{`"censoring"`}{Ends follow-up without an outcome event.}
+#'     \item{`"terminal"`}{An outcome event ending follow-up (e.g. death).}
+#'     \item{`"transient"`}{An event that doesn't end follow-up and can
+#'       recur (e.g. relapse).}
 #'   }
-#' @param eta Numeric. Weibull shape parameter of the process's baseline
-#'   intensity.
-#' @param nu Numeric. Weibull scale parameter of the process's baseline
-#'   intensity.
-#' @param limit Integer, or `Inf`. For `type = "transient"` only: the maximum
-#'   number of times this process can fire. Default `Inf` (unlimited,
-#'   i.e. recurrent); `limit = 1` gives a "one-jump" process (at most a
-#'   single event). Ignored for other types.
+#' @param eta Numeric. Weibull scale parameter.
+#' @param nu Numeric. Weibull shape parameter: `nu > 1` gives an increasing
+#'   hazard, `nu < 1` a decreasing one, `nu = 1` a constant one.
+#' @param limit Integer or `Inf`. Maximum number of events of a
+#'   `"transient"` process. Default `Inf`.
 #'
 #' @return An object of class `sim_process`, for use in [sim_graph()].
 #' @seealso [sim_graph()], [sim_covariate()]
+#' @examples
+#' # Death, with a slowly increasing hazard:
+#' sim_process("terminal", eta = 0.1, nu = 1.1)
+#'
+#' # A relapse process that can fire at most twice:
+#' sim_process("transient", eta = 0.2, nu = 1, limit = 2)
 #' @export
 sim_process <- function(
   type = c("censoring", "terminal", "transient"),
@@ -122,39 +126,19 @@ sim_process <- function(
 
 #' Define an Effect for `sim_graph()`
 #'
-#' An effect is a directed, weighted edge from a baseline covariate or
-#' process to a process's intensity: multiplying that process's baseline
-#' hazard by `exp(coef * from)`, where `from`'s value is either looked up
-#' directly (a covariate's drawn value, or a process's current event count)
-#' or, for anything not naming a single node, evaluated as an R expression.
+#' Multiplies the hazard of process `to` by `exp(coef * from)`.
 #'
-#' `from` may be:
-#' \describe{
-#'   \item{A bare node name}{e.g. `"age"` or `"relapse"`: the covariate's
-#'     drawn value, or the process's current cumulative event count.}
-#'   \item{Any other R expression}{parsed and evaluated per individual
-#'     against every covariate/process name in the graph (by value, as
-#'     above), plus:
-#'     \describe{
-#'       \item{`t`}{The current time in the individual's risk interval.}
-#'       \item{`last_time(proc)`}{Time of `proc`'s most recent occurrence so
-#'         far, or `-Inf` if it hasn't occurred yet.}
-#'       \item{`nth_time(proc, k)`}{Time of `proc`'s `k`-th occurrence so
-#'         far, or `Inf` if fewer than `k` have happened yet. So e.g.
-#'         `"t >= nth_time(relapse, 3)"` is simply `FALSE` until it applies.}
-#'     }
-#'     `proc` is written unquoted, the same as any other node name in the
-#'     expression (e.g. `"t - last_time(checkup) < 1"`).
-#'     Covers thresholds (`"relapse == 3"`), interactions
-#'     (`"age * relapse"`), and nonlinear transforms (`"age^2"`) inline,
-#'     without predefining a [sim_derived()] covariate for them.}
-#' }
-#'
-#' @param from Character. The name of a covariate, [sim_derived()]
-#'   covariate, or process defined in the same [sim_graph()] call, or an R
-#'   expression referencing them (see Details).
-#' @param to Character. Name of a process defined in the same [sim_graph()]
-#'   call.
+#' @param from Character. A covariate name (its value), a process name (its
+#'   number of events so far), or an R expression of these. Expressions may
+#'   also use:
+#'   \describe{
+#'     \item{`t`}{The current time (see [sim_event_graph()]'s `time_step`).}
+#'     \item{`last_time(proc)`}{Time of `proc`'s latest event, `-Inf` if
+#'       none.}
+#'     \item{`nth_time(proc, k)`}{Time of `proc`'s `k`-th event, `Inf` if
+#'       fewer than `k`.}
+#'   }
+#' @param to Character. Name of the affected process.
 #' @param coef Numeric. Cox-type coefficient.
 #'
 #' @return An object of class `sim_effect`, for use in [sim_graph()].
@@ -180,11 +164,8 @@ sim_effect <- function(from, to, coef) {
 #' specification, which [sim_event_graph()] can then simulate from.
 #'
 #' @param ... Named [sim_covariate()]/[sim_derived()]/[sim_process()]
-#'   objects. Every name must be unique across all three. A [sim_derived()]
-#'   covariate's dependencies must each name an earlier
-#'   [sim_covariate()]/[sim_derived()] in the same call.
-#' @param effects List of [sim_effect()] objects between nodes named in
-#'   `...`.
+#'   objects. A covariate may only depend on covariates listed before it.
+#' @param effects List of [sim_effect()]s.
 #'
 #' @return An object of class `sim_graph`.
 #' @seealso [sim_event_graph()], [sim_covariate()], [sim_derived()],
@@ -224,17 +205,27 @@ sim_graph <- function(..., effects = list()) {
     stop("sim_graph() needs at least one sim_process().")
   }
 
-  # Names that would collide with sim_event_graph()'s output columns or with
-  # the variables available inside a sim_effect() expression.
-  reserved <- intersect(
-    names(nodes),
-    c("id", "time", "delta", "t", "last_time", "nth_time")
+  # Names that would collide with sim_event_graph()'s output columns, with
+  # the non-process labels its `event` column can take, or with the
+  # variables available inside a sim_effect() expression.
+  reserved_names <- c(
+    "id",
+    "time",
+    "event",
+    "max_cens",
+    "none",
+    "t",
+    "last_time",
+    "nth_time"
   )
+  reserved <- intersect(names(nodes), reserved_names)
   if (length(reserved) > 0) {
     stop(
       "sim_graph() node name(s) are reserved: ",
       paste(reserved, collapse = ", "),
-      ". Reserved names are id, time, delta, t, last_time and nth_time."
+      ". Reserved names are ",
+      paste(reserved_names, collapse = ", "),
+      "."
     )
   }
   process_types <- vapply(nodes[is_process], `[[`, character(1), "type")
@@ -377,45 +368,25 @@ print.sim_graph <- function(x, ...) {
   invisible(x)
 }
 
-# Censoring first, then terminal, then transient in declared order. Only the
-# relative grouping matters (for term_deltas); the exact tie-break order
-# within a group is otherwise arbitrary but must agree everywhere
-# eta/nu/beta/term_deltas are built from it.
-.sim_graph_process_order <- function(graph) {
-  types <- vapply(graph$processes, `[[`, character(1), "type")
-  nm <- names(graph$processes)
-  c(
-    nm[types == "censoring"],
-    nm[types == "terminal"],
-    nm[!(types %in% c("censoring", "terminal"))]
-  )
-}
-
 # A "transient" process is at risk only while its own count is still below
 # its limit (always true for the default limit = Inf); censoring's at-risk
 # indicator is scaled by `cens`; terminal processes are always at risk.
-# Returns a function of `event_counts` (a named list, one entry per process
-# in process_order, each a vector of per-individual counts) to a
-# length(process_order) x length(event_counts[[1]]) at-risk matrix, for all
-# individuals at once.
-.sim_graph_at_risk <- function(graph, process_order, cens) {
-  types <- stats::setNames(
-    vapply(graph$processes[process_order], `[[`, character(1), "type"),
-    process_order
-  )
-  transient <- process_order[types == "transient"]
-  limit <- stats::setNames(
-    vapply(graph$processes[transient], `[[`, numeric(1), "limit"),
-    transient
-  )
-  censoring <- process_order[types == "censoring"]
+# Returns a function of `event_counts` (a named list, one entry per process,
+# each a vector of per-individual counts) to a process x individual at-risk
+# matrix with process-named rows, for all individuals at once.
+.sim_graph_at_risk <- function(graph, cens) {
+  process_names <- names(graph$processes)
+  types <- vapply(graph$processes, `[[`, character(1), "type")
+  transient <- process_names[types == "transient"]
+  limit <- vapply(graph$processes[transient], `[[`, numeric(1), "limit")
+  censoring <- process_names[types == "censoring"]
 
   function(event_counts) {
     at_risk <- matrix(
       1,
-      nrow = length(process_order),
+      nrow = length(process_names),
       ncol = length(event_counts[[1]]),
-      dimnames = list(process_order, NULL)
+      dimnames = list(process_names, NULL)
     )
     at_risk[censoring, ] <- cens
     for (nm in transient) {
@@ -432,32 +403,24 @@ print.sim_graph <- function(x, ...) {
 #'
 #' @param graph A [sim_graph()].
 #' @param n Integer. Number of individuals to simulate.
-#' @param intervene Named list implementing a `do()`-style intervention on
-#'   `graph`, for simulating counterfactual data without redefining the whole
-#'    graph. Keyed by a covariate or process name from `graph`:
-#'   \describe{
-#'     \item{Covariate name}{Overrides that [sim_covariate()]/
-#'       [sim_derived()]'s draw, fixing it to the given constant for every
-#'       individual instead of generating/deriving it.}
-#'     \item{Process name}{Multiplies that process's baseline `eta`,
-#'       scaling its hazard for everyone (e.g. `0.5` halves it, `2` doubles
-#'       it).}
-#'   }
-#' @param cens Numeric. At-risk indicator scaling for `"censoring"`-type
-#'   processes. Default 1.
-#' @param max_cens Numeric. Maximum censoring time. Default `Inf`.
-#' @param max_events Integer. Maximum number of events simulated per
-#'   individual before an error is raised. Default 50.
-#' @param lower,upper Numeric. Root-finding bounds for the inverse cumulative
-#'   hazard, used only when processes don't all share the same Weibull
-#'   shape/scale. Defaults `1e-25`/`1e8`.
-#'
-#' @param seed Integer or `NULL` (default).
-#' @return A `data.table` with columns `id`, `time`, `delta` (the 0-indexed
-#'   position of the firing process in `graph`'s process order: censoring
-#'   processes first, then terminal, then the rest in declared order), the
-#'   graph's covariates, and one column per non-terminal, non-censoring
-#'   process (its cumulative event count).
+#' @param intervene Named list of interventions. A covariate name fixes that
+#'   covariate to the given value for everyone; a process name multiplies
+#'   that process's hazard by the given value.
+#' @param cens Numeric. Multiplier on censoring hazards; `0` turns censoring
+#'   off. Default 1.
+#' @param max_cens Numeric. End of follow-up: anyone still followed is
+#'   censored then, with `event = "max_cens"`. Default `Inf`.
+#' @param max_events Integer. Maximum number of events per individual.
+#'   Default 50.
+#' @param lower,upper Numeric. Root-finding bounds, used when processes have
+#'   different Weibull parameters. Defaults `1e-25`/`1e8`.
+#' @param time_step Numeric. Grid step on which [sim_effect()]s using `t`
+#'   are evaluated; ignored if none do. Smaller is more accurate but slower.
+#'   Default `0.01`.
+#' @param seed Integer. Random seed. Default `NULL` (no seed set).
+#' @return A `data.table` with one row per event: `id`, `time`, `event`
+#'   (factor naming the process, or `"max_cens"`), the covariates, and each
+#'   `"transient"` process's number of events so far.
 #'
 #' @examples
 #' # An illness-death graph: "age" is a plain covariate, "treated" is a
@@ -506,6 +469,7 @@ sim_event_graph <- function(
   max_events = 50,
   lower = 1e-25,
   upper = 1e8,
+  time_step = 0.01,
   seed = NULL
 ) {
   checkmate::assert_class(graph, "sim_graph")
@@ -513,11 +477,15 @@ sim_event_graph <- function(
   checkmate::assert_int(seed, null.ok = TRUE)
   checkmate::assert_list(intervene, names = "unique")
   checkmate::assert_number(cens, finite = TRUE)
+  checkmate::assert_number(time_step, lower = 0, finite = TRUE)
+  if (time_step == 0) {
+    stop("time_step must be positive.")
+  }
 
   covariate_names <- names(graph$covariates)
-  process_order <- .sim_graph_process_order(graph)
+  process_names <- names(graph$processes)
 
-  unknown <- setdiff(names(intervene), c(covariate_names, process_order))
+  unknown <- setdiff(names(intervene), c(covariate_names, process_names))
   if (length(unknown) > 0) {
     stop(
       "intervene targets unknown name(s) not in graph: ",
@@ -534,7 +502,8 @@ sim_event_graph <- function(
       max_cens = max_cens,
       max_events = max_events,
       lower = lower,
-      upper = upper
+      upper = upper,
+      time_step = time_step
     )
   }
   if (is.null(seed)) run() else withr::with_seed(seed, run())
@@ -602,41 +571,22 @@ sim_event_graph <- function(
 
 #' Build a `sim_graph()` from Fitted Cox Models
 #'
-#' `sim_graph_from_fits` builds a [sim_graph()] automatically from a set of
-#' fitted [survival::coxph()] models (one per process) and the data they
-#' were fit to, so simulated data mimics an observed dataset's distribution.
+#' Builds a [sim_graph()] from one fitted [survival::coxph()] model per
+#' process, so simulated data resembles the data they were fit to.
 #'
-#' Baseline covariates are regenerated from `data`'s own columns: numeric
-#' columns as Normal(mean, sd) (or Bernoulli(mean) if the column is 0/1
-#' valued), and factor columns as a categorical draw from their observed
-#' proportions, with one [sim_derived()] dummy per non-reference level,
-#' matching how [survival::coxph()]'s default treatment contrasts name
-#' coefficients (`"<variable><level>"`). Categorical covariates must
-#' therefore be factor columns in `data`, referenced directly in each
-#' `coxph()` formula (not wrapped in `factor()` there).
+#' Covariates are regenerated from `data`: numeric columns as Normal (or
+#' Bernoulli if 0/1), factor columns from their observed proportions.
+#' Categorical covariates must be factor columns, used as-is in the
+#' `coxph()` formulas (not wrapped in `factor()`). Each process's Weibull
+#' parameters are fit to its baseline cumulative hazard.
 #'
-#' Each process's Weibull `eta`/`nu` is approximated from its `coxph()`
-#' fit's baseline cumulative hazard.
+#' A formula term naming another process (e.g. `relapse` in
+#' `~ L0 + relapse`) becomes a [sim_effect()] from that process. Its
+#' coefficient is only valid if that fit treated it as time-varying (e.g.
+#' using [interval_format_data()]).
 #'
-#' A `coxph()` term that names another process in `fits`/`types` (rather
-#' than a column of `data`) is a cross-process effect -- e.g.
-#' `coxph(Surv(...) ~ L0 + relapse)`, where `relapse` is itself one of the
-#' processes being modeled -- and is wired as a [sim_effect()] from that
-#' process directly, not regenerated as a (meaningless, since its true
-#' value evolves over follow-up rather than being fixed at baseline)
-#' covariate. Note that such a term must itself have been fit as a properly
-#' time-varying covariate (e.g. via `coxph()` on tstart-tstop data built
-#' with [interval_format_data()]) for its coefficient to be a valid estimate in
-#' the first place; `sim_graph_from_fits()` only wires whatever coefficient
-#' `fits` already contains, it does not check how that fit was estimated.
-#'
-#' @param fits Named list of [survival::coxph()] fits, one per process,
-#'   named after the process. Every process referenced as a covariate in
-#'   any fit's formula (a cross-process effect) must also have its own
-#'   entry here.
-#' @param data The `data.frame` the fits were estimated from; must contain
-#'   every covariate referenced in `fits` that isn't itself one of `fits`'
-#'   processes.
+#' @param fits Named list of [survival::coxph()] fits, one per process.
+#' @param data The `data.frame` the fits were estimated from.
 #' @param types Named character vector giving each process's
 #'   [sim_process()] `type` (`"censoring"`, `"terminal"`, or `"transient"`),
 #'   with the same names as `fits`.
@@ -670,9 +620,12 @@ sim_event_graph <- function(
 #' # from the fits, as if observed_data came from an outside source and
 #' # observed_graph were unknown:
 #' fits <- list(
-#'   censoring = coxph(Surv(time, delta == 0) ~ L0 + A0, data = observed_data),
-#'   cause1 = coxph(Surv(time, delta == 1) ~ L0 + A0, data = observed_data),
-#'   cause2 = coxph(Surv(time, delta == 2) ~ L0 + A0, data = observed_data)
+#'   censoring = coxph(
+#'     Surv(time, event == "censoring") ~ L0 + A0,
+#'     data = observed_data
+#'   ),
+#'   cause1 = coxph(Surv(time, event == "cause1") ~ L0 + A0, data = observed_data),
+#'   cause2 = coxph(Surv(time, event == "cause2") ~ L0 + A0, data = observed_data)
 #' )
 #' types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 #'
@@ -683,8 +636,8 @@ sim_event_graph <- function(
 #' # Event-type distribution should be comparable between the observed and
 #' # newly simulated data:
 #' rbind(
-#'   observed = prop.table(table(observed_data$delta)),
-#'   simulated = prop.table(table(new_data$delta))
+#'   observed = prop.table(table(observed_data$event)),
+#'   simulated = prop.table(table(new_data$event))
 #' )
 #' @export
 sim_graph_from_fits <- function(fits, data, types, limits = list()) {

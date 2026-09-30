@@ -7,8 +7,8 @@
 sim_derived(fn)
 }
 \arguments{
-\item{fn}{Function of one or more covariates defined earlier in the same
-\code{\link[=sim_graph]{sim_graph()}} call, matched by argument name.}
+\item{fn}{Function of covariates defined earlier in the same
+\code{\link[=sim_graph]{sim_graph()}} call, by name.}
 }
 \value{
 An object of class \code{sim_derived}, for use in \code{\link[=sim_graph]{sim_graph()}}.

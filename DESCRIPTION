@@ -11,8 +11,8 @@ Description: Simulate event history data from a framework where treatment decisi
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-URL: https://github.com/miclukacova/simevent
-BugReports: https://github.com/miclukacova/simevent/issues
+URL: https://github.com/BjarkeHautop/simevent
+BugReports: https://github.com/BjarkeHautop/simevent/issues
 Imports:
     utils,
     stats,

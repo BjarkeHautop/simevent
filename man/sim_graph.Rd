@@ -8,12 +8,9 @@ sim_graph(..., effects = list())
 }
 \arguments{
 \item{...}{Named \code{\link[=sim_covariate]{sim_covariate()}}/\code{\link[=sim_derived]{sim_derived()}}/\code{\link[=sim_process]{sim_process()}}
-objects. Every name must be unique across all three. A \code{\link[=sim_derived]{sim_derived()}}
-covariate's dependencies must each name an earlier
-\code{\link[=sim_covariate]{sim_covariate()}}/\code{\link[=sim_derived]{sim_derived()}} in the same call.}
+objects. A covariate may only depend on covariates listed before it.}
 
-\item{effects}{List of \code{\link[=sim_effect]{sim_effect()}} objects between nodes named in
-\code{...}.}
+\item{effects}{List of \code{\link[=sim_effect]{sim_effect()}}s.}
 }
 \value{
 An object of class \code{sim_graph}.

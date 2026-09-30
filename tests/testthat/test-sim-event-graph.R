@@ -108,11 +108,11 @@ test_that("sim_event_graph recovers categorical-level effects via sim_derived", 
 
   expect_setequal(
     names(data),
-    c("id", "time", "delta", "region", "region2", "region3")
+    c("id", "time", "event", "region", "region2", "region3")
   )
   expect_true(all(data$region2 %in% c(0, 1)))
 
-  fit <- coxph(Surv(time, delta == 1) ~ factor(region), data = data)
+  fit <- coxph(Surv(time, event == "death") ~ factor(region), data = data)
   ci <- confint(fit)
   expect_true(ci["factor(region)2", 1] <= 1.2 & 1.2 <= ci["factor(region)2", 2])
   expect_true(
@@ -140,7 +140,7 @@ test_that("sim_event_graph does not force L0/A0 into the output", {
   )
   data <- sim_event_graph(graph, n = 50)
 
-  expect_setequal(names(data), c("id", "time", "delta"))
+  expect_setequal(names(data), c("id", "time", "event"))
 })
 
 test_that("sim_event_graph recovers effect coefficients", {
@@ -157,12 +157,12 @@ test_that("sim_event_graph recovers effect coefficients", {
   )
   data <- sim_event_graph(graph, n = 4000)
 
-  expect_setequal(names(data), c("id", "time", "delta", "L0"))
+  expect_setequal(names(data), c("id", "time", "event", "L0"))
 
-  fit_death <- coxph(Surv(time, delta == 1) ~ L0, data = data)
+  fit_death <- coxph(Surv(time, event == "death") ~ L0, data = data)
   expect_true(confint(fit_death)[1, 1] <= 1.5 & 1.5 <= confint(fit_death)[1, 2])
 
-  fit_cens <- coxph(Surv(time, delta == 0) ~ L0, data = data)
+  fit_cens <- coxph(Surv(time, event == "censoring") ~ L0, data = data)
   expect_true(confint(fit_cens)[1, 1] <= -0.5 & -0.5 <= confint(fit_cens)[1, 2])
 })
 
@@ -177,7 +177,7 @@ test_that("sim_event_graph: a threshold sim_effect() fires specifically on the k
   )
   data <- sim_event_graph(graph, n = 2000, max_events = 40)
 
-  deaths <- data[data$delta == 1, ]
+  deaths <- data[data$event == "death", ]
   expect_gt(nrow(deaths), 0)
   # A large jump in the death hazard right at relapse == 3 should mean most
   # deaths happen exactly there, not before or after.
@@ -195,7 +195,7 @@ test_that("sim_event_graph reports named transient-process event counts", {
   )
   data <- sim_event_graph(graph, n = 500)
 
-  expect_setequal(names(data), c("id", "time", "delta", "relapse"))
+  expect_setequal(names(data), c("id", "time", "event", "relapse"))
   expect_true(all(data$relapse >= 0))
   expect_true(any(data$relapse > 0))
 })
@@ -214,7 +214,9 @@ test_that("sim_event_graph intervene fixes covariates and scales process intensi
 
   data_base <- sim_event_graph(graph, n = 5000)
   data_high <- sim_event_graph(graph, n = 5000, intervene = list(death = 10))
-  expect_true(mean(data_high$delta == 1) > mean(data_base$delta == 1))
+  expect_true(
+    mean(data_high$event == "death") > mean(data_base$event == "death")
+  )
 
   expect_error(
     sim_event_graph(graph, n = 10, intervene = list(bogus = 1)),
@@ -278,13 +280,13 @@ test_that("sim_graph_from_fits recovers the fitted event-type distribution", {
   expect_s3_class(graph, "sim_graph")
 
   new_data <- sim_event_graph(graph, n = 5000)
-  expect_setequal(names(new_data), c("id", "time", "delta", "L0", "A0"))
+  expect_setequal(names(new_data), c("id", "time", "event", "L0", "A0"))
 
   observed_props <- prop.table(table(observed_data$Delta))
-  simulated_props <- prop.table(table(new_data$delta))
+  simulated_props <- prop.table(table(new_data$event))
   expect_equal(
     as.numeric(observed_props),
-    as.numeric(simulated_props[names(observed_props)]),
+    as.numeric(simulated_props[c("censoring", "cause1", "cause2")]),
     tolerance = 0.05
   )
 })
@@ -316,7 +318,7 @@ test_that("sim_graph_from_fits builds sim_derived() dummies for a factor covaria
   new_data <- sim_event_graph(graph, n = 3000)
   expect_setequal(
     names(new_data),
-    c("id", "time", "delta", "L0", "region", "regionb", "regionc")
+    c("id", "time", "event", "L0", "region", "regionb", "regionc")
   )
   expect_true(all(new_data$region %in% 1:3))
   expect_equal(new_data$regionb, as.numeric(new_data$region == 2))
@@ -360,9 +362,15 @@ test_that("sim_graph_from_fits wires a cross-process effect, not a bogus covaria
   observed_data <- sim_event_graph(observed_graph, n = 500)
 
   fits <- list(
-    censoring = coxph(Surv(time, delta == 0) ~ L0, data = observed_data),
-    death = coxph(Surv(time, delta == 1) ~ L0 + relapse, data = observed_data),
-    relapse = coxph(Surv(time, delta == 2) ~ 1, data = observed_data)
+    censoring = coxph(
+      Surv(time, event == "censoring") ~ L0,
+      data = observed_data
+    ),
+    death = coxph(
+      Surv(time, event == "death") ~ L0 + relapse,
+      data = observed_data
+    ),
+    relapse = coxph(Surv(time, event == "relapse") ~ 1, data = observed_data)
   )
   types <- c(censoring = "censoring", death = "terminal", relapse = "transient")
 
@@ -382,7 +390,7 @@ test_that("sim_graph_from_fits wires a cross-process effect, not a bogus covaria
   expect_true("relapse->death" %in% effect_pairs)
 
   new_data <- sim_event_graph(graph, n = 100)
-  expect_setequal(names(new_data), c("id", "time", "delta", "L0", "relapse"))
+  expect_setequal(names(new_data), c("id", "time", "event", "L0", "relapse"))
 })
 
 test_that("sim_graph rejects reserved names, missing terminal, and duplicate effects", {
@@ -476,4 +484,109 @@ test_that("sim_event_graph is reproducible with seed and leaves the global RNG a
   expect_equal(runif(1), expected)
 
   expect_error(sim_event_graph(graph, n = 5, seed = 1.5))
+})
+
+test_that("sim_event_graph labels events by process name, in declared order", {
+  graph <- sim_graph(
+    relapse = sim_process("transient", eta = 0.3, nu = 1),
+    death = sim_process("terminal", eta = 0.1, nu = 1.1),
+    censoring = sim_process("censoring", eta = 0.1, nu = 1.1)
+  )
+  data <- sim_event_graph(graph, n = 200, seed = 1)
+
+  expect_s3_class(data$event, "factor")
+  expect_equal(levels(data$event), c("relapse", "death", "censoring"))
+  # Each individual's last row, and only that row, ends follow-up.
+  last <- data[, .SD[.N], by = id]
+  expect_true(all(last$event %in% c("death", "censoring")))
+  expect_equal(sum(data$event %in% c("death", "censoring")), 200)
+})
+
+test_that("sim_event_graph labels administrative censoring as max_cens", {
+  # No "censoring" process: reaching max_cens must not be recorded as the
+  # terminal process.
+  graph <- sim_graph(death = sim_process("terminal", eta = 0.01, nu = 1))
+  data <- sim_event_graph(graph, n = 200, max_cens = 1, seed = 1)
+
+  expect_equal(levels(data$event), c("death", "max_cens"))
+  expect_true(all(data$event[data$time == 1] == "max_cens"))
+  expect_true(all(data$event[data$time < 1] == "death"))
+  expect_gt(sum(data$event == "max_cens"), 150)
+
+  # Without max_cens, "max_cens" isn't a level at all.
+  expect_equal(levels(sim_event_graph(graph, n = 5, seed = 1)$event), "death")
+})
+
+test_that("sim_graph rejects the reserved event labels as node names", {
+  for (nm in c("event", "max_cens", "none")) {
+    nodes <- list(
+      sim_process("terminal", eta = 0.1, nu = 1),
+      sim_process("transient", eta = 0.1, nu = 1)
+    )
+    names(nodes) <- c("death", nm)
+    expect_error(do.call(sim_graph, nodes), "reserved")
+  }
+})
+
+test_that("sim_event_graph: an effect using t switches off between events", {
+  # L0 raises the death hazard before t = 2 only. Everyone has a single
+  # event, so the effect has to change within the risk interval.
+  graph <- sim_graph(
+    L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
+    death = sim_process("terminal", eta = 0.2, nu = 1),
+    effects = list(sim_effect("L0 * (t < 2)", "death", coef = 1))
+  )
+  data <- sim_event_graph(graph, n = 6000, seed = 11)
+  data_split <- interval_format_data(data, time_var = TRUE, t_prime = 2)
+
+  fit <- coxph(
+    Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
+    data = data_split
+  )
+  ci <- confint(fit)
+  expect_true(ci[1, 1] <= 1 & 1 <= ci[1, 2])
+  expect_true(ci[2, 1] <= 0 & 0 <= ci[2, 2])
+})
+
+test_that("sim_event_graph: a smooth effect of t matches the analytic survival", {
+  # Death hazard 0.1 * exp(0.3 t) (Gompertz). Censoring has a different
+  # Weibull shape, so event times are solved by bisection.
+  graph <- sim_graph(
+    censoring = sim_process("censoring", eta = 0.05, nu = 1.5),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(sim_effect("t", "death", coef = 0.3))
+  )
+  data <- sim_event_graph(graph, n = 5000, seed = 12)
+  tt <- c(1, 3, 5)
+
+  km_death <- survfit(Surv(time, event == "death") ~ 1, data = data)
+  expect_equal(
+    summary(km_death, times = tt)$surv,
+    exp(-0.1 / 0.3 * (exp(0.3 * tt) - 1)),
+    tolerance = 0.03
+  )
+  km_cens <- survfit(Surv(time, event == "censoring") ~ 1, data = data)
+  expect_equal(
+    summary(km_cens, times = tt)$surv,
+    exp(-0.05 * tt^1.5),
+    tolerance = 0.03
+  )
+})
+
+test_that("sim_event_graph: effects using t respect max_cens", {
+  graph <- sim_graph(
+    death = sim_process("terminal", eta = 0.01, nu = 1),
+    effects = list(sim_effect("t > 100", "death", coef = 1))
+  )
+  data <- sim_event_graph(graph, n = 200, max_cens = 1.234, seed = 13)
+
+  expect_true(all(data$time <= 1.234))
+  expect_true(all(data$event[data$time == 1.234] == "max_cens"))
+  expect_gt(sum(data$event == "max_cens"), 150)
+})
+
+test_that("sim_event_graph validates time_step", {
+  graph <- sim_graph(death = sim_process("terminal", eta = 0.1, nu = 1))
+  expect_error(sim_event_graph(graph, n = 5, time_step = 0), "positive")
+  expect_error(sim_event_graph(graph, n = 5, time_step = -1))
 })

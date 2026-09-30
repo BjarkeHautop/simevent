@@ -11,8 +11,8 @@ Simulate event history data from a framework where treatment decisions and disea
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/miclukacova/simevent}
-  \item Report bugs at \url{https://github.com/miclukacova/simevent/issues}
+  \item \url{https://github.com/BjarkeHautop/simevent}
+  \item Report bugs at \url{https://github.com/BjarkeHautop/simevent/issues}
 }
 
 }

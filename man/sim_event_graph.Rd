@@ -13,6 +13,7 @@ sim_event_graph(
   max_events = 50,
   lower = 1e-25,
   upper = 1e+08,
+  time_step = 0.01,
   seed = NULL
 )
 }
@@ -21,38 +22,32 @@ sim_event_graph(
 
 \item{n}{Integer. Number of individuals to simulate.}
 
-\item{intervene}{Named list implementing a \code{do()}-style intervention on
-\code{graph}, for simulating counterfactual data without redefining the whole
-graph. Keyed by a covariate or process name from \code{graph}:
-\describe{
-\item{Covariate name}{Overrides that \code{\link[=sim_covariate]{sim_covariate()}}/
-\code{\link[=sim_derived]{sim_derived()}}'s draw, fixing it to the given constant for every
-individual instead of generating/deriving it.}
-\item{Process name}{Multiplies that process's baseline \code{eta},
-scaling its hazard for everyone (e.g. \code{0.5} halves it, \code{2} doubles
-it).}
-}}
+\item{intervene}{Named list of interventions. A covariate name fixes that
+covariate to the given value for everyone; a process name multiplies
+that process's hazard by the given value.}
 
-\item{cens}{Numeric. At-risk indicator scaling for \code{"censoring"}-type
-processes. Default 1.}
+\item{cens}{Numeric. Multiplier on censoring hazards; \code{0} turns censoring
+off. Default 1.}
 
-\item{max_cens}{Numeric. Maximum censoring time. Default \code{Inf}.}
+\item{max_cens}{Numeric. End of follow-up: anyone still followed is
+censored then, with \code{event = "max_cens"}. Default \code{Inf}.}
 
-\item{max_events}{Integer. Maximum number of events simulated per
-individual before an error is raised. Default 50.}
+\item{max_events}{Integer. Maximum number of events per individual.
+Default 50.}
 
-\item{lower, upper}{Numeric. Root-finding bounds for the inverse cumulative
-hazard, used only when processes don't all share the same Weibull
-shape/scale. Defaults \code{1e-25}/\code{1e8}.}
+\item{lower, upper}{Numeric. Root-finding bounds, used when processes have
+different Weibull parameters. Defaults \code{1e-25}/\code{1e8}.}
 
-\item{seed}{Integer or \code{NULL} (default).}
+\item{time_step}{Numeric. Grid step on which \code{\link[=sim_effect]{sim_effect()}}s using \code{t}
+are evaluated; ignored if none do. Smaller is more accurate but slower.
+Default \code{0.01}.}
+
+\item{seed}{Integer. Random seed. Default \code{NULL} (no seed set).}
 }
 \value{
-A \code{data.table} with columns \code{id}, \code{time}, \code{delta} (the 0-indexed
-position of the firing process in \code{graph}'s process order: censoring
-processes first, then terminal, then the rest in declared order), the
-graph's covariates, and one column per non-terminal, non-censoring
-process (its cumulative event count).
+A \code{data.table} with one row per event: \code{id}, \code{time}, \code{event}
+(factor naming the process, or \code{"max_cens"}), the covariates, and each
+\code{"transient"} process's number of events so far.
 }
 \description{
 \code{sim_event_graph} simulates multistate event history data from a

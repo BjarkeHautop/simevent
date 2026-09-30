@@ -12,37 +12,38 @@ sim_process(
 )
 }
 \arguments{
-\item{type}{What kind of process this is, and in particular whether it
-ends an individual's follow-up:
+\item{type}{One of:
 \describe{
-\item{\code{"censoring"}}{Right-censoring: ends follow-up, but isn't an
-outcome event. At most one per individual.}
-\item{\code{"terminal"}}{An absorbing outcome event (e.g. death, or one
-cause in a competing-risks setting): ends follow-up. At most one
-per individual.}
-\item{\code{"transient"}}{Doesn't end follow-up, and can fire more than
-once (up to \code{limit} times, default unlimited). Because follow-up
-continues, its running event count can itself be used as a
-time-varying \code{\link[=sim_effect]{sim_effect()}} \code{from} for other processes (e.g. a
-relapse process raising the hazard of a later terminal event).}
+\item{\code{"censoring"}}{Ends follow-up without an outcome event.}
+\item{\code{"terminal"}}{An outcome event ending follow-up (e.g. death).}
+\item{\code{"transient"}}{An event that doesn't end follow-up and can
+recur (e.g. relapse).}
 }}
 
-\item{eta}{Numeric. Weibull shape parameter of the process's baseline
-intensity.}
+\item{eta}{Numeric. Weibull scale parameter.}
 
-\item{nu}{Numeric. Weibull scale parameter of the process's baseline
-intensity.}
+\item{nu}{Numeric. Weibull shape parameter: \code{nu > 1} gives an increasing
+hazard, \code{nu < 1} a decreasing one, \code{nu = 1} a constant one.}
 
-\item{limit}{Integer, or \code{Inf}. For \code{type = "transient"} only: the maximum
-number of times this process can fire. Default \code{Inf} (unlimited,
-i.e. recurrent); \code{limit = 1} gives a "one-jump" process (at most a
-single event). Ignored for other types.}
+\item{limit}{Integer or \code{Inf}. Maximum number of events of a
+\code{"transient"} process. Default \code{Inf}.}
 }
 \value{
 An object of class \code{sim_process}, for use in \code{\link[=sim_graph]{sim_graph()}}.
 }
 \description{
-Define an Event Process for \code{sim_graph()}
+\code{sim_process} builds an event process whose baseline intensity is Weibull,
+\deqn{\lambda_0(t) = \eta \nu t^{\nu - 1},}
+i.e. cumulative baseline hazard \eqn{\eta t^\nu}. \code{\link[=sim_effect]{sim_effect()}}s into the
+process multiply this baseline by \eqn{\exp(\text{coef} \times
+\text{from})}.
+}
+\examples{
+# Death, with a slowly increasing hazard:
+sim_process("terminal", eta = 0.1, nu = 1.1)
+
+# A relapse process that can fire at most twice:
+sim_process("transient", eta = 0.2, nu = 1, limit = 2)
 }
 \seealso{
 \code{\link[=sim_graph]{sim_graph()}}, \code{\link[=sim_covariate]{sim_covariate()}}

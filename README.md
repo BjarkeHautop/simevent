@@ -25,7 +25,7 @@ install.packages("simevent")
 or the development version of simevent from GitHub using pak:
 
 ``` r
-pak::pak("miclukacova/simevent")
+pak::pak("BjarkeHautop/simevent")
 ```
 
 ## Usage

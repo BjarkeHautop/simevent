@@ -15,3 +15,6 @@
 ^panache\.toml$
 ^TODO.md$
 ^\.claude$
+^scratch$
+^Rplots\.pdf$
+^Project_in_Event_History.*\.pdf$

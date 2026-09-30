@@ -7,14 +7,9 @@
 sim_graph_from_fits(fits, data, types, limits = list())
 }
 \arguments{
-\item{fits}{Named list of \code{\link[survival:coxph]{survival::coxph()}} fits, one per process,
-named after the process. Every process referenced as a covariate in
-any fit's formula (a cross-process effect) must also have its own
-entry here.}
+\item{fits}{Named list of \code{\link[survival:coxph]{survival::coxph()}} fits, one per process.}
 
-\item{data}{The \code{data.frame} the fits were estimated from; must contain
-every covariate referenced in \code{fits} that isn't itself one of \code{fits}'
-processes.}
+\item{data}{The \code{data.frame} the fits were estimated from.}
 
 \item{types}{Named character vector giving each process's
 \code{\link[=sim_process]{sim_process()}} \code{type} (\code{"censoring"}, \code{"terminal"}, or \code{"transient"}),
@@ -27,34 +22,20 @@ using the default (\code{limit = Inf}).}
 A \code{\link[=sim_graph]{sim_graph()}}, ready for \code{\link[=sim_event_graph]{sim_event_graph()}}.
 }
 \description{
-\code{sim_graph_from_fits} builds a \code{\link[=sim_graph]{sim_graph()}} automatically from a set of
-fitted \code{\link[survival:coxph]{survival::coxph()}} models (one per process) and the data they
-were fit to, so simulated data mimics an observed dataset's distribution.
+Builds a \code{\link[=sim_graph]{sim_graph()}} from one fitted \code{\link[survival:coxph]{survival::coxph()}} model per
+process, so simulated data resembles the data they were fit to.
 }
 \details{
-Baseline covariates are regenerated from \code{data}'s own columns: numeric
-columns as Normal(mean, sd) (or Bernoulli(mean) if the column is 0/1
-valued), and factor columns as a categorical draw from their observed
-proportions, with one \code{\link[=sim_derived]{sim_derived()}} dummy per non-reference level,
-matching how \code{\link[survival:coxph]{survival::coxph()}}'s default treatment contrasts name
-coefficients (\code{"<variable><level>"}). Categorical covariates must
-therefore be factor columns in \code{data}, referenced directly in each
-\code{coxph()} formula (not wrapped in \code{factor()} there).
+Covariates are regenerated from \code{data}: numeric columns as Normal (or
+Bernoulli if 0/1), factor columns from their observed proportions.
+Categorical covariates must be factor columns, used as-is in the
+\code{coxph()} formulas (not wrapped in \code{factor()}). Each process's Weibull
+parameters are fit to its baseline cumulative hazard.
 
-Each process's Weibull \code{eta}/\code{nu} is approximated from its \code{coxph()}
-fit's baseline cumulative hazard.
-
-A \code{coxph()} term that names another process in \code{fits}/\code{types} (rather
-than a column of \code{data}) is a cross-process effect -- e.g.
-\code{coxph(Surv(...) ~ L0 + relapse)}, where \code{relapse} is itself one of the
-processes being modeled -- and is wired as a \code{\link[=sim_effect]{sim_effect()}} from that
-process directly, not regenerated as a (meaningless, since its true
-value evolves over follow-up rather than being fixed at baseline)
-covariate. Note that such a term must itself have been fit as a properly
-time-varying covariate (e.g. via \code{coxph()} on tstart-tstop data built
-with \code{\link[=interval_format_data]{interval_format_data()}}) for its coefficient to be a valid estimate in
-the first place; \code{sim_graph_from_fits()} only wires whatever coefficient
-\code{fits} already contains, it does not check how that fit was estimated.
+A formula term naming another process (e.g. \code{relapse} in
+\code{~ L0 + relapse}) becomes a \code{\link[=sim_effect]{sim_effect()}} from that process. Its
+coefficient is only valid if that fit treated it as time-varying (e.g.
+using \code{\link[=interval_format_data]{interval_format_data()}}).
 }
 \examples{
 library(survival)
@@ -81,9 +62,12 @@ observed_data <- sim_event_graph(observed_graph, n = 1000)
 # from the fits, as if observed_data came from an outside source and
 # observed_graph were unknown:
 fits <- list(
-  censoring = coxph(Surv(time, delta == 0) ~ L0 + A0, data = observed_data),
-  cause1 = coxph(Surv(time, delta == 1) ~ L0 + A0, data = observed_data),
-  cause2 = coxph(Surv(time, delta == 2) ~ L0 + A0, data = observed_data)
+  censoring = coxph(
+    Surv(time, event == "censoring") ~ L0 + A0,
+    data = observed_data
+  ),
+  cause1 = coxph(Surv(time, event == "cause1") ~ L0 + A0, data = observed_data),
+  cause2 = coxph(Surv(time, event == "cause2") ~ L0 + A0, data = observed_data)
 )
 types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 
@@ -94,8 +78,8 @@ head(new_data)
 # Event-type distribution should be comparable between the observed and
 # newly simulated data:
 rbind(
-  observed = prop.table(table(observed_data$delta)),
-  simulated = prop.table(table(new_data$delta))
+  observed = prop.table(table(observed_data$event)),
+  simulated = prop.table(table(new_data$event))
 )
 }
 \seealso{

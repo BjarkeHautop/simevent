@@ -1,26 +1,19 @@
-#' Transform Graph-Based Event Data into Interval Format for Classical Inference
+#' Convert Simulated Event Data to Start-Stop Format
 #'
-#' Converts [sim_event_graph()] output into an interval (start-stop) format,
-#' suitable for classical survival analysis functions like `coxph()`. Adds
-#' interval start and stop times (`tstart`, `tstop`) and a counting variable
-#' `k` indexing events. Optionally, the function can split intervals at a
-#' specified time point to accommodate estimation of time-varying effects.
+#' Converts [sim_event_graph()] output to start-stop format for
+#' `coxph(Surv(tstart, tstop, ...))`.
 #'
-#' @param data A `data.table` as returned by [sim_event_graph()]: columns
-#'   `id`, `time`, `delta`, baseline covariates, and one column per
-#'   `"transient"` process.
-#' @param proc_cols Character vector. Names of `data`'s `"transient"`-process
-#'   columns (e.g. `names(graph$processes)` restricted to the transient
-#'   ones), which get lagged by one row per `id` so each interval reports
-#'   the process's cumulative count *before* that row's event. Default
-#'   `character(0)` (no transient-process columns to lag).
-#' @param time_var Logical. If `TRUE`, the intervals are split at `t_prime`
-#'   to allow time-varying covariate effects. Default `FALSE`.
-#' @param t_prime Numeric scalar. Time point at which to split intervals if
-#'   `time_var = TRUE`.
+#' @param data Output of [sim_event_graph()].
+#' @param proc_cols Character vector. `"transient"`-process columns to use
+#'   as time-varying covariates: each row then holds the count *before* its
+#'   event.
+#' @param time_var Logical. Split intervals at `t_prime`? Default `FALSE`.
+#' @param t_prime Numeric. Split time. Adds a `t_group` column (1 before,
+#'   2 after), so an effect can differ between the periods (see Examples).
+#'   The first half of a split interval has `event = "none"`.
 #'
-#' @return A `data.table` with columns `tstart`, `tstop`, `k`, and the other
-#'   original columns, formatted for survival analysis.
+#' @return `data` with added columns `tstart`, `tstop` and `k` (event
+#'   number).
 #' @seealso [sim_event_graph()]
 #' @examples
 #' graph <- sim_graph(
@@ -37,8 +30,24 @@
 #' # relapse is now the cumulative count *before* each row's event, so it can
 #' # be used as a time-varying covariate:
 #' survival::coxph(
-#'   survival::Surv(tstart, tstop, delta == 1) ~ L0 + relapse,
+#'   survival::Surv(tstart, tstop, event == "death") ~ L0 + relapse,
 #'   data = data_int
+#' )
+#'
+#' # Splitting at t_prime tests whether an effect changes over time. Here L0
+#' # raises the death hazard before time 2 only:
+#' graph_tv <- sim_graph(
+#'   L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
+#'   death = sim_process("terminal", eta = 0.2, nu = 1),
+#'   effects = list(sim_effect("L0 * (t < 2)", "death", coef = 1))
+#' )
+#' data_tv <- sim_event_graph(graph_tv, n = 2000)
+#' data_split <- interval_format_data(data_tv, time_var = TRUE, t_prime = 2)
+#'
+#' # One L0 coefficient per period: about 1 before t_prime, about 0 after.
+#' survival::coxph(
+#'   survival::Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
+#'   data = data_split
 #' )
 #' @export
 interval_format_data <- function(
@@ -47,7 +56,10 @@ interval_format_data <- function(
   time_var = FALSE,
   t_prime = NULL
 ) {
-  id <- k <- tstart <- tstop <- time <- t_group <- NULL
+  id <- k <- tstart <- tstop <- time <- t_group <- event <- NULL
+  checkmate::assert_character(proc_cols, any.missing = FALSE)
+  checkmate::assert_flag(time_var)
+  checkmate::assert_number(t_prime, finite = TRUE, null.ok = !time_var)
   data <- data.table::copy(data.table::as.data.table(data))
 
   if (length(proc_cols) > 0) {
@@ -79,12 +91,15 @@ interval_format_data <- function(
   res <- do.call(rbind, data_k)
 
   if (time_var) {
+    if (is.factor(res$event)) {
+      levels(res$event) <- union(levels(res$event), "none")
+    }
     rows_to_split <- res[tstart <= t_prime & tstop > t_prime]
 
     data1 <- data.table::copy(rows_to_split)[, `:=`(
       tstop = t_prime,
       time = t_prime,
-      delta = -1
+      event = "none"
     )]
     data2 <- data.table::copy(rows_to_split)[, `:=`(tstart = t_prime)]
 

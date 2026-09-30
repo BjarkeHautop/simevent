@@ -2,7 +2,7 @@
 % Please edit documentation in R/interval-format-data.R
 \name{interval_format_data}
 \alias{interval_format_data}
-\title{Transform Graph-Based Event Data into Interval Format for Classical Inference}
+\title{Convert Simulated Event Data to Start-Stop Format}
 \usage{
 interval_format_data(
   data,
@@ -12,32 +12,25 @@ interval_format_data(
 )
 }
 \arguments{
-\item{data}{A \code{data.table} as returned by \code{\link[=sim_event_graph]{sim_event_graph()}}: columns
-\code{id}, \code{time}, \code{delta}, baseline covariates, and one column per
-\code{"transient"} process.}
+\item{data}{Output of \code{\link[=sim_event_graph]{sim_event_graph()}}.}
 
-\item{proc_cols}{Character vector. Names of \code{data}'s \code{"transient"}-process
-columns (e.g. \code{names(graph$processes)} restricted to the transient
-ones), which get lagged by one row per \code{id} so each interval reports
-the process's cumulative count \emph{before} that row's event. Default
-\code{character(0)} (no transient-process columns to lag).}
+\item{proc_cols}{Character vector. \code{"transient"}-process columns to use
+as time-varying covariates: each row then holds the count \emph{before} its
+event.}
 
-\item{time_var}{Logical. If \code{TRUE}, the intervals are split at \code{t_prime}
-to allow time-varying covariate effects. Default \code{FALSE}.}
+\item{time_var}{Logical. Split intervals at \code{t_prime}? Default \code{FALSE}.}
 
-\item{t_prime}{Numeric scalar. Time point at which to split intervals if
-\code{time_var = TRUE}.}
+\item{t_prime}{Numeric. Split time. Adds a \code{t_group} column (1 before,
+2 after), so an effect can differ between the periods (see Examples).
+The first half of a split interval has \code{event = "none"}.}
 }
 \value{
-A \code{data.table} with columns \code{tstart}, \code{tstop}, \code{k}, and the other
-original columns, formatted for survival analysis.
+\code{data} with added columns \code{tstart}, \code{tstop} and \code{k} (event
+number).
 }
 \description{
-Converts \code{\link[=sim_event_graph]{sim_event_graph()}} output into an interval (start-stop) format,
-suitable for classical survival analysis functions like \code{coxph()}. Adds
-interval start and stop times (\code{tstart}, \code{tstop}) and a counting variable
-\code{k} indexing events. Optionally, the function can split intervals at a
-specified time point to accommodate estimation of time-varying effects.
+Converts \code{\link[=sim_event_graph]{sim_event_graph()}} output to start-stop format for
+\code{coxph(Surv(tstart, tstop, ...))}.
 }
 \examples{
 graph <- sim_graph(
@@ -54,8 +47,24 @@ head(data_int)
 # relapse is now the cumulative count *before* each row's event, so it can
 # be used as a time-varying covariate:
 survival::coxph(
-  survival::Surv(tstart, tstop, delta == 1) ~ L0 + relapse,
+  survival::Surv(tstart, tstop, event == "death") ~ L0 + relapse,
   data = data_int
+)
+
+# Splitting at t_prime tests whether an effect changes over time. Here L0
+# raises the death hazard before time 2 only:
+graph_tv <- sim_graph(
+  L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
+  death = sim_process("terminal", eta = 0.2, nu = 1),
+  effects = list(sim_effect("L0 * (t < 2)", "death", coef = 1))
+)
+data_tv <- sim_event_graph(graph_tv, n = 2000)
+data_split <- interval_format_data(data_tv, time_var = TRUE, t_prime = 2)
+
+# One L0 coefficient per period: about 1 before t_prime, about 0 after.
+survival::coxph(
+  survival::Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
+  data = data_split
 )
 }
 \seealso{

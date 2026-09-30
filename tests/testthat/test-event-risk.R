@@ -31,12 +31,11 @@ test_that("event_risk counts only the first event of a transient process", {
     relapse = sim_process("transient", eta = 0.5, nu = 1)
   )
   data <- sim_event_graph(graph, n = 500)
-  relapse_code <- match("relapse", .sim_graph_process_order(graph)) - 1L
   tau <- 3
 
   expected <- mean(vapply(
     split(data, data$id),
-    function(d) any(d$delta == relapse_code & d$time <= tau),
+    function(d) any(d$event == "relapse" & d$time <= tau),
     logical(1)
   ))
   res <- event_risk(data, graph, "relapse", tau = tau)

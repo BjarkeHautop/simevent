@@ -1,19 +1,11 @@
 #' Plot Graph-Based Simulated Event History Data
 #'
-#' Visualizes [sim_event_graph()] output by plotting individual event times
-#' colored and shaped by event type. Each individual's timeline is displayed
-#' horizontally with events marked along it.
+#' One horizontal timeline per individual, with events marked by type.
 #'
-#' Colors and shapes can be customized by adding
-#' `+ ggplot2::scale_color_manual(...)`/`+ ggplot2::scale_shape_manual(...)`
-#' to the returned plot.
+#' @param data Output of [sim_event_graph()].
+#' @param title Character. Plot title. Default `"Event Data"`.
 #'
-#' @param data A `data.table` as returned by [sim_event_graph()], containing
-#'   at least the columns `id`, `time`, and `delta`.
-#' @param title Character string specifying the plot title. Defaults to
-#'   `"Event Data"`.
-#'
-#' @return A `ggplot` object representing the event data visualization.
+#' @return A `ggplot` object.
 #' @seealso [sim_event_graph()]
 #' @examples
 #' graph <- sim_graph(
@@ -25,14 +17,17 @@
 #'
 #' # Custom colors:
 #' plot_event_data(data) +
-#'   ggplot2::scale_color_manual(values = c(start = "grey", `0` = "blue", `1` = "red"))
+#'   ggplot2::scale_color_manual(
+#'     values = c(start = "grey", censoring = "blue", death = "red")
+#'   )
 #' @export
 plot_event_data <- function(data, title = "Event Data") {
-  time <- id <- delta <- max_time <- NULL
+  time <- id <- event <- max_time <- NULL
 
   data <- data.table::copy(data.table::as.data.table(data))[,
-    c("id", "time", "delta")
+    c("id", "time", "event")
   ]
+  data[, event := as.character(event)]
 
   # Extract unique patient IDs and number of patients
   n <- length(unique(data$id))
@@ -48,7 +43,7 @@ plot_event_data <- function(data, title = "Event Data") {
     data.table::data.table(
       id = unique(data$id),
       time = rep(0, n),
-      delta = rep("start", n)
+      event = rep("start", n)
     )
   )
 
@@ -62,8 +57,8 @@ plot_event_data <- function(data, title = "Event Data") {
       ggplot2::aes(
         x = time,
         y = id,
-        shape = factor(delta),
-        color = factor(delta)
+        shape = event,
+        color = event
       ),
       size = 2.5,
       data = data,

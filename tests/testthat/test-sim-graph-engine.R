@@ -41,10 +41,7 @@ test_that("apply_intervention leaves eta/covs untouched when nothing is interven
   expect_equal(out$covs$L0(3), rep(0, 3))
 })
 
-test_that("apply_intervention aligns eta with process_order even when declaration order differs", {
-  # illness (transient) is declared before censoring/death, so process_order
-  # (censoring, death, illness) reorders relative to declaration order; eta
-  # values must follow their own process, not their declared position.
+test_that("apply_intervention names eta by process", {
   graph <- sim_graph(
     illness = sim_process("transient", eta = 0.3, nu = 1),
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
@@ -130,7 +127,7 @@ test_that("process_hazard_multipliers: last_time() gives -Inf before any occurre
   # individual 1: 'a' occurred at t=1 (n_events_so_far row 1); individual 2:
   # no events yet.
   time_log <- matrix(c(1, 0), nrow = 1)
-  type_log <- matrix(c(1L, 0L), nrow = 1)
+  type_log <- matrix(c("a", NA), nrow = 1)
 
   phi <- process_hazard_multipliers(
     list(sim_effect("t - last_time(a) < 1", "d", coef = 2)),
@@ -148,7 +145,7 @@ test_that("process_hazard_multipliers: last_time() gives -Inf before any occurre
 
 test_that("process_hazard_multipliers: nth_time() gives Inf before the k-th occurrence", {
   time_log <- matrix(c(0.5, 1, 1.5), nrow = 3)
-  type_log <- matrix(c(1L, 1L, 1L), nrow = 3)
+  type_log <- matrix(c("a", "a", "a"), nrow = 3)
 
   phi <- process_hazard_multipliers(
     list(sim_effect("t >= nth_time(a, 3)", "d", coef = 1)),
@@ -269,7 +266,7 @@ test_that("sample_event_types picks the only process with positive intensity", {
   eta <- c(a = 0.1, b = 0.1)
   nu <- c(a = 1, b = 1)
 
-  deltas <- sample_event_types(
+  events <- sample_event_types(
     t_alive,
     phi_alive,
     risk_alive,
@@ -278,10 +275,10 @@ test_that("sample_event_types picks the only process with positive intensity", {
     max_cens = Inf
   )
 
-  expect_equal(deltas, c(1L, 1L))
+  expect_equal(events, c("b", "b"))
 })
 
-test_that("sample_event_types forces censoring (event 0) once max_cens is reached", {
+test_that("sample_event_types gives \"max_cens\" once max_cens is reached", {
   t_alive <- c(5, 0.5)
   phi_alive <- matrix(
     1,
@@ -298,7 +295,7 @@ test_that("sample_event_types forces censoring (event 0) once max_cens is reache
   eta <- c(censoring = 0.1, death = 0.1)
   nu <- c(censoring = 1, death = 1)
 
-  deltas <- sample_event_types(
+  events <- sample_event_types(
     t_alive,
     phi_alive,
     risk_alive,
@@ -307,7 +304,8 @@ test_that("sample_event_types forces censoring (event 0) once max_cens is reache
     max_cens = 3
   )
 
-  expect_equal(deltas[1], 0L)
+  expect_equal(events[1], "max_cens")
+  expect_true(events[2] %in% c("censoring", "death"))
 })
 
 test_that(".sim_graph_at_risk gates a transient process by its limit and scales censoring by cens", {
@@ -316,8 +314,7 @@ test_that(".sim_graph_at_risk gates a transient process by its limit and scales 
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     illness = sim_process("transient", eta = 0.2, nu = 1, limit = 2)
   )
-  process_order <- .sim_graph_process_order(graph)
-  at_risk_fn <- .sim_graph_at_risk(graph, process_order, cens = 3)
+  at_risk_fn <- .sim_graph_at_risk(graph, cens = 3)
 
   event_counts <- list(
     censoring = c(0, 0, 0),
@@ -327,8 +324,44 @@ test_that(".sim_graph_at_risk gates a transient process by its limit and scales 
   risk <- at_risk_fn(event_counts)
 
   expect_equal(dim(risk), c(3, 3))
-  expect_equal(rownames(risk), process_order)
+  expect_equal(rownames(risk), c("censoring", "death", "illness"))
   expect_equal(risk["censoring", ], rep(3, 3))
   expect_equal(risk["death", ], rep(1, 3))
   expect_equal(risk["illness", ], c(1, 1, 0))
+})
+
+test_that(".sim_graph_uses_time detects effects referring to t", {
+  graph <- sim_graph(
+    L0 = sim_covariate(function(N) rnorm(N)),
+    checkup = sim_process("transient", eta = 0.1, nu = 1),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(
+      sim_effect("L0", "death", 1),
+      sim_effect("last_time(checkup) > 2", "death", 1)
+    )
+  )
+  expect_false(.sim_graph_uses_time(graph$effects))
+
+  graph_t <- sim_graph(
+    checkup = sim_process("transient", eta = 0.1, nu = 1),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(sim_effect("t - last_time(checkup) < 1", "death", 1))
+  )
+  expect_true(.sim_graph_uses_time(graph_t$effects))
+})
+
+test_that(".sim_graph_solve_in_step inverts the within-step cumulative hazard", {
+  left <- c(0, 1.5)
+  right <- c(1, 2)
+  rate <- matrix(c(0.2, 0.3, 0.1, 0.4), nrow = 2)
+  cum_haz <- function(x, nu) {
+    rowSums(rate * (outer(x, nu, `^`) - outer(left, nu, `^`)))
+  }
+
+  for (nu in list(c(1.2, 1.2), c(0.8, 1.5))) {
+    remaining <- 0.5 * cum_haz(right, nu)
+    x <- .sim_graph_solve_in_step(left, right, rate, nu, remaining)
+    expect_true(all(x >= left & x <= right))
+    expect_equal(cum_haz(x, nu), remaining, tolerance = 1e-8)
+  }
 })

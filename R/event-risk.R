@@ -1,38 +1,26 @@
 #' Risk of, or Time Lost to, an Event by a Time Horizon
 #'
-#' `event_risk` summarises [sim_event_graph()] output by the proportion of
-#' individuals who have experienced a process by time `tau` (the absolute
-#' risk / cumulative incidence), or by the expected time lost to it before
-#' `tau`. Combined with [sim_event_graph()]'s `intervene` argument, this is
-#' how to estimate the effect of an intervention: simulate once with and
-#' once without the intervention, and compare the two summaries.
-#'
-#' For each individual, only the *first* event of `process` counts (relevant
-#' for a `"transient"` process that can fire more than once). With \eqn{T}
-#' that first event time (infinite if it never occurs):
+#' With \eqn{T} the time of an individual's first `process` event (\eqn{\infty}
+#' if none):
 #' \describe{
 #'   \item{`"risk"`}{\eqn{P(T \le \tau)}.}
 #'   \item{`"time_lost"`}{\eqn{E[\tau - \min(T, \tau)]}, the restricted mean
-#'     time lost, i.e. the area under the risk curve on \eqn{[0, \tau]}.}
+#'     time lost.}
 #' }
-#' Both are plain empirical averages over individuals, which are only
-#' unbiased when no one is censored before `tau`. Simulate with `cens = 0`
-#' (or a graph without a `"censoring"` process) to get the uncensored
-#' counterfactual; a warning is given otherwise.
+#' Compare runs with and without [sim_event_graph()]'s `intervene` to
+#' estimate an intervention's effect. Estimates are biased if anyone is
+#' censored before `tau` (a warning is given); simulate with `cens = 0` to
+#' avoid this.
 #'
-#' @param data A `data.table` as returned by [sim_event_graph()].
-#' @param graph The [sim_graph()] `data` was simulated from, used to map
-#'   process names to `data`'s `delta` codes.
-#' @param process Character vector. Name(s) of processes in `graph` to
-#'   summarise, each separately.
-#' @param tau Numeric scalar. Time horizon.
-#' @param type Either `"risk"` (default) or `"time_lost"`.
-#' @param by Character vector. Names of `data` columns (typically baseline
-#'   covariates) to summarise within levels of. Default `character(0)` (all
-#'   individuals together).
+#' @param data Output of [sim_event_graph()].
+#' @param graph The [sim_graph()] `data` was simulated from.
+#' @param process Character vector. Process(es) to summarise.
+#' @param tau Numeric. Time horizon.
+#' @param type `"risk"` (default) or `"time_lost"`.
+#' @param by Character vector. Columns of `data` to summarise within.
 #'
-#' @return A `data.table` with the `by` columns, `process`, and a column
-#'   named after `type` holding the estimate.
+#' @return A `data.table` with the `by` columns, `process`, and the estimate
+#'   (column named after `type`).
 #' @seealso [sim_event_graph()]
 #' @examples
 #' graph <- sim_graph(
@@ -64,24 +52,21 @@ event_risk <- function(
   type = c("risk", "time_lost"),
   by = character(0)
 ) {
-  id <- time <- delta <- first_time <- NULL
+  id <- time <- event <- first_time <- NULL
   checkmate::assert_data_frame(data)
   checkmate::assert_class(graph, "sim_graph")
-  checkmate::assert_subset(c("id", "time", "delta"), names(data))
+  checkmate::assert_subset(c("id", "time", "event"), names(data))
   checkmate::assert_character(process, min.len = 1, unique = TRUE)
   checkmate::assert_subset(process, names(graph$processes))
   checkmate::assert_number(tau, lower = 0, finite = TRUE)
   type <- match.arg(type)
   checkmate::assert_character(by, unique = TRUE)
-  checkmate::assert_subset(by, setdiff(names(data), c("id", "time", "delta")))
+  checkmate::assert_subset(by, setdiff(names(data), c("id", "time", "event")))
 
   data <- data.table::as.data.table(data)
-  process_order <- .sim_graph_process_order(graph)
-  delta_codes <- stats::setNames(seq_along(process_order) - 1L, process_order)
-
   types <- vapply(graph$processes, `[[`, character(1), "type")
-  cens_codes <- delta_codes[names(types)[types == "censoring"]]
-  if (any(data$delta %in% cens_codes & data$time < tau)) {
+  censoring_events <- c(names(types)[types == "censoring"], "max_cens")
+  if (any(data$event %in% censoring_events & data$time < tau)) {
     warning(
       "Some individuals are censored before tau, so event_risk()'s ",
       "empirical estimates are biased. Simulate with cens = 0 for an ",
@@ -95,7 +80,7 @@ event_risk <- function(
 
   res <- lapply(process, function(proc) {
     first <- data[
-      delta == delta_codes[[proc]],
+      event == proc,
       list(first_time = min(time)),
       by = id
     ]

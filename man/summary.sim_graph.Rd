@@ -17,10 +17,8 @@
 \item{x}{A \code{summary.sim_graph} object, as returned by \code{summary()}.}
 }
 \value{
-\code{summary()} returns an object of class \code{summary.sim_graph}, a list
-of three \code{data.frame}s: \code{covariates} (\code{name}, \code{kind}), \code{processes}
-(\code{name}, \code{type}, \code{eta}, \code{nu}, \code{limit}) and \code{effects} (\code{from}, \code{to},
-\code{coef}).
+A list of three \code{data.frame}s: \code{covariates}, \code{processes} and
+\code{effects}.
 }
 \description{
 Tabulates a \code{\link[=sim_graph]{sim_graph()}}'s covariates, processes and effects.

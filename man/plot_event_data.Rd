@@ -7,24 +7,15 @@
 plot_event_data(data, title = "Event Data")
 }
 \arguments{
-\item{data}{A \code{data.table} as returned by \code{\link[=sim_event_graph]{sim_event_graph()}}, containing
-at least the columns \code{id}, \code{time}, and \code{delta}.}
+\item{data}{Output of \code{\link[=sim_event_graph]{sim_event_graph()}}.}
 
-\item{title}{Character string specifying the plot title. Defaults to
-\code{"Event Data"}.}
+\item{title}{Character. Plot title. Default \code{"Event Data"}.}
 }
 \value{
-A \code{ggplot} object representing the event data visualization.
+A \code{ggplot} object.
 }
 \description{
-Visualizes \code{\link[=sim_event_graph]{sim_event_graph()}} output by plotting individual event times
-colored and shaped by event type. Each individual's timeline is displayed
-horizontally with events marked along it.
-}
-\details{
-Colors and shapes can be customized by adding
-\code{+ ggplot2::scale_color_manual(...)}/\code{+ ggplot2::scale_shape_manual(...)}
-to the returned plot.
+One horizontal timeline per individual, with events marked by type.
 }
 \examples{
 graph <- sim_graph(
@@ -36,7 +27,9 @@ plot_event_data(data)
 
 # Custom colors:
 plot_event_data(data) +
-  ggplot2::scale_color_manual(values = c(start = "grey", `0` = "blue", `1` = "red"))
+  ggplot2::scale_color_manual(
+    values = c(start = "grey", censoring = "blue", death = "red")
+  )
 }
 \seealso{
 \code{\link[=sim_event_graph]{sim_event_graph()}}

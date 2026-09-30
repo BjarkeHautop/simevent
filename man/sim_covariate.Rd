@@ -7,9 +7,9 @@
 sim_covariate(generator)
 }
 \arguments{
-\item{generator}{Function generating the covariate. Takes \code{N} and,
-optionally, any subset of the names of other covariates defined earlier
-in the same \code{\link[=sim_graph]{sim_graph()}} call, matched by argument name.}
+\item{generator}{Function of \code{N} (number of individuals) returning the
+covariate's values. May also take covariates defined earlier in the same
+\code{\link[=sim_graph]{sim_graph()}} call, by name.}
 }
 \value{
 An object of class \code{sim_covariate}, for use in \code{\link[=sim_graph]{sim_graph()}}.

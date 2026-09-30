@@ -6,10 +6,8 @@
 #' @param x A `summary.sim_graph` object, as returned by `summary()`.
 #' @param ... Not used.
 #'
-#' @return `summary()` returns an object of class `summary.sim_graph`, a list
-#'   of three `data.frame`s: `covariates` (`name`, `kind`), `processes`
-#'   (`name`, `type`, `eta`, `nu`, `limit`) and `effects` (`from`, `to`,
-#'   `coef`).
+#' @return A list of three `data.frame`s: `covariates`, `processes` and
+#'   `effects`.
 #' @seealso [sim_graph()]
 #' @examples
 #' graph <- sim_graph(

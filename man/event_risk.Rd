@@ -14,47 +14,34 @@ event_risk(
 )
 }
 \arguments{
-\item{data}{A \code{data.table} as returned by \code{\link[=sim_event_graph]{sim_event_graph()}}.}
+\item{data}{Output of \code{\link[=sim_event_graph]{sim_event_graph()}}.}
 
-\item{graph}{The \code{\link[=sim_graph]{sim_graph()}} \code{data} was simulated from, used to map
-process names to \code{data}'s \code{delta} codes.}
+\item{graph}{The \code{\link[=sim_graph]{sim_graph()}} \code{data} was simulated from.}
 
-\item{process}{Character vector. Name(s) of processes in \code{graph} to
-summarise, each separately.}
+\item{process}{Character vector. Process(es) to summarise.}
 
-\item{tau}{Numeric scalar. Time horizon.}
+\item{tau}{Numeric. Time horizon.}
 
-\item{type}{Either \code{"risk"} (default) or \code{"time_lost"}.}
+\item{type}{\code{"risk"} (default) or \code{"time_lost"}.}
 
-\item{by}{Character vector. Names of \code{data} columns (typically baseline
-covariates) to summarise within levels of. Default \code{character(0)} (all
-individuals together).}
+\item{by}{Character vector. Columns of \code{data} to summarise within.}
 }
 \value{
-A \code{data.table} with the \code{by} columns, \code{process}, and a column
-named after \code{type} holding the estimate.
+A \code{data.table} with the \code{by} columns, \code{process}, and the estimate
+(column named after \code{type}).
 }
 \description{
-\code{event_risk} summarises \code{\link[=sim_event_graph]{sim_event_graph()}} output by the proportion of
-individuals who have experienced a process by time \code{tau} (the absolute
-risk / cumulative incidence), or by the expected time lost to it before
-\code{tau}. Combined with \code{\link[=sim_event_graph]{sim_event_graph()}}'s \code{intervene} argument, this is
-how to estimate the effect of an intervention: simulate once with and
-once without the intervention, and compare the two summaries.
-}
-\details{
-For each individual, only the \emph{first} event of \code{process} counts (relevant
-for a \code{"transient"} process that can fire more than once). With \eqn{T}
-that first event time (infinite if it never occurs):
+With \eqn{T} the time of an individual's first \code{process} event (\eqn{\infty}
+if none):
 \describe{
 \item{\code{"risk"}}{\eqn{P(T \le \tau)}.}
 \item{\code{"time_lost"}}{\eqn{E[\tau - \min(T, \tau)]}, the restricted mean
-time lost, i.e. the area under the risk curve on \eqn{[0, \tau]}.}
+time lost.}
 }
-Both are plain empirical averages over individuals, which are only
-unbiased when no one is censored before \code{tau}. Simulate with \code{cens = 0}
-(or a graph without a \code{"censoring"} process) to get the uncensored
-counterfactual; a warning is given otherwise.
+Compare runs with and without \code{\link[=sim_event_graph]{sim_event_graph()}}'s \code{intervene} to
+estimate an intervention's effect. Estimates are biased if anyone is
+censored before \code{tau} (a warning is given); simulate with \code{cens = 0} to
+avoid this.
 }
 \examples{
 graph <- sim_graph(

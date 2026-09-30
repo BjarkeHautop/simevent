@@ -56,3 +56,30 @@ test_that("interval_format_data splits intervals at t_prime when time_var = TRUE
   expect_true(!any(data_int$tstart < t_prime & data_int$tstop > t_prime))
   expect_true(any(data_int$tstop == t_prime))
 })
+
+test_that("interval_format_data requires t_prime when time_var = TRUE", {
+  graph <- sim_graph(
+    censoring = sim_process("censoring", eta = 0.05, nu = 1),
+    death = sim_process("terminal", eta = 0.05, nu = 1)
+  )
+  data <- sim_event_graph(graph, n = 10, seed = 1)
+
+  expect_error(interval_format_data(data, time_var = TRUE), "t_prime")
+  expect_no_error(interval_format_data(data, t_prime = NULL))
+})
+
+test_that("interval_format_data labels the pre-t_prime half of a split as \"none\"", {
+  graph <- sim_graph(
+    censoring = sim_process("censoring", eta = 0.05, nu = 1),
+    death = sim_process("terminal", eta = 0.05, nu = 1)
+  )
+  data <- sim_event_graph(graph, n = 100, seed = 2)
+  t_prime <- stats::median(data$time)
+
+  data_int <- interval_format_data(data, time_var = TRUE, t_prime = t_prime)
+
+  split_rows <- data_int[data_int$event == "none", ]
+  expect_gt(nrow(split_rows), 0)
+  expect_true(all(split_rows$tstop == t_prime))
+  expect_false(anyNA(data_int$event))
+})

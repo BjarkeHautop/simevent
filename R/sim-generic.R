@@ -133,7 +133,7 @@ sim.generic <- function(
     browser()
   }
 
-  run_sim_graph(
+  res <- run_sim_graph(
     graph,
     n = n,
     intervene = intervene,
@@ -143,4 +143,22 @@ sim.generic <- function(
     lower = 1e-25,
     upper = 1e8
   )
+  .sim_generic_delta(res, graph)
+}
+
+# sim.generic() predates sim_event_graph()'s `event` column and returns the
+# old 0-indexed `delta` codes instead: censoring processes first, then
+# terminal, then the rest in declared order.
+.sim_generic_delta <- function(res, graph) {
+  event <- delta <- NULL
+  types <- vapply(graph$processes, `[[`, character(1), "type")
+  delta_order <- c(
+    names(types)[types == "censoring"],
+    names(types)[types == "terminal"],
+    names(types)[types == "transient"]
+  )
+  res[, delta := match(as.character(event), delta_order) - 1L]
+  res[, event := NULL]
+  data.table::setcolorder(res, c("id", "time", "delta"))
+  res[]
 }

@@ -53,7 +53,7 @@ test_that("plot_event_data lets the caller override the palette", {
 
   p <- plot_event_data(data) +
     ggplot2::scale_color_manual(
-      values = c(start = "grey", `0` = "blue", `1` = "red")
+      values = c(start = "grey", censoring = "blue", death = "red")
     )
   expect_s3_class(p, "ggplot")
   built <- ggplot2::ggplot_build(p)

@@ -25,8 +25,11 @@ library(survival)
 compare_graph <- function(wrapper_data, graph_data) {
   wrapper_data <- as.data.frame(wrapper_data)
   graph_data <- as.data.frame(graph_data)
-  names(graph_data)[match(c("id", "time", "delta"), names(graph_data))] <-
-    c("ID", "Time", "Delta")
+  # The wrappers code events as integers; the graphs below declare their
+  # processes in the same order as those codes.
+  graph_data$Delta <- as.integer(graph_data$event) - 1L
+  names(graph_data)[match(c("id", "time"), names(graph_data))] <-
+    c("ID", "Time")
   isTRUE(all.equal(
     wrapper_data,
     graph_data[names(wrapper_data)],
@@ -120,7 +123,7 @@ relapse_graph <- sim_graph(
 set.seed(1405)
 relapse_data <- sim_event_graph(relapse_graph, n = 2000, max_events = 40)
 
-deaths <- relapse_data[relapse_data$delta == 1, ]
+deaths <- relapse_data[relapse_data$event == "death", ]
 mean(deaths$relapse == 3)
 ```
 
@@ -245,7 +248,7 @@ graph_data <- sim_event_graph(graph, n = 5000)
 
 rbind(
   simDisease = prop.table(table(wrapper_data$Delta)),
-  sim_graph = prop.table(table(graph_data$delta))
+  sim_graph = prop.table(table(graph_data$event))
 )
 ```
 
@@ -293,7 +296,7 @@ graph_data <- sim_event_graph(graph, n = 5000)
 
 rbind(
   simTreatment = prop.table(table(wrapper_data$Delta)),
-  sim_graph = prop.table(table(graph_data$delta))
+  sim_graph = prop.table(table(graph_data$event))
 )
 ```
 
@@ -544,9 +547,12 @@ observed_data <- sim_event_graph(observed_graph, n = 1000)
 # Refit from "observed" data, then rebuild a sim_graph(), as if
 # observed_graph were unknown:
 fits <- list(
-  censoring = coxph(Surv(time, delta == 0) ~ L0 + A0, data = observed_data),
-  cause1 = coxph(Surv(time, delta == 1) ~ L0 + A0, data = observed_data),
-  cause2 = coxph(Surv(time, delta == 2) ~ L0 + A0, data = observed_data)
+  censoring = coxph(
+    Surv(time, event == "censoring") ~ L0 + A0,
+    data = observed_data
+  ),
+  cause1 = coxph(Surv(time, event == "cause1") ~ L0 + A0, data = observed_data),
+  cause2 = coxph(Surv(time, event == "cause2") ~ L0 + A0, data = observed_data)
 )
 types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 
@@ -566,8 +572,8 @@ head(new_data)
 
 # Event-type distribution should match between observed and simulated data:
 rbind(
-  observed = prop.table(table(observed_data$delta)),
-  simulated = prop.table(table(new_data$delta))
+  observed = prop.table(table(observed_data$event)),
+  simulated = prop.table(table(new_data$event))
 )
 ```
 
@@ -593,11 +599,14 @@ observed_data$region <- factor(sample(
 
 fits_region <- list(
   censoring = coxph(
-    Surv(time, delta == 0) ~ L0 + region,
+    Surv(time, event == "censoring") ~ L0 + region,
     data = observed_data
   ),
-  cause1 = coxph(Surv(time, delta == 1) ~ L0 + region, data = observed_data),
-  cause2 = coxph(Surv(time, delta == 2) ~ L0, data = observed_data)
+  cause1 = coxph(
+    Surv(time, event == "cause1") ~ L0 + region,
+    data = observed_data
+  ),
+  cause2 = coxph(Surv(time, event == "cause2") ~ L0, data = observed_data)
 )
 
 graph_region <- sim_graph_from_fits(fits_region, observed_data, types)
