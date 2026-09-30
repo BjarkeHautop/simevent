@@ -22,6 +22,7 @@ reference:
   - sim_effect
   - sim_event_graph
   - sim_graph_from_fits
+  - summary.sim_graph
 
 - title: Treating graph-based simulated data
   desc: >

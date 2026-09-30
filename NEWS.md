@@ -15,6 +15,7 @@
 
 ## New features
 
+- Added a `summary()` method for `sim_graph()` objects.
 - Added the graph-based API: `sim_graph()`, `sim_covariate()`, `sim_derived()`,
   `sim_process()`, `sim_effect()`, `sim_event_graph()` and
   `sim_graph_from_fits()`.

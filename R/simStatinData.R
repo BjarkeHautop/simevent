@@ -1,8 +1,9 @@
 #' @title Simulate Data in a Statin Setting
 #'
-#' `simStatinData()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#' @description `simStatinData()` is deprecated as of simevent 0.2.0. Use
+#' [sim_event_graph()] instead.
 #'
-#' @description Simulates event history data in a statin treatment setting via
+#' Simulates event history data in a statin treatment setting via
 #' \code{simEventData}, with defaults for age (\code{A0}), a binary baseline
 #' covariate (\code{L0}), and 12 event processes.
 #'

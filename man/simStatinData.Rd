@@ -2,9 +2,7 @@
 % Please edit documentation in R/simStatinData.R
 \name{simStatinData}
 \alias{simStatinData}
-\title{Simulate Data in a Statin Setting
-
-\code{simStatinData()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.}
+\title{Simulate Data in a Statin Setting}
 \usage{
 simStatinData(
   N,
@@ -62,6 +60,9 @@ A data frame containing the simulated data with columns:
 \item{L1,...Lp}{Additional baseline covariates}
 }
 \description{
+\code{simStatinData()} is deprecated as of simevent 0.2.0. Use
+\code{\link[=sim_event_graph]{sim_event_graph()}} instead.
+
 Simulates event history data in a statin treatment setting via
 \code{simEventData}, with defaults for age (\code{A0}), a binary baseline
 covariate (\code{L0}), and 12 event processes.
