@@ -33,7 +33,9 @@ apply_intervention <- function(graph, intervene) {
     })
   }
 
+  # A cumhaz process has no eta; its curve is scaled by 1 instead.
   eta <- vapply(graph$processes, `[[`, numeric(1), "eta")
+  eta[is.na(eta)] <- 1
   for (nm in intersect(names(intervene), process_names)) {
     eta[nm] <- eta[nm] * intervene[[nm]]
   }
@@ -183,6 +185,90 @@ process_hazard_multipliers <- function(
   exp(log_phi)
 }
 
+# Each process's unscaled cumulative baseline hazard H(t) and hazard h(t),
+# as vectorized functions of t (eta multiplies both): t^nu and
+# nu * t^(nu - 1) for a Weibull process, and for a cumhaz process its curve
+# interpolated linearly from 0 at time 0 (only defined up to its last time;
+# see .sim_graph_cumhaz_end()).
+.sim_graph_baselines <- function(processes) {
+  lapply(processes, function(proc) {
+    if (is.null(proc$cumhaz)) {
+      nu <- proc$nu
+      return(list(
+        H = function(t) t^nu,
+        h = function(t) nu * t^(nu - 1)
+      ))
+    }
+    knots <- c(0, proc$cumhaz$time)
+    values <- c(0, proc$cumhaz$hazard)
+    slopes <- diff(values) / diff(knots)
+    list(
+      H = function(t) stats::approx(knots, values, xout = t, rule = 2)$y,
+      # Slope of the segment ending at t (so an event time on a knot takes
+      # the slope of the segment it was reached through).
+      h = function(t) {
+        segment <- findInterval(t, knots, left.open = TRUE)
+        slopes[pmin(pmax(segment, 1), length(slopes))]
+      }
+    )
+  })
+}
+
+# Where follow-up ends because a cumhaz process's curve does: its earliest
+# last time, or Inf without cumhaz processes.
+.sim_graph_cumhaz_end <- function(processes) {
+  ends <- vapply(
+    processes,
+    function(proc) {
+      if (is.null(proc$cumhaz)) Inf else max(proc$cumhaz$time)
+    },
+    numeric(1)
+  )
+  min(ends, Inf)
+}
+
+# n x K matrix of each process's (unscaled) cumulative baseline hazard at x.
+.sim_graph_cumhaz_matrix <- function(baselines, x) {
+  matrix(unlist(lapply(baselines, function(b) b$H(x))), nrow = length(x))
+}
+
+# Samples the time increment to each alive individual's next event for
+# graphs with a cumhaz process: solves
+# sum_k rate[, k] * (H_k(t) - H_k(t_now)) = Exp(1) draw for t by bisection
+# on [t_now, max_cens], or returns the increment to max_cens if the draw
+# isn't reached before it.
+sample_next_event_times_general <- function(
+  t_now,
+  phi_alive,
+  risk_alive,
+  eta,
+  baselines,
+  max_cens
+) {
+  n <- length(t_now)
+  v <- -log(stats::runif(n))
+  rate <- t(risk_alive) * rep(eta, each = n) * phi_alive
+  base_now <- .sim_graph_cumhaz_matrix(baselines, t_now)
+  reached <- function(x, ind) {
+    added <- .sim_graph_cumhaz_matrix(baselines, x) -
+      base_now[ind, , drop = FALSE]
+    rowSums(rate[ind, , drop = FALSE] * added) >= v[ind]
+  }
+
+  increment <- max_cens - t_now
+  ind <- which(reached(rep(max_cens, n), seq_len(n)))
+  lo <- t_now[ind]
+  hi <- rep(max_cens, length(ind))
+  for (i in seq_len(60)) {
+    mid <- (lo + hi) / 2
+    above <- reached(mid, ind)
+    hi[above] <- mid[above]
+    lo[!above] <- mid[!above]
+  }
+  increment[ind] <- (lo + hi) / 2 - t_now[ind]
+  increment
+}
+
 # Samples the time increment to each alive individual's next event, for one
 # iteration of the simulation loop: the closed-form vectorized path when
 # every process shares one Weibull shape/scale (same_params), else the
@@ -255,6 +341,7 @@ sample_next_event_times_td <- function(
   risk_alive,
   eta,
   nu,
+  baselines,
   effects,
   process_names,
   event_time_log,
@@ -311,12 +398,17 @@ sample_next_event_times_td <- function(
     rate_pts <- phi_pts * rate_ind[rep(seq_len(m), times = b), , drop = FALSE]
 
     # Baseline cumulative hazard over each step. Step ends are grid points,
-    # so their powers come from one lookup table per process instead of
+    # so a Weibull process's powers come from one lookup table instead of
     # m * b pow() calls.
     grid_min <- min(grid)
     grid_pts <- seq(grid_min, max(grid)) * time_step
     base_pts <- matrix(0, nrow = m * b, ncol = num_proc)
     for (k in seq_len(num_proc)) {
+      if (is.na(nu[k])) {
+        H <- baselines[[k]]$H
+        base_pts[, k] <- H(as.vector(rights)) - H(as.vector(lefts))
+        next
+      }
       pow_table <- grid_pts^nu[k]
       right_pow <- matrix(pow_table[grid - grid_min + 1], nrow = m)
       right_pow[capped] <- max_cens^nu[k]
@@ -343,6 +435,7 @@ sample_next_event_times_td <- function(
         rights[at],
         rate_pts[point, , drop = FALSE],
         nu,
+        baselines,
         remaining
       )
       phi[searching[hit], ] <- phi_pts[point, ]
@@ -366,20 +459,29 @@ sample_next_event_times_td <- function(
   list(time = event_time, phi = phi)
 }
 
-# Solves sum_k rate[, k] * (x^nu[k] - left^nu[k]) = remaining for x in
-# [left, right], per row: closed form when every process shares one shape
-# nu, otherwise bisection (the left-hand side is increasing in x).
-.sim_graph_solve_in_step <- function(left, right, rate, nu, remaining) {
-  if (all(nu == nu[1])) {
+# Solves sum_k rate[, k] * (H_k(x) - H_k(left)) = remaining for x in
+# [left, right], per row: closed form when every process is Weibull with one
+# shared shape nu, otherwise bisection (the left-hand side is increasing in
+# x).
+.sim_graph_solve_in_step <- function(
+  left,
+  right,
+  rate,
+  nu,
+  baselines,
+  remaining
+) {
+  if (!anyNA(nu) && all(nu == nu[1])) {
     x <- (remaining / rowSums(rate) + left^nu[1])^(1 / nu[1])
     return(pmin(pmax(x, left), right))
   }
   lo <- left
   hi <- right
-  base_left <- outer(left, nu, `^`)
+  base_left <- .sim_graph_cumhaz_matrix(baselines, left)
   for (i in seq_len(60)) {
     mid <- (lo + hi) / 2
-    above <- rowSums(rate * (outer(mid, nu, `^`) - base_left)) >= remaining
+    added <- .sim_graph_cumhaz_matrix(baselines, mid) - base_left
+    above <- rowSums(rate * added) >= remaining
     hi[above] <- mid[above]
     lo[!above] <- mid[!above]
   }
@@ -397,11 +499,21 @@ sample_event_types <- function(
   risk_alive,
   eta,
   nu,
+  baselines,
   max_cens
 ) {
   num_events <- length(eta)
-  pow_mat <- outer(nu - 1, t_alive, FUN = function(p, tt) tt^p)
-  lambda_mat <- risk_alive * eta * nu * pow_mat * t(phi_alive)
+  if (anyNA(nu)) {
+    hazard_mat <- matrix(
+      unlist(lapply(baselines, function(b) b$h(t_alive))),
+      nrow = num_events,
+      byrow = TRUE
+    )
+    lambda_mat <- risk_alive * eta * hazard_mat * t(phi_alive)
+  } else {
+    pow_mat <- outer(nu - 1, t_alive, FUN = function(p, tt) tt^p)
+    lambda_mat <- risk_alive * eta * nu * pow_mat * t(phi_alive)
+  }
 
   # Placeholder intensities for those reaching max_cens (overwritten below),
   # so their columns don't divide by zero.
@@ -439,10 +551,14 @@ run_sim_graph <- function(
 
   intervened <- apply_intervention(graph, intervene)
   covariates <- draw_baseline_covariates(intervened$covs, n)
+  output_covariates <- names(covariates)[!.sim_graph_hidden(names(covariates))]
 
   eta <- intervened$eta
   nu <- vapply(graph$processes, `[[`, numeric(1), "nu")
-  same_params <- all(nu[1] == nu) && all(eta[1] == eta)
+  weibull_only <- !anyNA(nu)
+  same_params <- weibull_only && all(nu[1] == nu) && all(eta[1] == eta)
+  baselines <- .sim_graph_baselines(graph$processes)
+  max_cens <- min(max_cens, .sim_graph_cumhaz_end(graph$processes))
 
   at_risk_fn <- .sim_graph_at_risk(graph, cens)
   uses_time <- .sim_graph_uses_time(graph$effects)
@@ -476,6 +592,7 @@ run_sim_graph <- function(
         risk_alive,
         eta,
         nu,
+        baselines,
         graph$effects,
         process_names,
         event_time_log = event_time_log[, alive, drop = FALSE],
@@ -498,16 +615,27 @@ run_sim_graph <- function(
         event_type_log = event_type_log[, alive, drop = FALSE],
         n_events_so_far = idx - 1
       )
-      w <- sample_next_event_times(
-        t_k[alive],
-        phi_alive,
-        risk_alive,
-        eta,
-        nu,
-        same_params,
-        lower,
-        upper
-      )
+      w <- if (weibull_only) {
+        sample_next_event_times(
+          t_k[alive],
+          phi_alive,
+          risk_alive,
+          eta,
+          nu,
+          same_params,
+          lower,
+          upper
+        )
+      } else {
+        sample_next_event_times_general(
+          t_k[alive],
+          phi_alive,
+          risk_alive,
+          eta,
+          baselines,
+          max_cens
+        )
+      }
       t_k[alive] <- t_k[alive] + w
     }
     t_k[t_k > max_cens] <- max_cens
@@ -519,6 +647,7 @@ run_sim_graph <- function(
       risk_alive,
       eta,
       nu,
+      baselines,
       max_cens
     )
 
@@ -532,7 +661,7 @@ run_sim_graph <- function(
 
     result_cols <- c(
       list(id = alive, time = t_k[alive], event = events),
-      lapply(covariates, `[`, alive),
+      lapply(covariates[output_covariates], `[`, alive),
       stats::setNames(
         lapply(transient_names, function(nm) event_counts[[nm]][alive]),
         transient_names

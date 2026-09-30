@@ -24,10 +24,11 @@
 #' summary(graph)
 #' @export
 summary.sim_graph <- function(object, ...) {
+  shown <- object$covariates[!.sim_graph_hidden(names(object$covariates))]
   covariates <- data.frame(
-    name = names(object$covariates),
+    name = names(shown),
     kind = vapply(
-      object$covariates,
+      shown,
       function(node) {
         if (inherits(node, "sim_derived")) "derived" else "baseline"
       },
@@ -38,6 +39,11 @@ summary.sim_graph <- function(object, ...) {
   processes <- data.frame(
     name = names(object$processes),
     type = vapply(object$processes, `[[`, character(1), "type"),
+    baseline = vapply(
+      object$processes,
+      function(proc) if (is.null(proc$cumhaz)) "weibull" else "cumhaz",
+      character(1)
+    ),
     eta = vapply(object$processes, `[[`, numeric(1), "eta"),
     nu = vapply(object$processes, `[[`, numeric(1), "nu"),
     limit = vapply(object$processes, `[[`, numeric(1), "limit"),

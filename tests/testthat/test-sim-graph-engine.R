@@ -359,8 +359,12 @@ test_that(".sim_graph_solve_in_step inverts the within-step cumulative hazard", 
   }
 
   for (nu in list(c(1.2, 1.2), c(0.8, 1.5))) {
+    baselines <- .sim_graph_baselines(list(
+      a = sim_process("terminal", eta = 1, nu = nu[1]),
+      b = sim_process("terminal", eta = 1, nu = nu[2])
+    ))
     remaining <- 0.5 * cum_haz(right, nu)
-    x <- .sim_graph_solve_in_step(left, right, rate, nu, remaining)
+    x <- .sim_graph_solve_in_step(left, right, rate, nu, baselines, remaining)
     expect_true(all(x >= left & x <= right))
     expect_equal(cum_haz(x, nu), remaining, tolerance = 1e-8)
   }

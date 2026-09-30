@@ -8,7 +8,8 @@ sim_process(
   type = c("censoring", "terminal", "transient"),
   eta,
   nu,
-  limit = Inf
+  limit = Inf,
+  cumhaz = NULL
 )
 }
 \arguments{
@@ -27,6 +28,12 @@ hazard, \code{nu < 1} a decreasing one, \code{nu = 1} a constant one.}
 
 \item{limit}{Integer or \code{Inf}. Maximum number of events of a
 \code{"transient"} process. Default \code{Inf}.}
+
+\item{cumhaz}{Optional \code{data.frame} with columns \code{time} and \code{hazard}
+giving the cumulative baseline hazard, e.g. from
+\code{\link[survival:basehaz]{survival::basehaz()}} with \code{centered = FALSE}. Used instead of \code{eta} and
+\code{nu}, and interpolated linearly. The hazard is unknown after the last
+\code{time}, so \code{\link[=sim_event_graph]{sim_event_graph()}} ends follow-up there, as for \code{max_cens}.}
 }
 \value{
 An object of class \code{sim_process}, for use in \code{\link[=sim_graph]{sim_graph()}}.
@@ -34,7 +41,8 @@ An object of class \code{sim_process}, for use in \code{\link[=sim_graph]{sim_gr
 \description{
 \code{sim_process} builds an event process whose baseline intensity is Weibull,
 \deqn{\lambda_0(t) = \eta \nu t^{\nu - 1},}
-i.e. cumulative baseline hazard \eqn{\eta t^\nu}. \code{\link[=sim_effect]{sim_effect()}}s into the
+i.e. cumulative baseline hazard \eqn{\eta t^\nu}, or follows a given
+cumulative baseline hazard curve (\code{cumhaz}). \code{\link[=sim_effect]{sim_effect()}}s into the
 process multiply this baseline by \eqn{\exp(\text{coef} \times
 \text{from})}.
 }
@@ -44,6 +52,12 @@ sim_process("terminal", eta = 0.1, nu = 1.1)
 
 # A relapse process that can fire at most twice:
 sim_process("transient", eta = 0.2, nu = 1, limit = 2)
+
+# A hazard that is high early on and low later:
+sim_process(
+  "terminal",
+  cumhaz = data.frame(time = c(1, 5), hazard = c(0.5, 0.7))
+)
 }
 \seealso{
 \code{\link[=sim_graph]{sim_graph()}}, \code{\link[=sim_covariate]{sim_covariate()}}

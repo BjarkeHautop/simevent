@@ -313,7 +313,10 @@ test_that("sim_graph_from_fits builds sim_derived() dummies for a factor covaria
   types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 
   graph <- sim_graph_from_fits(fits, observed_data, types)
-  expect_named(graph$covariates, c("L0", "region", "regionb", "regionc"))
+  expect_named(
+    graph$covariates,
+    c(".row", "L0", "region", "regionb", "regionc")
+  )
 
   new_data <- sim_event_graph(graph, n = 3000)
   expect_setequal(
@@ -378,8 +381,8 @@ test_that("sim_graph_from_fits wires a cross-process effect, not a bogus covaria
 
   # relapse must be a process node, not a baseline covariate rebuilt from
   # its (meaningless, since it's a running count, not a fixed baseline
-  # value) marginal mean/sd.
-  expect_named(graph$covariates, "L0")
+  # value) observed values.
+  expect_named(graph$covariates, c(".row", "L0"))
   expect_named(graph$processes, c("censoring", "death", "relapse"))
 
   effect_pairs <- vapply(
@@ -391,6 +394,111 @@ test_that("sim_graph_from_fits wires a cross-process effect, not a bogus covaria
 
   new_data <- sim_event_graph(graph, n = 100)
   expect_setequal(names(new_data), c("id", "time", "event", "L0", "relapse"))
+})
+
+test_that("sim_graph_from_fits resamples observed covariate rows jointly", {
+  set.seed(1405)
+  observed_graph <- sim_graph(
+    L0 = sim_covariate(function(N) runif(N)),
+    A0 = sim_covariate(function(N, L0) rbinom(N, 1, plogis(-3 + 6 * L0))),
+    censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+    death = sim_process("terminal", eta = 0.1, nu = 1.1),
+    effects = list(sim_effect("L0", "death", 1))
+  )
+  observed_data <- sim_event_graph(observed_graph, n = 1000)
+  fits <- list(
+    censoring = coxph(
+      Surv(time, event == "censoring") ~ L0 + A0,
+      observed_data
+    ),
+    death = coxph(Surv(time, event == "death") ~ L0 + A0, observed_data)
+  )
+  types <- c(censoring = "censoring", death = "terminal")
+
+  graph <- sim_graph_from_fits(fits, observed_data, types)
+  new_data <- sim_event_graph(graph, n = 1000)
+
+  expect_true(all(new_data$L0 %in% observed_data$L0))
+  expect_equal(
+    cor(new_data$L0, new_data$A0),
+    cor(observed_data$L0, observed_data$A0),
+    tolerance = 0.1
+  )
+  expect_output(print(graph), "2 covariate\\(s\\): L0, A0")
+  expect_equal(summary(graph)$covariates$name, c("L0", "A0"))
+})
+
+test_that("sim_graph_from_fits uses one row per id", {
+  set.seed(1405)
+  observed_graph <- sim_graph(
+    L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
+    censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+    relapse = sim_process("transient", eta = 0.3, nu = 1),
+    death = sim_process("terminal", eta = 0.1, nu = 1.1),
+    effects = list(sim_effect("L0", "relapse", 1.5))
+  )
+  observed_data <- interval_format_data(
+    sim_event_graph(observed_graph, n = 2000, max_events = 200),
+    proc_cols = "relapse"
+  )
+  fits <- list(
+    censoring = coxph(
+      Surv(tstart, tstop, event == "censoring") ~ L0,
+      observed_data
+    ),
+    relapse = coxph(
+      Surv(tstart, tstop, event == "relapse") ~ L0,
+      observed_data
+    ),
+    death = coxph(
+      Surv(tstart, tstop, event == "death") ~ L0 + relapse,
+      observed_data
+    )
+  )
+  types <- c(censoring = "censoring", relapse = "transient", death = "terminal")
+
+  graph <- sim_graph_from_fits(fits, observed_data, types)
+  new_data <- sim_event_graph(graph, n = 2000, max_events = 200)
+
+  expect_equal(
+    mean(new_data$L0[!duplicated(new_data$id)]),
+    0.5,
+    tolerance = 0.1
+  )
+})
+
+test_that("sim_graph_from_fits handles transformed and interaction terms", {
+  set.seed(1405)
+  observed_graph <- sim_graph(
+    L0 = sim_covariate(function(N) runif(N)),
+    A0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
+    censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+    death = sim_process("terminal", eta = 0.1, nu = 1.1)
+  )
+  observed_data <- sim_event_graph(observed_graph, n = 500)
+  fits <- list(
+    censoring = coxph(Surv(time, event == "censoring") ~ L0, observed_data),
+    death = coxph(
+      Surv(time, event == "death") ~ L0 * A0 + I(L0^2),
+      observed_data
+    )
+  )
+  types <- c(censoring = "censoring", death = "terminal")
+
+  expect_no_warning(graph <- sim_graph_from_fits(fits, observed_data, types))
+  froms <- vapply(graph$effects, `[[`, character(1), "from")
+  expect_setequal(froms, c("L0", "A0", "I(L0^2)", "L0 * A0"))
+  expect_s3_class(sim_event_graph(graph, n = 50), "data.table")
+})
+
+test_that("sim_graph_from_fits errors on a fit with too few events", {
+  data <- .simSurvData(100)
+  types <- c(censoring = "censoring", death = "terminal")
+  fits <- list(
+    censoring = coxph(Surv(Time, Delta == 99) ~ L0, data = data),
+    death = coxph(Surv(Time, Delta == 1) ~ L0, data = data)
+  )
+  expect_error(sim_graph_from_fits(fits, data, types), "no events")
 })
 
 test_that("sim_graph rejects reserved names, missing terminal, and duplicate effects", {
@@ -589,4 +697,105 @@ test_that("sim_event_graph validates time_step", {
   graph <- sim_graph(death = sim_process("terminal", eta = 0.1, nu = 1))
   expect_error(sim_event_graph(graph, n = 5, time_step = 0), "positive")
   expect_error(sim_event_graph(graph, n = 5, time_step = -1))
+})
+
+test_that("a cumhaz process follows its cumulative hazard curve", {
+  cumhaz <- data.frame(time = c(0.5, 3, 6), hazard = c(0.5, 0.75, 2))
+  true_cumhaz <- function(t) {
+    stats::approx(c(0, cumhaz$time), c(0, cumhaz$hazard), xout = t)$y
+  }
+  graph <- sim_graph(death = sim_process("terminal", cumhaz = cumhaz))
+  times <- c(0.25, 1, 5)
+
+  data <- sim_event_graph(graph, n = 20000, seed = 1)
+  surv <- vapply(times, function(x) mean(data$time > x), numeric(1))
+  expect_equal(surv, exp(-true_cumhaz(times)), tolerance = 0.02)
+
+  # Follow-up ends where the curve does:
+  expect_equal(max(data$time), 6)
+  expect_true(all(data$time[data$event == "max_cens"] == 6))
+  expect_equal(mean(data$event == "max_cens"), exp(-2), tolerance = 0.05)
+  shorter <- sim_event_graph(graph, n = 100, max_cens = 2, seed = 1)
+  expect_equal(max(shorter$time), 2)
+
+  halved <- sim_event_graph(
+    graph,
+    n = 20000,
+    intervene = list(death = 0.5),
+    seed = 1
+  )
+  surv <- vapply(times, function(x) mean(halved$time > x), numeric(1))
+  expect_equal(surv, exp(-0.5 * true_cumhaz(times)), tolerance = 0.02)
+})
+
+test_that("a cumhaz process works with Weibull processes and time-varying effects", {
+  cumhaz <- data.frame(time = c(0.5, 3, 6), hazard = c(0.5, 0.75, 2))
+  graph <- sim_graph(
+    L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
+    censoring = sim_process("censoring", eta = 0.05, nu = 1),
+    death = sim_process("terminal", cumhaz = cumhaz),
+    effects = list(sim_effect("L0 * (t < 2)", "death", 1))
+  )
+  data <- sim_event_graph(graph, n = 10000, seed = 1)
+  data_split <- interval_format_data(data, time_var = TRUE, t_prime = 2)
+  fit <- coxph(
+    Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
+    data = data_split
+  )
+  expect_equal(unname(coef(fit)), c(1, 0), tolerance = 0.15)
+})
+
+test_that("sim_process validates cumhaz", {
+  expect_error(
+    sim_process("terminal", eta = 1, cumhaz = data.frame(time = 1, hazard = 1)),
+    "not both"
+  )
+  expect_error(
+    sim_process("terminal", cumhaz = data.frame(time = c(2, 1), hazard = 1:2)),
+    "increasing"
+  )
+  expect_error(
+    sim_process("terminal", cumhaz = data.frame(time = 1:2, hazard = 2:1)),
+    "non-decreasing"
+  )
+  expect_error(
+    sim_process("terminal", cumhaz = data.frame(time = 0:1, hazard = c(1, 2))),
+    "0 at time 0"
+  )
+  expect_error(
+    sim_process("terminal", cumhaz = data.frame(time = 1:2, hazard = 0)),
+    "positive"
+  )
+  proc <- sim_process("terminal", cumhaz = data.frame(time = 0:1, hazard = 0:1))
+  expect_equal(proc$cumhaz, data.frame(time = 1, hazard = 1))
+})
+
+test_that("sim_graph_from_fits reproduces a non-Weibull baseline hazard", {
+  graph <- sim_graph(
+    L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
+    censoring = sim_process("censoring", eta = 0.05, nu = 1),
+    death = sim_process(
+      "terminal",
+      cumhaz = data.frame(time = c(0.5, 3, 6), hazard = c(0.5, 0.75, 2))
+    ),
+    effects = list(sim_effect("L0", "death", 0.7))
+  )
+  observed <- sim_event_graph(graph, n = 5000, seed = 1)
+  fits <- list(
+    censoring = coxph(Surv(time, event == "censoring") ~ L0, data = observed),
+    death = coxph(Surv(time, event == "death") ~ L0, data = observed)
+  )
+  types <- c(censoring = "censoring", death = "terminal")
+
+  refit <- sim_graph_from_fits(fits, observed, types)
+  expect_equal(summary(refit)$processes$baseline, c("cumhaz", "cumhaz"))
+
+  simulated <- sim_event_graph(refit, n = 20000, seed = 2)
+  probs <- c(0.25, 0.5, 0.75)
+  expect_equal(
+    unname(quantile(simulated$time, probs)),
+    unname(quantile(observed$time, probs)),
+    tolerance = 0.1
+  )
+  expect_lte(max(simulated$time), max(observed$time))
 })

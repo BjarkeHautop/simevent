@@ -50,9 +50,10 @@ library(simevent)
 ```
 
 The package builds event history data from a *graph*: baseline covariates, event
-processes (censoring, terminal, or transient, with Weibull intensities), and the
-Cox-type effects between them. `sim_graph()` defines the graph and
-`sim_event_graph()` simulates from it. On top of this, the package provides:
+processes (censoring, terminal, or transient, with Weibull or user-given
+intensities), and the Cox-type effects between them. `sim_graph()` defines the
+graph and `sim_event_graph()` simulates from it. On top of this, the package
+provides:
 
 - `sim_graph_from_fits()` for building a graph from `coxph()` fits to observed
   data, to simulate new data resembling it.

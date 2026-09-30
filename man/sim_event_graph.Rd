@@ -30,7 +30,8 @@ that process's hazard by the given value.}
 off. Default 1.}
 
 \item{max_cens}{Numeric. End of follow-up: anyone still followed is
-censored then, with \code{event = "max_cens"}. Default \code{Inf}.}
+censored then, with \code{event = "max_cens"}. Default \code{Inf}. Follow-up also
+ends at the last \code{time} of any \code{\link[=sim_process]{sim_process()}} \code{cumhaz} curve.}
 
 \item{max_events}{Integer. Maximum number of events per individual.
 Default 50.}

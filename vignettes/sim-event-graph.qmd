@@ -60,8 +60,8 @@ A `sim_graph()` call has three kinds of possible inputs:
   any other covariate defined earlier in the same call (matched by argument
   name).
 - `sim_process()`: a `"censoring"`, `"terminal"`, or `"transient"` (fires at
-  most `limit` times, default `Inf`) process, with Weibull `eta`/`nu`
-  parameters.
+  most `limit` times, default `Inf`) process, with Weibull `eta`/`nu` parameters
+  or a given cumulative baseline hazard curve (`cumhaz`).
 - `sim_effect()`: a `from -> to` edge with a Cox-type `coef`, where `from` is a
   covariate or process name and `to` is a process name.
 
@@ -520,8 +520,9 @@ simulated data mimics an observed dataset's distribution.
 
 Unlike `sim.from.data()`, which requires building a `sim.parameters` list,
 including a `baseline.summary` computed by hand from `mean()`/
-`sd()`/`min()`/`max()`, `sim_graph_from_fits()` reads baseline covariate
-distributions straight from the data itself.
+`sd()`/`min()`/`max()`, `sim_graph_from_fits()` resamples whole rows of baseline
+covariates from the data itself, keeping each covariate's distribution and the
+relationships between them.
 
 ```{r}
 #| label: sim-graph-from-fits-setup
@@ -560,9 +561,9 @@ graph <- sim_graph_from_fits(fits, observed_data, types)
 graph
 ```
 
-Each process's Weibull `eta`/`nu` is approximated from its `coxph()` fit's
-baseline cumulative hazard, by regressing log(cumulative hazard) on log(time) (a
-Weibull hazard is linear on that scale).
+Each process uses its `coxph()` fit's cumulative baseline hazard as-is, so the
+simulated event times follow its shape. The hazard is unknown beyond the last
+observed time, so simulated follow-up ends there (`event = "max_cens"`).
 
 ```{r}
 #| label: sim-graph-from-fits-simulate
@@ -570,9 +571,12 @@ Weibull hazard is linear on that scale).
 new_data <- sim_event_graph(graph, n = 1000)
 head(new_data)
 
-# Event-type distribution should match between observed and simulated data:
+# Event-type distribution should match between observed and simulated data (a
+# few simulated individuals reach the end of the observed follow-up, as
+# "max_cens"):
+event_levels <- levels(new_data$event)
 rbind(
-  observed = prop.table(table(observed_data$event)),
+  observed = prop.table(table(factor(observed_data$event, event_levels))),
   simulated = prop.table(table(new_data$event))
 )
 ```
@@ -581,11 +585,10 @@ rbind(
 
 A categorical baseline covariate must be a factor column in `data`, referenced
 directly in the `coxph()` formula (not wrapped in `factor()` there).
-`sim_graph_from_fits()` regenerates it as a categorical draw from its observed
-level proportions, plus one `sim_derived()` dummy per non-reference level, named
-to match `coxph()`'s own coefficient names (`"<variable><level>"`). The
-graph-native replacement for `sim.from.data()`'s `"(region==2)"`-style
-expression matching.
+`sim_graph_from_fits()` regenerates it as its integer level codes, plus one
+`sim_derived()` dummy per non-reference level, named to match `coxph()`'s own
+coefficient names (`"<variable><level>"`). The graph-native replacement for
+`sim.from.data()`'s `"(region==2)"`-style expression matching.
 
 ```{r}
 #| label: sim-graph-from-fits-categorical
