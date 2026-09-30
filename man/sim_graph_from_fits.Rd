@@ -44,7 +44,7 @@ library(survival)
 set.seed(1405)
 observed_graph <- sim_graph(
   L0 = sim_covariate(function(N) runif(N)),
-  A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
+  A0 = sim_covariate(function(N, L0) rbinom(N, 1, plogis(-0.5 + L0))),
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
   cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),

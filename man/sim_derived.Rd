@@ -18,11 +18,17 @@ An object of class \code{sim_derived}, for use in \code{\link[=sim_graph]{sim_gr
 or more other covariates defined earlier in the same \code{\link[=sim_graph]{sim_graph()}} call.
 }
 \examples{
-# A categorical covariate's per-level dummy:
-sim_derived(function(region) as.numeric(region == 2))
-
-# An interaction between two covariates:
-sim_derived(function(L0, A0) L0 * A0)
+# BMI from weight (kg) and height (m), stored as its own column and usable
+# by covariates defined after it:
+graph <- sim_graph(
+  weight = sim_covariate(function(N) rnorm(N, mean = 80, sd = 12)),
+  height = sim_covariate(function(N) rnorm(N, mean = 1.75, sd = 0.08)),
+  bmi = sim_derived(function(weight, height) weight / height^2),
+  statin = sim_covariate(function(N, bmi) rbinom(N, 1, plogis(-5 + 0.15 * bmi))),
+  death = sim_process("terminal", eta = 0.1, nu = 1.1),
+  effects = list(sim_effect("statin", "death", coef = -0.3))
+)
+head(sim_event_graph(graph, n = 5))
 }
 \seealso{
 \code{\link[=sim_graph]{sim_graph()}}, \code{\link[=sim_covariate]{sim_covariate()}}, \code{\link[=sim_effect]{sim_effect()}}

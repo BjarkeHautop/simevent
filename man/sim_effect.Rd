@@ -30,7 +30,7 @@ Multiplies the hazard of process \code{to} by \code{exp(coef * from)}.
 }
 \examples{
 sim_effect("age", "death", coef = 0.03)
-sim_effect("age^2", "death", coef = -0.001)
+sim_effect("(age - 60)^2", "death", coef = 0.001)
 sim_effect("relapse == 3", "death", coef = 1.2)
 sim_effect("t - last_time(checkup) < 1", "death", coef = 0.5)
 sim_effect("t >= nth_time(relapse, 3)", "death", coef = 0.8)

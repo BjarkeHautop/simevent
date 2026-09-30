@@ -43,11 +43,17 @@ sim_covariate <- function(generator) {
 #' @return An object of class `sim_derived`, for use in [sim_graph()].
 #' @seealso [sim_graph()], [sim_covariate()], [sim_effect()]
 #' @examples
-#' # A categorical covariate's per-level dummy:
-#' sim_derived(function(region) as.numeric(region == 2))
-#'
-#' # An interaction between two covariates:
-#' sim_derived(function(L0, A0) L0 * A0)
+#' # BMI from weight (kg) and height (m), stored as its own column and usable
+#' # by covariates defined after it:
+#' graph <- sim_graph(
+#'   weight = sim_covariate(function(N) rnorm(N, mean = 80, sd = 12)),
+#'   height = sim_covariate(function(N) rnorm(N, mean = 1.75, sd = 0.08)),
+#'   bmi = sim_derived(function(weight, height) weight / height^2),
+#'   statin = sim_covariate(function(N, bmi) rbinom(N, 1, plogis(-5 + 0.15 * bmi))),
+#'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
+#'   effects = list(sim_effect("statin", "death", coef = -0.3))
+#' )
+#' head(sim_event_graph(graph, n = 5))
 #' @export
 sim_derived <- function(fn) {
   checkmate::assert_function(fn)
@@ -145,7 +151,7 @@ sim_process <- function(
 #' @seealso [sim_graph()]
 #' @examples
 #' sim_effect("age", "death", coef = 0.03)
-#' sim_effect("age^2", "death", coef = -0.001)
+#' sim_effect("(age - 60)^2", "death", coef = 0.001)
 #' sim_effect("relapse == 3", "death", coef = 1.2)
 #' sim_effect("t - last_time(checkup) < 1", "death", coef = 0.5)
 #' sim_effect("t >= nth_time(relapse, 3)", "death", coef = 0.8)
@@ -172,13 +178,12 @@ sim_effect <- function(from, to, coef) {
 #'   [sim_process()], [sim_effect()]
 #' @examples
 #' graph <- sim_graph(
-#'   age = sim_covariate(function(N) rnorm(N)),
-#'   age_sq = sim_derived(function(age) age^2),
+#'   age = sim_covariate(function(N) runif(N, min = 40, max = 80)),
 #'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
 #'   effects = list(
-#'     sim_effect("age", "death", coef = 0.5),
-#'     sim_effect("age_sq", "death", coef = -0.05)
+#'     sim_effect("age", "death", coef = 0.03),
+#'     sim_effect("(age - 60)^2", "death", coef = 0.001)
 #'   )
 #' )
 #' graph
@@ -602,7 +607,7 @@ sim_event_graph <- function(
 #' set.seed(1405)
 #' observed_graph <- sim_graph(
 #'   L0 = sim_covariate(function(N) runif(N)),
-#'   A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
+#'   A0 = sim_covariate(function(N, L0) rbinom(N, 1, plogis(-0.5 + L0))),
 #'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
 #'   cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
 #'   cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),

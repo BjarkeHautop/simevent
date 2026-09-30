@@ -22,13 +22,12 @@ specification, which \code{\link[=sim_event_graph]{sim_event_graph()}} can then 
 }
 \examples{
 graph <- sim_graph(
-  age = sim_covariate(function(N) rnorm(N)),
-  age_sq = sim_derived(function(age) age^2),
+  age = sim_covariate(function(N) runif(N, min = 40, max = 80)),
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("age", "death", coef = 0.5),
-    sim_effect("age_sq", "death", coef = -0.05)
+    sim_effect("age", "death", coef = 0.03),
+    sim_effect("(age - 60)^2", "death", coef = 0.001)
   )
 )
 graph

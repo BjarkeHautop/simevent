@@ -25,12 +25,12 @@ Tabulates a \code{\link[=sim_graph]{sim_graph()}}'s covariates, processes and ef
 }
 \examples{
 graph <- sim_graph(
-  age = sim_covariate(function(N) rnorm(N)),
+  age = sim_covariate(function(N) runif(N, min = 40, max = 80)),
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   relapse = sim_process("transient", eta = 0.2, nu = 1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("age", "death", coef = 0.5),
+    sim_effect("age", "death", coef = 0.03),
     sim_effect("relapse", "death", coef = 1)
   )
 )
