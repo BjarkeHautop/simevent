@@ -1,9 +1,8 @@
 # Simulate Event History Data with Treatment and Time-Dependent Covariate
 
-Simulates event history data with four types of events representing
-censoring (0), death (1), treatment (2), and covariate change (3). Death
-and censoring are terminal events; treatment and covariate events can
-occur only once.
+`simTreatment()` is deprecated as of simevent 0.2.0. Use
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+instead.
 
 ## Usage
 
@@ -209,6 +208,11 @@ A `data.frame` with columns:
 
 ## Details
 
+Simulates event history data with four types of events representing
+censoring (0), death (1), treatment (2), and covariate change (3). Death
+and censoring are terminal events; treatment and covariate events can
+occur only once.
+
 Event intensities are modeled using Weibull hazards with parameters
 \\\nu\\ (scale) and \\\eta\\ (shape), and covariate effects controlled
 by specified `beta` parameters. For example, `beta_L_A` quantifies the
@@ -218,6 +222,8 @@ effect of covariate `L = 1` on the hazard of treatment.
 
 ``` r
 simTreatment(10)
+#> Warning: `simTreatment()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 #> Key: <ID>
 #>        ID        Time Delta         L0     A     L
 #>     <int>       <num> <int>      <num> <num> <num>

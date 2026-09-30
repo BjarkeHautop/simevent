@@ -1,8 +1,8 @@
 # Simulate Competing Risks Data
 
-Simulates competing risks data for \\N\\ individuals who are at risk of
-mutually exclusive event types. Three event types are simulated, where
-one can be interpreted as censoring.
+`simCRdata()` is deprecated as of simevent 0.2.0. Use
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+instead.
 
 ## Usage
 
@@ -59,6 +59,10 @@ A `data.frame` with simulated competing risk data including:
 
 ## Details
 
+Simulates competing risks data for \\N\\ individuals who are at risk of
+mutually exclusive event types. Three event types are simulated, where
+one can be interpreted as censoring.
+
 The event intensities follow Weibull hazard models parameterized by
 shape and scale parameters \\\eta\\ and \\\nu\\. Covariate effects on
 the hazard are specified by the `beta` matrix, which models the effects
@@ -68,6 +72,8 @@ of baseline covariates `L0` and `A0` on each event type.
 
 ``` r
 simCRdata(10)
+#> Warning: `simCRdata()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 #> Key: <ID>
 #>        ID         Time Delta        L0    A0
 #>     <int>        <num> <int>     <num> <num>

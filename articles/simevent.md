@@ -1,5 +1,11 @@
 # Getting Started with simevent
 
+> **Warning**
+>
+> The functions described in this vignette are deprecated as of simevent
+> 0.2.0. Use the graph-based API instead, described in
+> [`vignette("sim-event-graph")`](https://github.com/miclukacova/simevent/articles/sim-event-graph.md).
+
 ``` r
 
 library(simevent)

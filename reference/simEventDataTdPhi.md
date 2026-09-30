@@ -1,9 +1,8 @@
 # Simulate Continuous Time-to-Event Data with Multiple Event Types and time dependent effects
 
-`simEventDataTdPhi` simulates event times and types for a cohort of
-individuals in a counting process framework. It supports multiple event
-types (by default 4), including terminal events, with intensities
-influenced by baseline covariates and previous event history.
+`simEventDataTdPhi()` is deprecated as of simevent 0.2.0. Use
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+instead.
 
 ## Usage
 
@@ -164,6 +163,11 @@ A `data.table` with columns:
 
 ## Details
 
+`simEventDataTdPhi` simulates event times and types for a cohort of
+individuals in a counting process framework. It supports multiple event
+types (by default 4), including terminal events, with intensities
+influenced by baseline covariates and previous event history.
+
 The event intensities for event type \\x\\ at time \\t\\ are given by
 \$\$ \lambda^x(t) = \lambda_0^x(t) \exp(\beta_x^T L), \$\$ where the
 baseline intensity follows a Weibull hazard function: \$\$
@@ -185,6 +189,8 @@ generator can depend on `L0`. Their distributions can be changed via
 ``` r
 # Simulate data for 10 individuals with default settings
 sim_data <- simEventDataTdPhi(N = 10, beta2 = rep(0.01, 4))
+#> Warning: `simEventDataTdPhi()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 head(sim_data)
 #> Key: <ID>
 #>       ID      Time Delta        L0    A0    N0    N1    N2    N3

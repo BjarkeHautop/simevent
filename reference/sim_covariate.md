@@ -36,7 +36,7 @@ sim_covariate(function(N) rnorm(N, mean = 50, sd = 10))
 #> $generator
 #> function (N) 
 #> rnorm(N, mean = 50, sd = 10)
-#> <environment: 0x55f9a9729e10>
+#> <environment: 0x564c63d5a5d0>
 #> 
 #> attr(,"class")
 #> [1] "sim_covariate"
@@ -47,7 +47,7 @@ sim_covariate(function(N, age) rbinom(N, 1, plogis(-2 + 0.03 * age)))
 #> $generator
 #> function (N, age) 
 #> rbinom(N, 1, plogis(-2 + 0.03 * age))
-#> <environment: 0x55f9a9729e10>
+#> <environment: 0x564c63d5a5d0>
 #> 
 #> attr(,"class")
 #> [1] "sim_covariate"

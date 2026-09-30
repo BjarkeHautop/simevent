@@ -1,5 +1,9 @@
 # Simulate Data in a Statin Setting
 
+`simStatinData()` is deprecated as of simevent 0.2.0. Use
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+instead.
+
 Simulates event history data in a statin treatment setting via
 `simEventData`, with defaults for age (`A0`), a binary baseline
 covariate (`L0`), and 12 event processes.
@@ -123,6 +127,8 @@ A data frame containing the simulated data with columns:
 
 ``` r
 simStatinData(10)
+#> Warning: `simStatinData()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 #> Key: <ID>
 #>        ID     Time Delta    L0       A0    N0    N1    N2    N3    N4    N5
 #>     <int>    <num> <int> <num>    <num> <num> <num> <num> <num> <num> <num>

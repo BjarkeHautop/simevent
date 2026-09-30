@@ -79,15 +79,14 @@ covariate. Note that such a term must itself have been fit as a properly
 time-varying covariate (e.g. via
 [`coxph()`](https://rdrr.io/pkg/survival/man/coxph.html) on tstart-tstop
 data built with
-[`IntFormatData()`](https://github.com/miclukacova/simevent/reference/IntFormatData.md))
+[`interval_format_data()`](https://github.com/miclukacova/simevent/reference/interval_format_data.md))
 for its coefficient to be a valid estimate in the first place;
 `sim_graph_from_fits()` only wires whatever coefficient `fits` already
 contains, it does not check how that fit was estimated.
 
 ## See also
 
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md),
-[`sim.from.data()`](https://github.com/miclukacova/simevent/reference/sim.from.data.md)
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
 
 ## Examples
 

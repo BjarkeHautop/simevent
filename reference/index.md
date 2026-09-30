@@ -56,6 +56,13 @@ effects between them, and simulate event history data from it.
   [`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
   from Fitted Cox Models
 
+- [`summary(`*`<sim_graph>`*`)`](https://github.com/miclukacova/simevent/reference/summary.sim_graph.md)
+  [`print(`*`<summary.sim_graph>`*`)`](https://github.com/miclukacova/simevent/reference/summary.sim_graph.md)
+  :
+
+  Summarise a
+  [`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
+
 ## Treating graph-based simulated data
 
 Functions for formatting, plotting, and summarising data simulated with

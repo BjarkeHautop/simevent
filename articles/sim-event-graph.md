@@ -20,23 +20,22 @@ compare_graph <- function(wrapper_data, graph_data) {
 
 `compare_graph()` checks that a
 [`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
-reproduction draws the exact same random numbers, in the same order, as
-the wrapper it’s reproducing. That only holds below for
+reproduction draws the same random numbers, in the same order, as the
+wrapper it reproduces. Only holds below for
 [`simSurvData()`](https://github.com/miclukacova/simevent/reference/simSurvData.md)/[`simCRdata()`](https://github.com/miclukacova/simevent/reference/simCRdata.md).
 
 [`simDisease()`](https://github.com/miclukacova/simevent/reference/simDisease.md)/[`simTreatment()`](https://github.com/miclukacova/simevent/reference/simTreatment.md)
-each have a `"transient"` process, so some individuals finish before
-others;
+have a `"transient"` process, so individuals finish at different times:
 [`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
-draws random numbers only for whoever’s still being simulated, while the
-wrapper always draws for everyone (including those already finished) and
-discards the unused draws.
+only draws for whoever’s still running, while the wrapper draws for
+everyone and discards the unused draws for those already finished.
 
 ## Introduction
 
-This introduces the new API with
-[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md),
-which is (probably?) a better interface.
+Introduces the
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+API, a graph-based front end to the same simulator as
+[`sim.generic()`](https://github.com/miclukacova/simevent/reference/sim.generic.md).
 
 ## The `sim_graph()` Interface
 
@@ -71,14 +70,14 @@ graph
 data <- sim_event_graph(graph, n = 100)
 head(data)
 #> Key: <id>
-#>       id      time delta    L0
-#>    <int>     <num> <int> <int>
-#> 1:     1 1.3269158     0     0
-#> 2:     2 0.1127537     1     1
-#> 3:     3 2.3286819     0     0
-#> 4:     4 1.8986339     1     0
-#> 5:     5 4.2103320     1     1
-#> 6:     6 0.9263833     0     0
+#>       id       time delta    L0
+#>    <int>      <num> <int> <int>
+#> 1:     1  2.6236054     1     0
+#> 2:     2  2.3546678     0     0
+#> 3:     3  4.2218555     0     0
+#> 4:     4  1.8635759     0     0
+#> 5:     5 11.0996574     1     0
+#> 6:     6  0.6577807     1     1
 ```
 
 [`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)’s
@@ -97,15 +96,84 @@ data_intervened <- sim_event_graph(
 )
 head(data_intervened)
 #> Key: <id>
-#>       id     time delta    L0
-#>    <int>    <num> <int> <num>
-#> 1:     1 1.194452     1     1
-#> 2:     2 1.568504     1     1
-#> 3:     3 6.463053     0     1
-#> 4:     4 1.316111     1     1
-#> 5:     5 5.827507     0     1
-#> 6:     6 1.322803     1     1
+#>       id      time delta    L0
+#>    <int>     <num> <int> <num>
+#> 1:     1  4.076111     0     1
+#> 2:     2 10.855135     1     1
+#> 3:     3  3.166310     1     1
+#> 4:     4  8.132163     1     1
+#> 5:     5  8.682585     0     1
+#> 6:     6  2.327825     1     1
 ```
+
+### Non-Linear and History-Dependent Effects
+
+[`sim_effect()`](https://github.com/miclukacova/simevent/reference/sim_effect.md)’s
+`from` doesn’t have to name a single covariate or process. Any other
+string is parsed and evaluated as an R expression, against every
+covariate/process value plus the current time `t` and two history
+accessors, `last_time(proc)` and `nth_time(proc, k)`. Covers thresholds,
+interactions, and nonlinear transforms inline, and effects depending on
+a process’s full occurrence history, not just its current count, without
+a separate
+[`sim_derived()`](https://github.com/miclukacova/simevent/reference/sim_derived.md)
+covariate.
+
+For example, an effect that only fires on a process’s 3rd occurrence,
+not the 1st or 2nd:
+
+``` r
+
+relapse_graph <- sim_graph(
+  censoring = sim_process("censoring", eta = 0.01, nu = 1),
+  relapse = sim_process("transient", eta = 0.3, nu = 1, limit = 5),
+  death = sim_process("terminal", eta = 0.01, nu = 1),
+  effects = list(
+    sim_effect("relapse == 3", "death", coef = 8)
+  )
+)
+
+set.seed(1405)
+relapse_data <- sim_event_graph(relapse_graph, n = 2000, max_events = 40)
+
+deaths <- relapse_data[relapse_data$delta == 1, ]
+mean(deaths$relapse == 3)
+#> [1] 0.9031199
+```
+
+Most deaths happen right at the 3rd relapse, not before or after.
+
+`last_time()`/`nth_time()` give the same access to timing, not just
+counts. Here the death hazard drops for one time unit right after each
+checkup:
+
+``` r
+
+checkup_graph <- sim_graph(
+  censoring = sim_process("censoring", eta = 0.05, nu = 1.1),
+  checkup = sim_process("transient", eta = 0.3, nu = 1),
+  death = sim_process("terminal", eta = 0.05, nu = 1.1),
+  effects = list(
+    sim_effect("t - last_time(checkup) < 1", "death", coef = -2)
+  )
+)
+
+checkup_data <- sim_event_graph(checkup_graph, n = 2000)
+head(checkup_data)
+#> Key: <id>
+#>       id      time delta checkup
+#>    <int>     <num> <int>   <num>
+#> 1:     1  2.549686     2       1
+#> 2:     1  7.749251     2       2
+#> 3:     1 10.457539     2       3
+#> 4:     1 10.639773     2       4
+#> 5:     1 11.778381     1       4
+#> 6:     2  2.685184     2       1
+```
+
+`last_time(proc)` is `-Inf` before `proc`’s first occurrence, and
+`nth_time(proc, k)` is `Inf` before its `k`-th, so both work directly in
+comparisons with no `NA` handling required.
 
 ## Reproducing the Preset Wrappers
 
@@ -119,6 +187,8 @@ processes, censoring and death, both with `eta = 0.1`, `nu = 1.1`:
 
 set.seed(1405)
 wrapper_data <- simSurvData(200)
+#> Warning: `simSurvData()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 
 set.seed(1405)
 graph <- sim_graph(
@@ -143,6 +213,8 @@ adds a third terminal process (a second competing cause):
 set.seed(1405)
 beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
 wrapper_data <- simCRdata(N = 200, beta = beta)
+#> Warning: `simCRdata()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 
 set.seed(1405)
 graph <- sim_graph(
@@ -191,6 +263,8 @@ wrapper_data <- simDisease(
   beta_L_D = 1,
   beta_L0_D = 0
 )
+#> Warning: `simDisease()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 
 graph <- sim_graph(
   L0 = sim_covariate(function(N) runif(N)),
@@ -222,10 +296,9 @@ rbind(
 treatment (`A`), which can itself affect and be affected by the
 covariate process `L`.
 [`simTreatment()`](https://github.com/miclukacova/simevent/reference/simTreatment.md)
-doesn’t declare its own `A0`, so its reproduction doesn’t need one
-either –
+doesn’t declare its own `A0`, so its reproduction skips it too:
 [`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
-forces no default covariates:
+has no default covariates.
 
 ``` r
 
@@ -242,6 +315,8 @@ wrapper_data <- simTreatment(
   cens = 1,
   op = 1
 )
+#> Warning: `simTreatment()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 
 graph <- sim_graph(
   L0 = sim_covariate(function(N) runif(N)),
@@ -330,6 +405,8 @@ alphaSim(
   tau = 5,
   setting = "Disease"
 )
+#> Warning: `alphaSim()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 #> $effectDeath
 #> [1] 0.6977671
 #> 
@@ -435,6 +512,85 @@ plot_event_data(
 
 ![](sim-event-graph_files/figure-html/intervention-plot-1.png)
 
+### Calibrating a Coefficient to a Target Effect
+
+Hitting a specific target effect by hand means repeating the comparison
+above many times: a 1-D search. Risk is monotonic in a Cox-type
+coefficient, so [`uniroot()`](https://rdrr.io/r/stats/uniroot.html)
+finds it directly from a function returning the simulated effect for a
+given coefficient.
+
+Use the same `n`/`tau` on every call, and the same random seed for the
+natural and intervened runs (common random numbers), so only the
+coefficient and the intervention vary, not independent Monte Carlo noise
+too. Otherwise the search target is too noisy for
+[`uniroot()`](https://rdrr.io/r/stats/uniroot.html) to bracket a root.
+
+Take `disease_graph` from above, but suppose disease’s effect on death
+(fixed at `1` there) is unknown, and the target is: halving the disease
+hazard should lower 5-year death risk by 5 percentage points.
+
+``` r
+
+disease_effect_on_death <- function(coef, n = 3000, tau = 5, seed = 1) {
+  graph <- sim_graph(
+    L0 = sim_covariate(function(N) runif(N)),
+    A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
+    censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+    death = sim_process("terminal", eta = 0.1, nu = 1.1),
+    L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
+    effects = list(
+      sim_effect("L0", "death", 1),
+      sim_effect("L0", "L", 1),
+      sim_effect("L", "death", coef)
+    )
+  )
+
+  set.seed(seed)
+  natural <- sim_event_graph(graph, n = n, cens = 0)
+  set.seed(seed)
+  intervened <- sim_event_graph(
+    graph,
+    n = n,
+    cens = 0,
+    intervene = list(L = 0.5)
+  )
+
+  risk_natural <- event_risk(natural, graph, "death", tau = tau)$risk
+  risk_intervened <- event_risk(intervened, graph, "death", tau = tau)$risk
+  risk_natural - risk_intervened
+}
+```
+
+Larger coefficients make disease matter more for death, so halving its
+hazard lowers death risk by more: `disease_effect_on_death()` is
+increasing in `coef`.
+
+``` r
+
+sapply(c(0, 1, 2, 3), disease_effect_on_death)
+#> [1] -0.003666667  0.046666667  0.077333333  0.086000000
+```
+
+[`uniroot()`](https://rdrr.io/r/stats/uniroot.html) finds the
+coefficient giving a 5 percentage point reduction:
+
+``` r
+
+calibrated <- uniroot(
+  function(coef) disease_effect_on_death(coef) - 0.05,
+  interval = c(0, 3),
+  tol = 0.01
+)
+calibrated$root
+#> [1] 1.085581
+```
+
+For several coefficients and targets at once, wrap the sum of squared
+deviations into one objective (still with common random numbers) and use
+[`optim()`](https://rdrr.io/r/stats/optim.html) instead of
+[`uniroot()`](https://rdrr.io/r/stats/uniroot.html).
+
 ## Building a `sim_graph()` from Fitted Cox Models
 
 [`sim_graph_from_fits()`](https://github.com/miclukacova/simevent/reference/sim_graph_from_fits.md)
@@ -476,8 +632,7 @@ observed_graph <- sim_graph(
 )
 observed_data <- sim_event_graph(observed_graph, n = 1000)
 
-# Refit each process from that "observed" data, then rebuild a sim_graph()
-# from the fits, as if observed_data came from an outside source and
+# Refit from "observed" data, then rebuild a sim_graph(), as if
 # observed_graph were unknown:
 fits <- list(
   censoring = coxph(Surv(time, delta == 0) ~ L0 + A0, data = observed_data),
@@ -513,8 +668,7 @@ head(new_data)
 #> 5:     5 8.083563     0 0.4030154     0
 #> 6:     6 1.474290     0 0.4556481     1
 
-# Event-type distribution should be comparable between the observed and
-# newly simulated data:
+# Event-type distribution should match between observed and simulated data:
 rbind(
   observed = prop.table(table(observed_data$delta)),
   simulated = prop.table(table(new_data$delta))

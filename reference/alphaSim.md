@@ -1,21 +1,8 @@
 # Simulation and Estimation with Modified Shape Parameter
 
-This function simulates event history data from the Disease, Treatment,
-Drop In, or Statin setting (see `simDisease`, `simTreatment`,
-`simDropIn`, and `simStatinData`). The shape parameter \\\eta\\ of the
-disease/treatment/drop-in/MACE process is multiplied by `alpha`. The
-function either
-
-- returns the proportion of individuals who experience death and the
-  proportion of individuals who experience disease/drop in/treatment by
-  a specified time \\\tau\\ (in group `A0 = a0` for drop in and
-  disease).
-
-- returns number of years lost before \\\tau\\ of death and disease/drop
-  in/treatment
-
-- returns simulated data. One can specify all the same parameters as in
-  the functions `simDisease`, `simTreatment` and `simDropIn`.
+`alphaSim()` is deprecated as of simevent 0.2.0. Use
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+instead.
 
 ## Usage
 
@@ -108,10 +95,31 @@ A list with two components:
 
 Or the simulated data, if `return_data = TRUE`.
 
+## Details
+
+This function simulates event history data from the Disease, Treatment,
+Drop In, or Statin setting (see `simDisease`, `simTreatment`,
+`simDropIn`, and `simStatinData`). The shape parameter \\\eta\\ of the
+disease/treatment/drop-in/MACE process is multiplied by `alpha`. The
+function either
+
+- returns the proportion of individuals who experience death and the
+  proportion of individuals who experience disease/drop in/treatment by
+  a specified time \\\tau\\ (in group `A0 = a0` for drop in and
+  disease).
+
+- returns number of years lost before \\\tau\\ of death and disease/drop
+  in/treatment
+
+- returns simulated data. One can specify all the same parameters as in
+  the functions `simDisease`, `simTreatment` and `simDropIn`.
+
 ## Examples
 
 ``` r
 alphaSim(N = 100, eta = rep(0.1,3), nu = rep(1.1,3), alpha = 0.5, setting = "Disease")
+#> Warning: `alphaSim()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 #> $effectDeath
 #> [1] 0.6607143
 #> 

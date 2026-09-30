@@ -1,10 +1,8 @@
 # Simulate Survival Data with Censoring and Event Times
 
-Simulates survival data for \\N\\ individuals who are at risk for
-censoring (0) and an event (1). The hazard functions for censoring and
-event times follow Weibull distributions parameterized by shape
-parameters \\\eta\\ and scale parameters \\\nu\\. Covariate effects on
-censoring and event hazards are specified via a matrix `beta`.
+`simSurvData()` is deprecated as of simevent 0.2.0. Use
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+instead.
 
 ## Usage
 
@@ -52,10 +50,20 @@ simSurvData(N, beta = NULL, eta = rep(0.1, 2), nu = rep(1.1, 2), cens = 1, ...)
 
 A data frame containing the simulated survival data.
 
+## Details
+
+Simulates survival data for \\N\\ individuals who are at risk for
+censoring (0) and an event (1). The hazard functions for censoring and
+event times follow Weibull distributions parameterized by shape
+parameters \\\eta\\ and scale parameters \\\nu\\. Covariate effects on
+censoring and event hazards are specified via a matrix `beta`.
+
 ## Examples
 
 ``` r
 simSurvData(10)
+#> Warning: `simSurvData()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 #> Key: <ID>
 #>        ID      Time Delta          L0    A0
 #>     <int>     <num> <int>       <num> <num>

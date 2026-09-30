@@ -1,8 +1,8 @@
 # Simulate Event Data from a "Drop In" Setting
 
-`simDropIn` simulates data corresponding to `N` individuals that are at
-risk for 4 or 5 events: Censoring (C), Death (D), Drop In Initiation
-(Z), Change in Covariate Process (L), and optionally Treatment (A).
+`simDropIn()` is deprecated as of simevent 0.2.0. Use
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+instead.
 
 ## Usage
 
@@ -305,10 +305,18 @@ simDropIn(
 
 A data frame containing the simulated event history data.
 
+## Details
+
+`simDropIn` simulates data corresponding to `N` individuals that are at
+risk for 4 or 5 events: Censoring (C), Death (D), Drop In Initiation
+(Z), Change in Covariate Process (L), and optionally Treatment (A).
+
 ## Examples
 
 ``` r
 simDropIn(10)
+#> Warning: `simDropIn()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 #> Key: <ID>
 #>        ID      Time Delta         L0    A0     Z     L
 #>     <int>     <num> <int>      <num> <num> <num> <num>

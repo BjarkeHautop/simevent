@@ -1,9 +1,8 @@
 # Simulate Continuous Time-to-Event Data with Multiple Event Types
 
-`simEventData` simulates event times and types for a cohort of
-individuals in a counting process framework. It supports multiple event
-types (by default 4), including terminal events, with intensities
-influenced by baseline covariates and previous event history.
+`simEventData()` is deprecated as of simevent 0.2.0. Use
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+instead.
 
 ## Usage
 
@@ -156,6 +155,11 @@ A `data.table` with columns:
   Event counts up to the current event
 
 ## Details
+
+`simEventData` simulates event times and types for a cohort of
+individuals in a counting process framework. It supports multiple event
+types (by default 4), including terminal events, with intensities
+influenced by baseline covariates and previous event history.
 
 The event intensities for event type \\x\\ at time \\t\\ are given by
 \$\$ \lambda^x(t) = \lambda_0^x(t) \exp(\beta_x^T L), \$\$ where the

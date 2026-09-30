@@ -2,8 +2,7 @@
 
 `sim_event_graph` simulates multistate event history data from a
 [`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md)
-specification, via the same underlying sampler as
-[`simEventData()`](https://github.com/miclukacova/simevent/reference/simEventData.md).
+specification.
 
 ## Usage
 
@@ -16,7 +15,8 @@ sim_event_graph(
   max_cens = Inf,
   max_events = 50,
   lower = 1e-25,
-  upper = 1e+08
+  upper = 1e+08,
+  seed = NULL
 )
 ```
 
@@ -70,6 +70,10 @@ sim_event_graph(
   only when processes don't all share the same Weibull shape/scale.
   Defaults `1e-25`/`1e8`.
 
+- seed:
+
+  Integer or `NULL` (default).
+
 ## Value
 
 A `data.table` with columns `id`, `time`, `delta` (the 0-indexed
@@ -81,8 +85,7 @@ process (its cumulative event count).
 ## See also
 
 [`sim_graph()`](https://github.com/miclukacova/simevent/reference/sim_graph.md),
-[`simEventData()`](https://github.com/miclukacova/simevent/reference/simEventData.md),
-[`sim.generic()`](https://github.com/miclukacova/simevent/reference/sim.generic.md)
+[`event_risk()`](https://github.com/miclukacova/simevent/reference/event_risk.md)
 
 ## Examples
 

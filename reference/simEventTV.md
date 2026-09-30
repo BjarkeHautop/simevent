@@ -1,9 +1,8 @@
 # Simulate Event Data with Time-Varying Effects
 
-`simEventTV` simulates event data with the option of adding time-varying
-effects. The function is built up in the same way as `simEventData`,
-with the additional arguments `tv_eff` and `t_prime`, which specify the
-change of the beta matrix at time `t_prime`.
+`simEventTV()` is deprecated as of simevent 0.2.0. Use
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+instead.
 
 ## Usage
 
@@ -161,11 +160,20 @@ A `data.table` with columns:
 
   Additional covariates (if specified)
 
+## Details
+
+`simEventTV` simulates event data with the option of adding time-varying
+effects. The function is built up in the same way as `simEventData`,
+with the additional arguments `tv_eff` and `t_prime`, which specify the
+change of the beta matrix at time `t_prime`.
+
 ## Examples
 
 ``` r
 eta <- rep(0.1, 2)
 simEventTV(N = 100, t_prime = 1, eta = eta, term_deltas = c(0, 1))
+#> Warning: `simEventTV()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 #> Key: <ID>
 #>         ID        Time Delta          L0    A0    N0    N1
 #>      <int>       <num> <int>       <num> <num> <num> <num>

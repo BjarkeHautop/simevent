@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   sim-event-graph: sim-event-graph.html
   simevent: simevent.html
-last_built: 2026-09-23T09:46Z
+last_built: 2026-09-30T05:57Z
 urls:
   reference: https://github.com/miclukacova/simevent/reference
   article: https://github.com/miclukacova/simevent/articles

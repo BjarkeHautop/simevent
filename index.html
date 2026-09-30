@@ -75,21 +75,24 @@
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/miclukacova/simevent">simevent</a></span><span class="op">)</span></span></code></pre></div>
-<p>At the core of the package is the flexible function <code>simEventData</code>, which simulates event history data from a Cox proportional hazards model with Weibull hazards. Users specify the number of events, and their intensity parameters and covariate effects, to create custom scenarios. On top of this, the package provides:</p>
+<p>The package builds event history data from a <em>graph</em>: baseline covariates, event processes (censoring, terminal, or transient, with Weibull intensities), and the Cox-type effects between them. <code><a href="reference/sim_graph.html">sim_graph()</a></code> defines the graph and <code><a href="reference/sim_event_graph.html">sim_event_graph()</a></code> simulates from it. On top of this, the package provides:</p>
 <ul>
-<li>Wrapper functions for common settings, e.g. <code>simSurvData</code> (survival data), <code>simCRdata</code> (competing risks), <code>simDisease</code>, <code>simTreatment</code>, <code>simDropIn</code>, and <code>simEventTV</code> (time-varying effects).</li>
-<li>Functions for simulating new data from a model already fitted to observed data: <code>simEventCox</code> (Cox models) and <code>simEventObj</code> (any model with a <code>predict2</code> method).</li>
 <li>
-<code>plotEventData</code> and <code>IntFormatData</code> for plotting and reformatting simulated data.</li>
+<code><a href="reference/sim_graph_from_fits.html">sim_graph_from_fits()</a></code> for building a graph from <code>coxph()</code> fits to observed data, to simulate new data resembling it.</li>
 <li>
-<code>alphaSim</code> and <code>intEffectAlpha</code> for performing and evaluating interventions on the shape parameter of a process.</li>
+<code><a href="reference/interval_format_data.html">interval_format_data()</a></code> and <code><a href="reference/plot_event_data.html">plot_event_data()</a></code> for reformatting and plotting simulated data.</li>
+<li>The <code>intervene</code> argument of <code><a href="reference/sim_event_graph.html">sim_event_graph()</a></code>, together with <code><a href="reference/event_risk.html">event_risk()</a></code>, for simulating and evaluating interventions on processes and covariates.</li>
 </ul>
 <p>A minimal example, simulating survival data for 100 individuals and plotting the event histories:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simSurvData.html">simSurvData</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/plotEventData.html">plotEventData</a></span><span class="op">(</span><span class="va">data</span>, title <span class="op">=</span> <span class="st">"Survival Data"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">graph</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/sim_graph.html">sim_graph</a></span><span class="op">(</span></span>
+<span>  censoring <span class="op">=</span> <span class="fu"><a href="reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span>
+<span>  death <span class="op">=</span> <span class="fu"><a href="reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/sim_event_graph.html">sim_event_graph</a></span><span class="op">(</span><span class="va">graph</span>, n <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/plot_event_data.html">plot_event_data</a></span><span class="op">(</span><span class="va">data</span>, title <span class="op">=</span> <span class="st">"Survival Data"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-quick-example-1.png" alt="" width="100%"></p>
-<p>For a full walkthrough of the simulation framework and all of the functions above, see <code><a href="articles/simevent.html">vignette("simevent")</a></code>.</p>
+<p>For a full walkthrough of the simulation framework and all of the functions above, see <code><a href="articles/sim-event-graph.html">vignette("sim-event-graph")</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>

@@ -1,9 +1,8 @@
 # Simulate Event History Data Based on Cox Models
 
-Simulates recurrent and terminal event data for a cohort of individuals
-based on a list of fitted Cox proportional hazards models. Each event
-type is governed by its own model, and simulation proceeds by
-iteratively sampling event times until a terminal event occurs.
+`simEventCox()` is deprecated as of simevent 0.2.0. Use
+[`sim_graph_from_fits()`](https://github.com/miclukacova/simevent/reference/sim_graph_from_fits.md)
+instead.
 
 ## Usage
 
@@ -91,6 +90,11 @@ A `data.table` with one row per event per individual containing:
 
 ## Details
 
+Simulates recurrent and terminal event data for a cohort of individuals
+based on a list of fitted Cox proportional hazards models. Each event
+type is governed by its own model, and simulation proceeds by
+iteratively sampling event times until a terminal event occurs.
+
 The function simulates individual event histories by:
 
 1.  Sampling initial baseline covariates by resampling observed values.
@@ -121,4 +125,6 @@ cox_Disease <- survival::coxph(survival::Surv(tstart, tstop, Delta == 2)
 cox_fits <- list("D" = cox_death, "L" = cox_Disease)
 old_vars <- data_obs[, c("L0", "A0")]
 new_data <- simEventCox(100, cox_fits = cox_fits, old_vars = old_vars)
+#> Warning: `simEventCox()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_graph_from_fits()` instead.
 ```

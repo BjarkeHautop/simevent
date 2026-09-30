@@ -1,10 +1,8 @@
 # Simulate Data in a Disease Setting
 
-Simulates event data representing three event types: Censoring (0),
-Death (1), and Change in Covariate Process (2). Death and Censoring are
-terminal events, while Change in Covariate Process can occur only once.
-Event intensities depend on covariates and previous events, following
-Weibull hazards with shape and scale parameters \\\eta\\ and \\\nu\\.
+`simDisease()` is deprecated as of simevent 0.2.0. Use
+[`sim_event_graph()`](https://github.com/miclukacova/simevent/reference/sim_event_graph.md)
+instead.
 
 ## Usage
 
@@ -160,6 +158,12 @@ A data frame containing the simulated data with columns:
 
 ## Details
 
+Simulates event data representing three event types: Censoring (0),
+Death (1), and Change in Covariate Process (2). Death and Censoring are
+terminal events, while Change in Covariate Process can occur only once.
+Event intensities depend on covariates and previous events, following
+Weibull hazards with shape and scale parameters \\\eta\\ and \\\nu\\.
+
 The arguments `beta_X_Y` control how X affects Y. A positive value means
 that a higher value of X increases the intensity of Y, while a negative
 value decreases the intensity. Time-varying effects can be included via
@@ -169,6 +173,8 @@ value decreases the intensity. Time-varying effects can be included via
 
 ``` r
 simDisease(10)
+#> Warning: `simDisease()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_event_graph()` instead.
 #> Key: <ID>
 #>        ID       Time Delta         L0    A0     L
 #>     <int>      <num> <int>      <num> <num> <num>

@@ -38,7 +38,7 @@ sim_derived(function(region) as.numeric(region == 2))
 #> $fn
 #> function (region) 
 #> as.numeric(region == 2)
-#> <environment: 0x55f99e44ecc0>
+#> <environment: 0x564c5c3887c8>
 #> 
 #> attr(,"class")
 #> [1] "sim_derived"
@@ -48,7 +48,7 @@ sim_derived(function(L0, A0) L0 * A0)
 #> $fn
 #> function (L0, A0) 
 #> L0 * A0
-#> <environment: 0x55f99e44ecc0>
+#> <environment: 0x564c5c3887c8>
 #> 
 #> attr(,"class")
 #> [1] "sim_derived"

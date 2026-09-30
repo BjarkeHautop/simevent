@@ -1,17 +1,8 @@
 # Simulate Survival and Competing Risk Data Based on a General Model
 
-The `simEventObj` function simulates survival or competing risk data for
-a cohort of individuals based on a general model with a `predict2`
-method. The function is useful for simulating additional data under the
-same distribution as an original data set. The procedure consists of
-fitting a model, such as a random forest or Cox Proportional Hazards
-model on an original data set. Next the model is equipped with a
-`predict2` method, and passed as an argument to the `simEventObj`
-function, which simulates new data using the `predict2` method. The
-method should output the cumulative hazard array and the jump times of
-the cumulative hazard. Simulation proceeds by sampling from the uniform
-distribution and obtaining event times using the inverse of the
-cumulative hazard function(s).
+`simEventObj()` is deprecated as of simevent 0.2.0. Use
+[`sim_graph_from_fits()`](https://github.com/miclukacova/simevent/reference/sim_graph_from_fits.md)
+instead.
 
 ## Usage
 
@@ -65,6 +56,19 @@ A `data.table` with one row per event per individual containing:
 
 ## Details
 
+The `simEventObj` function simulates survival or competing risk data for
+a cohort of individuals based on a general model with a `predict2`
+method. The function is useful for simulating additional data under the
+same distribution as an original data set. The procedure consists of
+fitting a model, such as a random forest or Cox Proportional Hazards
+model on an original data set. Next the model is equipped with a
+`predict2` method, and passed as an argument to the `simEventObj`
+function, which simulates new data using the `predict2` method. The
+method should output the cumulative hazard array and the jump times of
+the cumulative hazard. Simulation proceeds by sampling from the uniform
+distribution and obtaining event times using the inverse of the
+cumulative hazard function(s).
+
 The function simulates individual event histories by:
 
 1.  Sampling initial baseline covariates by resampling observed values.
@@ -95,5 +99,7 @@ predict2.coxph <- function(obj, sim_data, ...) {
 
 old_vars <- data_obs[, c("L0", "A0")]
 new_data <- simEventObj(100, cox_fit, old_vars = old_vars)
+#> Warning: `simEventObj()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `sim_graph_from_fits()` instead.
 #> Error in predict2(obj, sim_data): could not find function "predict2"
 ```

@@ -1,14 +1,8 @@
 # Estimate Effect of Intervention: Modifying Eta Parameter of Process
 
-Simulates data from the Disease, Drop In, or Treatment setting under an
-intervention where the shape parameter \\\eta\\ of the disease, drop-in,
-or treatment process (respectively) is multiplied by `alpha`. It
-computes the proportion of individuals who experience death, and the
-proportion who experience disease/drop-in/treatment, by a specified time
-\\\tau\\ in the group `A0 = a0` (except in the Treatment setting, where
-all individuals are used), optionally returning years lost instead of
-proportions. The function can also plot a sample of the simulated
-(intervened) event data.
+`intEffectAlpha()` is deprecated as of simevent 0.2.0. Use
+[`event_risk()`](https://github.com/miclukacova/simevent/reference/event_risk.md)
+instead.
 
 ## Usage
 
@@ -109,10 +103,24 @@ A list with two components:
   Proportion (or years lost) of individuals who died by time \\\tau\\,
   under intervention.
 
+## Details
+
+Simulates data from the Disease, Drop In, or Treatment setting under an
+intervention where the shape parameter \\\eta\\ of the disease, drop-in,
+or treatment process (respectively) is multiplied by `alpha`. It
+computes the proportion of individuals who experience death, and the
+proportion who experience disease/drop-in/treatment, by a specified time
+\\\tau\\ in the group `A0 = a0` (except in the Treatment setting, where
+all individuals are used), optionally returning years lost instead of
+proportions. The function can also plot a sample of the simulated
+(intervened) event data.
+
 ## Examples
 
 ``` r
 intEffectAlpha(N = 1000, alpha = 0.7, tau = 5, years_lost = FALSE, a0 = 1, setting = "Drop In")
+#> Warning: `intEffectAlpha()` was deprecated in simevent 0.2.0.
+#> ℹ Please use `event_risk()` instead.
 #> $effect_2
 #> [1] 0.5695364
 #> 
