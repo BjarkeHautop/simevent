@@ -1,6 +1,6 @@
 #' Simulation and Estimation with Modified Shape Parameter
 #'
-#' `alphaSim()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#' `alphaSim()` is deprecated as of simevent 0.2.0. Use [sim_events()] instead.
 #'
 #' This function simulates event history data from the Disease, Treatment, Drop In, or Statin
 #' setting (see \code{simDisease}, \code{simTreatment}, \code{simDropIn}, and \code{simStatinData}).
@@ -55,7 +55,7 @@ alphaSim <- function(
   lifecycle::deprecate_warn(
     "0.2.0",
     "alphaSim()",
-    "sim_event_graph()"
+    "sim_events()"
   )
   .alphaSim(
     N = N,

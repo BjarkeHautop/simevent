@@ -1,6 +1,6 @@
 #' Simulate Event Data with Time-Varying Effects
 #'
-#' `simEventTV()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#' `simEventTV()` is deprecated as of simevent 0.2.0. Use [sim_events()] instead.
 #'
 #' `simEventTV` simulates event data with the option of adding time-varying effects.
 #' The function is built up in the same way as `simEventData`, with the additional
@@ -48,7 +48,7 @@ simEventTV <- function(
   lifecycle::deprecate_warn(
     "0.2.0",
     "simEventTV()",
-    "sim_event_graph()"
+    "sim_events()"
   )
   .simEventTV(
     N = N,

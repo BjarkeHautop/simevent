@@ -2,12 +2,12 @@
 % Please edit documentation in R/plot-event-data.R
 \name{plot_event_data}
 \alias{plot_event_data}
-\title{Plot Graph-Based Simulated Event History Data}
+\title{Plot Simulated Event History Data}
 \usage{
 plot_event_data(data, title = "Event Data")
 }
 \arguments{
-\item{data}{Output of \code{\link[=sim_event_graph]{sim_event_graph()}}.}
+\item{data}{Output of \code{\link[=sim_events]{sim_events()}}.}
 
 \item{title}{Character. Plot title. Default \code{"Event Data"}.}
 }
@@ -18,11 +18,11 @@ A \code{ggplot} object.
 One horizontal timeline per individual, with events marked by type.
 }
 \examples{
-graph <- sim_graph(
+model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
-data <- sim_event_graph(graph, n = 10)
+data <- sim_events(model, n = 10)
 plot_event_data(data)
 
 # Custom colors:
@@ -32,5 +32,5 @@ plot_event_data(data) +
   )
 }
 \seealso{
-\code{\link[=sim_event_graph]{sim_event_graph()}}
+\code{\link[=sim_events]{sim_events()}}
 }

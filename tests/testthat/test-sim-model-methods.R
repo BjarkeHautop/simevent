@@ -1,4 +1,4 @@
-graph <- sim_graph(
+model <- sim_model(
   age = sim_covariate(function(N) rnorm(N)),
   age_sq = sim_derived(function(age) age^2),
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
@@ -11,9 +11,9 @@ graph <- sim_graph(
   )
 )
 
-test_that("summary.sim_graph tabulates covariates, processes and effects", {
-  s <- summary(graph)
-  expect_s3_class(s, "summary.sim_graph")
+test_that("summary.sim_model tabulates covariates, processes and effects", {
+  s <- summary(model)
+  expect_s3_class(s, "summary.sim_model")
   expect_equal(s$covariates$name, c("age", "age_sq"))
   expect_equal(s$covariates$kind, c("baseline", "derived"))
   expect_equal(s$processes$name, c("censoring", "relapse", "death"))
@@ -23,8 +23,8 @@ test_that("summary.sim_graph tabulates covariates, processes and effects", {
   expect_output(print(s), "processes")
 })
 
-test_that("summary.sim_graph works with no effects", {
-  g <- sim_graph(death = sim_process("terminal", eta = 0.1, nu = 1))
+test_that("summary.sim_model works with no effects", {
+  g <- sim_model(death = sim_process("terminal", eta = 0.1, nu = 1))
   expect_equal(nrow(summary(g)$effects), 0)
   expect_output(print(summary(g)), "effects")
 })

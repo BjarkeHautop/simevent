@@ -1,23 +1,23 @@
 #----------------------------------------------------------------------
-## The graph-based API: node/edge constructors, sim_graph(),
-## sim_event_graph() and sim_graph_from_fits(). The engine itself lives in
-## sim-graph-engine.R.
+## The simulation API: node/edge constructors, sim_model(),
+## sim_events() and sim_model_from_fits(). The engine itself lives in
+## sim-engine.R.
 #----------------------------------------------------------------------
 
-#' Define a Baseline Covariate for `sim_graph()`
+#' Define a Baseline Covariate for `sim_model()`
 #'
 #' @param generator Function of `N` (number of individuals) returning the
 #'   covariate's values. May also take covariates defined earlier in the same
-#'   [sim_graph()] call, by name.
+#'   [sim_model()] call, by name.
 #'
-#' @return An object of class `sim_covariate`, for use in [sim_graph()].
-#' @seealso [sim_graph()], [sim_process()]
+#' @return An object of class `sim_covariate`, for use in [sim_model()].
+#' @seealso [sim_model()], [sim_process()]
 #' @examples
 #' # A covariate that doesn't depend on any other:
 #' sim_covariate(function(N) rnorm(N, mean = 50, sd = 10))
 #'
 #' # A covariate whose generator depends on another covariate defined
-#' # earlier in the same sim_graph() call:
+#' # earlier in the same sim_model() call:
 #' sim_covariate(function(N, age) rbinom(N, 1, plogis(-2 + 0.03 * age)))
 #' @export
 sim_covariate <- function(generator) {
@@ -32,20 +32,20 @@ sim_covariate <- function(generator) {
   structure(list(generator = generator), class = "sim_covariate")
 }
 
-#' Define a Derived Covariate for `sim_graph()`
+#' Define a Derived Covariate for `sim_model()`
 #'
 #' `sim_derived` builds a covariate that is a deterministic transform of one
-#' or more other covariates defined earlier in the same [sim_graph()] call.
+#' or more other covariates defined earlier in the same [sim_model()] call.
 #'
 #' @param fn Function of covariates defined earlier in the same
-#'   [sim_graph()] call, by name.
+#'   [sim_model()] call, by name.
 #'
-#' @return An object of class `sim_derived`, for use in [sim_graph()].
-#' @seealso [sim_graph()], [sim_covariate()], [sim_effect()]
+#' @return An object of class `sim_derived`, for use in [sim_model()].
+#' @seealso [sim_model()], [sim_covariate()], [sim_effect()]
 #' @examples
 #' # BMI from weight (kg) and height (m), stored as its own column and usable
 #' # by covariates defined after it:
-#' graph <- sim_graph(
+#' model <- sim_model(
 #'   weight = sim_covariate(function(N) rnorm(N, mean = 80, sd = 12)),
 #'   height = sim_covariate(function(N) rnorm(N, mean = 1.75, sd = 0.08)),
 #'   bmi = sim_derived(function(weight, height) weight / height^2),
@@ -53,7 +53,7 @@ sim_covariate <- function(generator) {
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
 #'   effects = list(sim_effect("statin", "death", coef = -0.3))
 #' )
-#' head(sim_event_graph(graph, n = 5))
+#' head(sim_events(model, n = 5))
 #' @export
 sim_derived <- function(fn) {
   checkmate::assert_function(fn)
@@ -73,7 +73,7 @@ sim_derived <- function(fn) {
 # Wraps a sim_derived() fn into a generator simEventShared's
 # .simEvent_draw_baseline() can call like any other add_cov entry (which
 # always passes N first).
-.sim_graph_wrap_derived <- function(fn) {
+.sim_wrap_derived <- function(fn) {
   wrapper <- function() {}
   formals(wrapper) <- c(alist(N = ), formals(fn))
   body(wrapper) <- as.call(c(quote(fn), lapply(names(formals(fn)), as.symbol)))
@@ -81,7 +81,7 @@ sim_derived <- function(fn) {
   wrapper
 }
 
-#' Define an Event Process for `sim_graph()`
+#' Define an Event Process for `sim_model()`
 #'
 #' `sim_process` builds an event process whose baseline intensity is Weibull,
 #' \deqn{\lambda_0(t) = \eta \nu t^{\nu - 1},}
@@ -106,10 +106,10 @@ sim_derived <- function(fn) {
 #'   giving the cumulative baseline hazard, e.g. from
 #'   [survival::basehaz()] with `centered = FALSE`. Used instead of `eta` and
 #'   `nu`, and interpolated linearly. The hazard is unknown after the last
-#'   `time`, so [sim_event_graph()] ends follow-up there, as for `max_cens`.
+#'   `time`, so [sim_events()] ends follow-up there, as for `max_cens`.
 #'
-#' @return An object of class `sim_process`, for use in [sim_graph()].
-#' @seealso [sim_graph()], [sim_covariate()]
+#' @return An object of class `sim_process`, for use in [sim_model()].
+#' @seealso [sim_model()], [sim_covariate()]
 #' @examples
 #' # Death, with a slowly increasing hazard:
 #' sim_process("terminal", eta = 0.1, nu = 1.1)
@@ -142,7 +142,7 @@ sim_process <- function(
     if (!missing(eta) || !missing(nu)) {
       stop("sim_process() takes either eta and nu, or cumhaz, not both.")
     }
-    cumhaz <- .sim_graph_check_cumhaz(cumhaz)
+    cumhaz <- .sim_check_cumhaz(cumhaz)
     eta <- NA_real_
     nu <- NA_real_
   }
@@ -154,7 +154,7 @@ sim_process <- function(
 
 # Validates a sim_process() `cumhaz` and returns its time/hazard columns,
 # without any time-0 row (the cumulative hazard is 0 there by definition).
-.sim_graph_check_cumhaz <- function(cumhaz) {
+.sim_check_cumhaz <- function(cumhaz) {
   checkmate::assert_data_frame(cumhaz, min.rows = 1)
   checkmate::assert_names(names(cumhaz), must.include = c("time", "hazard"))
   time <- cumhaz$time
@@ -185,7 +185,7 @@ sim_process <- function(
   data.frame(time = time, hazard = hazard)
 }
 
-#' Define an Effect for `sim_graph()`
+#' Define an Effect for `sim_model()`
 #'
 #' Multiplies the hazard of process `to` by `exp(coef * from)`.
 #'
@@ -193,7 +193,7 @@ sim_process <- function(
 #'   number of events so far), or an R expression of these. Expressions may
 #'   also use:
 #'   \describe{
-#'     \item{`t`}{The current time (see [sim_event_graph()]'s `time_step`).}
+#'     \item{`t`}{The current time (see [sim_events()]'s `time_step`).}
 #'     \item{`last_time(proc)`}{Time of `proc`'s latest event, `-Inf` if
 #'       none.}
 #'     \item{`nth_time(proc, k)`}{Time of `proc`'s `k`-th event, `Inf` if
@@ -202,8 +202,8 @@ sim_process <- function(
 #' @param to Character. Name of the affected process.
 #' @param coef Numeric. Cox-type coefficient.
 #'
-#' @return An object of class `sim_effect`, for use in [sim_graph()].
-#' @seealso [sim_graph()]
+#' @return An object of class `sim_effect`, for use in [sim_model()].
+#' @seealso [sim_model()]
 #' @examples
 #' sim_effect("age", "death", coef = 0.03)
 #' sim_effect("(age - 60)^2", "death", coef = 0.001)
@@ -218,21 +218,21 @@ sim_effect <- function(from, to, coef) {
   structure(list(from = from, to = to, coef = coef), class = "sim_effect")
 }
 
-#' Build a Simulation Graph for `sim_event_graph()`
+#' Build a Simulation Model for `sim_events()`
 #'
-#' `sim_graph` assembles a set of named [sim_covariate()]/[sim_derived()]/
+#' `sim_model` assembles a set of named [sim_covariate()]/[sim_derived()]/
 #' [sim_process()] nodes and [sim_effect()] edges between them into a single
-#' specification, which [sim_event_graph()] can then simulate from.
+#' specification, which [sim_events()] can then simulate from.
 #'
 #' @param ... Named [sim_covariate()]/[sim_derived()]/[sim_process()]
 #'   objects. A covariate may only depend on covariates listed before it.
 #' @param effects List of [sim_effect()]s.
 #'
-#' @return An object of class `sim_graph`.
-#' @seealso [sim_event_graph()], [sim_covariate()], [sim_derived()],
+#' @return An object of class `sim_model`.
+#' @seealso [sim_events()], [sim_covariate()], [sim_derived()],
 #'   [sim_process()], [sim_effect()]
 #' @examples
-#' graph <- sim_graph(
+#' model <- sim_model(
 #'   age = sim_covariate(function(N) runif(N, min = 40, max = 80)),
 #'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
@@ -241,9 +241,9 @@ sim_effect <- function(from, to, coef) {
 #'     sim_effect("(age - 60)^2", "death", coef = 0.001)
 #'   )
 #' )
-#' graph
+#' model
 #' @export
-sim_graph <- function(..., effects = list()) {
+sim_model <- function(..., effects = list()) {
   nodes <- list(...)
   checkmate::assert_list(nodes, names = "unique", min.len = 1)
 
@@ -256,16 +256,16 @@ sim_graph <- function(..., effects = list()) {
   is_process <- vapply(nodes, inherits, logical(1), what = "sim_process")
   if (!all(is_baseline | is_process)) {
     stop(
-      "All named arguments to sim_graph() must be sim_covariate(), ",
+      "All named arguments to sim_model() must be sim_covariate(), ",
       "sim_derived(), or sim_process() objects; offending name(s): ",
       paste(names(nodes)[!(is_baseline | is_process)], collapse = ", ")
     )
   }
   if (!any(is_process)) {
-    stop("sim_graph() needs at least one sim_process().")
+    stop("sim_model() needs at least one sim_process().")
   }
 
-  # Names that would collide with sim_event_graph()'s output columns, with
+  # Names that would collide with sim_events()'s output columns, with
   # the non-process labels its `event` column can take, or with the
   # variables available inside a sim_effect() expression.
   reserved_names <- c(
@@ -281,7 +281,7 @@ sim_graph <- function(..., effects = list()) {
   reserved <- intersect(names(nodes), reserved_names)
   if (length(reserved) > 0) {
     stop(
-      "sim_graph() node name(s) are reserved: ",
+      "sim_model() node name(s) are reserved: ",
       paste(reserved, collapse = ", "),
       ". Reserved names are ",
       paste(reserved_names, collapse = ", "),
@@ -291,7 +291,7 @@ sim_graph <- function(..., effects = list()) {
   process_types <- vapply(nodes[is_process], `[[`, character(1), "type")
   if (!any(process_types == "terminal")) {
     stop(
-      "sim_graph() needs at least one sim_process(\"terminal\"): without ",
+      "sim_model() needs at least one sim_process(\"terminal\"): without ",
       "one, follow-up never ends."
     )
   }
@@ -309,7 +309,7 @@ sim_graph <- function(..., effects = list()) {
           "' has argument(s) '",
           paste(missing, collapse = ", "),
           "' that do not name an earlier sim_covariate()/sim_derived() in ",
-          "the same sim_graph() call."
+          "the same sim_model() call."
         )
       }
     }
@@ -322,7 +322,7 @@ sim_graph <- function(..., effects = list()) {
           "' depends on '",
           paste(missing, collapse = ", "),
           "', which must be an earlier sim_covariate()/sim_derived() in ",
-          "the same sim_graph() call."
+          "the same sim_model() call."
         )
       }
     }
@@ -337,7 +337,7 @@ sim_graph <- function(..., effects = list()) {
   )
   if (anyDuplicated(effect_keys) > 0) {
     stop(
-      "sim_graph() has duplicate sim_effect()s: ",
+      "sim_model() has duplicate sim_effect()s: ",
       paste(unique(effect_keys[duplicated(effect_keys)]), collapse = "; "),
       ". Combine them into a single effect."
     )
@@ -369,7 +369,7 @@ sim_graph <- function(..., effects = list()) {
         stop(
           "sim_effect() 'from' expression '",
           eff$from,
-          "' references name(s) not found in graph: ",
+          "' references name(s) not found in model: ",
           paste(unknown, collapse = ", ")
         )
       }
@@ -378,7 +378,7 @@ sim_graph <- function(..., effects = list()) {
     }
     if (!(eff$to %in% process_names)) {
       stop(
-        "sim_effect() 'to' must name a sim_process() in the graph; '",
+        "sim_effect() 'to' must name a sim_process() in the model; '",
         eff$to,
         "' is not one."
       )
@@ -404,16 +404,16 @@ sim_graph <- function(..., effects = list()) {
       processes = nodes[is_process],
       effects = effects
     ),
-    class = "sim_graph"
+    class = "sim_model"
   )
 }
 
 #' @export
-print.sim_graph <- function(x, ...) {
+print.sim_model <- function(x, ...) {
   covariate_names <- names(x$covariates)
-  covariate_names <- covariate_names[!.sim_graph_hidden(covariate_names)]
+  covariate_names <- covariate_names[!.sim_hidden(covariate_names)]
   cat(
-    "<sim_graph>",
+    "<sim_model>",
     sprintf(
       "  %d covariate(s): %s",
       length(covariate_names),
@@ -436,11 +436,11 @@ print.sim_graph <- function(x, ...) {
 # Returns a function of `event_counts` (a named list, one entry per process,
 # each a vector of per-individual counts) to a process x individual at-risk
 # matrix with process-named rows, for all individuals at once.
-.sim_graph_at_risk <- function(graph, cens) {
-  process_names <- names(graph$processes)
-  types <- vapply(graph$processes, `[[`, character(1), "type")
+.sim_at_risk <- function(model, cens) {
+  process_names <- names(model$processes)
+  types <- vapply(model$processes, `[[`, character(1), "type")
   transient <- process_names[types == "transient"]
-  limit <- vapply(graph$processes[transient], `[[`, numeric(1), "limit")
+  limit <- vapply(model$processes[transient], `[[`, numeric(1), "limit")
   censoring <- process_names[types == "censoring"]
 
   function(event_counts) {
@@ -458,12 +458,12 @@ print.sim_graph <- function(x, ...) {
   }
 }
 
-#' Simulate Event History Data from a `sim_graph()`
+#' Simulate Event History Data from a `sim_model()`
 #'
-#' `sim_event_graph` simulates multistate event history data from a
-#' [sim_graph()] specification.
+#' `sim_events` simulates multistate event history data from a
+#' [sim_model()] specification.
 #'
-#' @param graph A [sim_graph()].
+#' @param model A [sim_model()].
 #' @param n Integer. Number of individuals to simulate.
 #' @param intervene Named list of interventions. A covariate name fixes that
 #'   covariate to the given value for everyone; a process name multiplies
@@ -486,12 +486,12 @@ print.sim_graph <- function(x, ...) {
 #'   `"transient"` process's number of events so far.
 #'
 #' @examples
-#' # An illness-death graph: "age" is a plain covariate, "treated" is a
+#' # An illness-death model: "age" is a plain covariate, "treated" is a
 #' # second covariate whose generator depends on age, "illness" is a
 #' # transient process capped at 2 events (limit = 2, e.g. two distinct
 #' # relapse diagnoses) that can itself raise the death hazard, and "checkup"
 #' # is an unlimited (limit = Inf) transient process.
-#' graph <- sim_graph(
+#' model <- sim_model(
 #'   age = sim_covariate(function(N) rnorm(N, mean = 50, sd = 10)),
 #'   treated = sim_covariate(function(N, age) rbinom(N, 1, plogis(-2 + 0.03 * age))),
 #'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
@@ -505,7 +505,7 @@ print.sim_graph <- function(x, ...) {
 #'     sim_effect("checkup", "death", coef = 0.8)
 #'   )
 #' )
-#' data <- sim_event_graph(graph, n = 100)
+#' data <- sim_events(model, n = 100)
 #' head(data)
 #'
 #' # illness has fired at most twice for everyone (limit = 2):
@@ -513,18 +513,18 @@ print.sim_graph <- function(x, ...) {
 #'
 #' # Double the censoring rate (cens scales every "censoring"-type process),
 #' # halve the death hazard, and fix everyone's treatment status to 1:
-#' data_intervened <- sim_event_graph(
-#'   graph,
+#' data_intervened <- sim_events(
+#'   model,
 #'   n = 100,
 #'   cens = 2,
 #'   intervene = list(death = 0.5, treated = 1)
 #' )
 #' head(data_intervened)
 #'
-#' @seealso [sim_graph()], [event_risk()]
+#' @seealso [sim_model()], [event_risk()]
 #' @export
-sim_event_graph <- function(
-  graph,
+sim_events <- function(
+  model,
   n,
   intervene = list(),
   cens = 1,
@@ -535,7 +535,7 @@ sim_event_graph <- function(
   time_step = 0.01,
   seed = NULL
 ) {
-  checkmate::assert_class(graph, "sim_graph")
+  checkmate::assert_class(model, "sim_model")
   checkmate::assert_count(n, positive = TRUE)
   checkmate::assert_int(seed, null.ok = TRUE)
   checkmate::assert_list(intervene, names = "unique")
@@ -545,20 +545,20 @@ sim_event_graph <- function(
     stop("time_step must be positive.")
   }
 
-  covariate_names <- names(graph$covariates)
-  process_names <- names(graph$processes)
+  covariate_names <- names(model$covariates)
+  process_names <- names(model$processes)
 
   unknown <- setdiff(names(intervene), c(covariate_names, process_names))
   if (length(unknown) > 0) {
     stop(
-      "intervene targets unknown name(s) not in graph: ",
+      "intervene targets unknown name(s) not in model: ",
       paste(unknown, collapse = ", ")
     )
   }
 
   run <- function() {
-    run_sim_graph(
-      graph,
+    run_sim(
+      model,
       n = n,
       intervene = intervene,
       cens = cens,
@@ -573,7 +573,7 @@ sim_event_graph <- function(
 }
 
 # A coxph() fit's cumulative baseline hazard at covariates 0.
-.sim_graph_basehaz <- function(fit, proc) {
+.sim_basehaz <- function(fit, proc) {
   # centered = FALSE gives the hazard at covariates 0, so survfit()'s warning
   # about interactions and centering at the column means doesn't apply.
   bh <- withCallingHandlers(
@@ -588,7 +588,7 @@ sim_event_graph <- function(
     stop(
       "fits$",
       proc,
-      " is stratified, which sim_graph_from_fits() can't use."
+      " is stratified, which sim_model_from_fits() can't use."
     )
   }
   if (max(bh$hazard) == 0) {
@@ -597,19 +597,19 @@ sim_event_graph <- function(
   bh[, c("time", "hazard")]
 }
 
-# Name of the hidden covariate sim_graph_from_fits() resamples observed rows
+# Name of the hidden covariate sim_model_from_fits() resamples observed rows
 # through. Covariates whose names start with "." are left out of
-# sim_event_graph()'s output and print()/summary().
-.sim_graph_row_name <- ".row"
+# sim_events()'s output and print()/summary().
+.sim_row_name <- ".row"
 
-.sim_graph_hidden <- function(nms) startsWith(as.character(nms), ".")
+.sim_hidden <- function(nms) startsWith(as.character(nms), ".")
 
 # A sim_derived() looking up `values` at the resampled row index, so all of
 # an individual's covariates come from the same observed row.
-.sim_graph_resampled_column <- function(values) {
+.sim_resampled_column <- function(values) {
   f <- function() NULL
-  formals(f) <- stats::setNames(alist(x = ), .sim_graph_row_name)
-  body(f) <- bquote(values[.(as.symbol(.sim_graph_row_name))])
+  formals(f) <- stats::setNames(alist(x = ), .sim_row_name)
+  body(f) <- bquote(values[.(as.symbol(.sim_row_name))])
   environment(f) <- list2env(list(values = values), parent = baseenv())
   sim_derived(f)
 }
@@ -620,7 +620,7 @@ sim_event_graph <- function(
 # named `varname` (matching coxph()'s coefficient naming convention
 # paste0(varname, level) for the default treatment contrasts), so
 # .simEvent_draw_baseline()'s dependency detection works unmodified.
-.sim_graph_level_dummy <- function(varname, level_code) {
+.sim_level_dummy <- function(varname, level_code) {
   f <- function() NULL
   formals(f) <- stats::setNames(alist(x = ), varname)
   body(f) <- bquote(as.numeric(.(as.symbol(varname)) == .(level_code)))
@@ -629,16 +629,16 @@ sim_event_graph <- function(
 
 # The sim_effect() `from` for a coxph() coefficient name: a node name as-is,
 # otherwise an expression, with interaction terms' ":" turned into "*".
-.sim_graph_effect_from_coef <- function(coef_name, node_names) {
+.sim_effect_from_coef <- function(coef_name, node_names) {
   if (coef_name %in% node_names) {
     return(coef_name)
   }
   gsub(":", " * ", coef_name, fixed = TRUE)
 }
 
-#' Build a `sim_graph()` from Fitted Cox Models
+#' Build a `sim_model()` from Fitted Cox Models
 #'
-#' Builds a [sim_graph()] from one fitted [survival::coxph()] model per
+#' Builds a [sim_model()] from one fitted [survival::coxph()] model per
 #' process, so simulated data resembles the data they were fit to.
 #'
 #' Covariates are regenerated by resampling whole rows of `data`, so each
@@ -657,7 +657,7 @@ sim_event_graph <- function(
 #'
 #' @param fits Named list of [survival::coxph()] fits, one per process.
 #' @param data The `data.frame` the fits were estimated from. If it has an
-#'   `id` column (e.g. from [sim_event_graph()] or [interval_format_data()]),
+#'   `id` column (e.g. from [sim_events()] or [interval_format_data()]),
 #'   covariates are resampled from each id's first row.
 #' @param types Named character vector giving each process's
 #'   [sim_process()] `type` (`"censoring"`, `"terminal"`, or `"transient"`),
@@ -665,14 +665,14 @@ sim_event_graph <- function(
 #' @param limits Named list giving `limit` for any `"transient"` process not
 #'   using the default (`limit = Inf`).
 #'
-#' @return A [sim_graph()], ready for [sim_event_graph()].
-#' @seealso [sim_event_graph()]
+#' @return A [sim_model()], ready for [sim_events()].
+#' @seealso [sim_events()]
 #' @examples
 #' library(survival)
 #'
-#' # Some "observed" data, from a 3-cause competing-risks sim_graph():
+#' # Some "observed" data, from a 3-cause competing-risks sim_model():
 #' set.seed(1405)
-#' observed_graph <- sim_graph(
+#' observed_model <- sim_model(
 #'   L0 = sim_covariate(function(N) runif(N)),
 #'   A0 = sim_covariate(function(N, L0) rbinom(N, 1, plogis(-0.5 + L0))),
 #'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
@@ -686,11 +686,11 @@ sim_event_graph <- function(
 #'     sim_effect("A0", "cause2", 0.5)
 #'   )
 #' )
-#' observed_data <- sim_event_graph(observed_graph, n = 1000)
+#' observed_data <- sim_events(observed_model, n = 1000)
 #'
-#' # Refit each process from that "observed" data, then rebuild a sim_graph()
+#' # Refit each process from that "observed" data, then rebuild a sim_model()
 #' # from the fits, as if observed_data came from an outside source and
-#' # observed_graph were unknown:
+#' # observed_model were unknown:
 #' fits <- list(
 #'   censoring = coxph(
 #'     Surv(time, event == "censoring") ~ L0 + A0,
@@ -701,8 +701,8 @@ sim_event_graph <- function(
 #' )
 #' types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 #'
-#' graph <- sim_graph_from_fits(fits, observed_data, types)
-#' new_data <- sim_event_graph(graph, n = 1000)
+#' model <- sim_model_from_fits(fits, observed_data, types)
+#' new_data <- sim_events(model, n = 1000)
 #' head(new_data)
 #'
 #' # Event-type distribution should be comparable between the observed and
@@ -714,7 +714,7 @@ sim_event_graph <- function(
 #'   simulated = prop.table(table(new_data$event))
 #' )
 #' @export
-sim_graph_from_fits <- function(fits, data, types, limits = list()) {
+sim_model_from_fits <- function(fits, data, types, limits = list()) {
   checkmate::assert_list(fits, names = "unique", min.len = 1)
   if (!all(vapply(fits, inherits, logical(1), what = "coxph"))) {
     stop("Every entry of fits must be a survival::coxph() fit.")
@@ -759,20 +759,20 @@ sim_graph_from_fits <- function(fits, data, types, limits = list()) {
   # factor covariates (dummy names double as the coefficient names coxph()
   # itself produces, e.g. "region2").
   baseline_nodes <- list()
-  baseline_nodes[[.sim_graph_row_name]] <- sim_covariate(local({
+  baseline_nodes[[.sim_row_name]] <- sim_covariate(local({
     force(n_rows)
     function(N) sample.int(n_rows, N, replace = TRUE)
   }))
   for (nm in covariate_names) {
     col <- data[[nm]]
     if (is.factor(col)) {
-      baseline_nodes[[nm]] <- .sim_graph_resampled_column(as.integer(col))
+      baseline_nodes[[nm]] <- .sim_resampled_column(as.integer(col))
       lv <- levels(col)
       for (i in seq_along(lv)[-1]) {
-        baseline_nodes[[paste0(nm, lv[i])]] <- .sim_graph_level_dummy(nm, i)
+        baseline_nodes[[paste0(nm, lv[i])]] <- .sim_level_dummy(nm, i)
       }
     } else if (is.numeric(col) || is.logical(col)) {
-      baseline_nodes[[nm]] <- .sim_graph_resampled_column(as.numeric(col))
+      baseline_nodes[[nm]] <- .sim_resampled_column(as.numeric(col))
     } else {
       stop(
         "Covariate '",
@@ -790,19 +790,19 @@ sim_graph_from_fits <- function(fits, data, types, limits = list()) {
     process_nodes[[proc]] <- sim_process(
       type = types[[proc]],
       limit = if (is.null(limits[[proc]])) Inf else limits[[proc]],
-      cumhaz = .sim_graph_basehaz(fit, proc)
+      cumhaz = .sim_basehaz(fit, proc)
     )
 
     cf <- stats::coef(fit)
     cf <- cf[!is.na(cf)]
     for (v in names(cf)) {
-      from <- .sim_graph_effect_from_coef(v, node_names)
+      from <- .sim_effect_from_coef(v, node_names)
       effects[[length(effects) + 1]] <- sim_effect(from, proc, unname(cf[[v]]))
     }
   }
 
   do.call(
-    sim_graph,
+    sim_model,
     c(baseline_nodes, process_nodes, list(effects = effects))
   )
 }

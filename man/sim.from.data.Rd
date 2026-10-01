@@ -63,7 +63,7 @@ A \code{data.table} of simulated event history data with columns
 column per non-terminal process.
 }
 \description{
-\code{sim.from.data()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_graph_from_fits]{sim_graph_from_fits()}} instead.
+\code{sim.from.data()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_model_from_fits]{sim_model_from_fits()}} instead.
 }
 \details{
 \code{sim.from.data} simulates new multistate event history data using
@@ -77,7 +77,7 @@ directly, \code{sim.from.data} is meant to be fed parameters estimated
 from real data, so that the simulated data mimics an observed dataset's
 distribution (optionally under an intervention via
 \code{alpha.intervention}/\code{baseline.intervention}). See
-\code{\link{sim_graph_from_fits}} for a more convenient way to do this
+\code{\link{sim_model_from_fits}} for a more convenient way to do this
 directly from \code{coxph} fits and the data they were fit to, without
 hand-building \code{sim.parameters}.
 }

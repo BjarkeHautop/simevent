@@ -1,18 +1,18 @@
-#' Plot Graph-Based Simulated Event History Data
+#' Plot Simulated Event History Data
 #'
 #' One horizontal timeline per individual, with events marked by type.
 #'
-#' @param data Output of [sim_event_graph()].
+#' @param data Output of [sim_events()].
 #' @param title Character. Plot title. Default `"Event Data"`.
 #'
 #' @return A `ggplot` object.
-#' @seealso [sim_event_graph()]
+#' @seealso [sim_events()]
 #' @examples
-#' graph <- sim_graph(
+#' model <- sim_model(
 #'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 #' )
-#' data <- sim_event_graph(graph, n = 10)
+#' data <- sim_events(model, n = 10)
 #' plot_event_data(data)
 #'
 #' # Custom colors:

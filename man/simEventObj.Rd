@@ -34,7 +34,7 @@ A \code{data.table} with one row per event per individual containing:
 }
 }
 \description{
-\code{simEventObj()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_graph_from_fits]{sim_graph_from_fits()}} instead.
+\code{simEventObj()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_model_from_fits]{sim_model_from_fits()}} instead.
 }
 \details{
 The \code{simEventObj} function simulates survival or competing risk data for a cohort

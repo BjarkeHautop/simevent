@@ -115,7 +115,7 @@ A \code{data.frame} with columns:
 }
 }
 \description{
-\code{simTreatment()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.
+\code{simTreatment()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_events]{sim_events()}} instead.
 }
 \details{
 Simulates event history data with four types of events representing censoring (0), death (1), treatment (2), and covariate change (3).

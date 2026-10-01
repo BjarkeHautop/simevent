@@ -1,6 +1,6 @@
 #' Simulate Competing Risks Data
 #'
-#' `simCRdata()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#' `simCRdata()` is deprecated as of simevent 0.2.0. Use [sim_events()] instead.
 #'
 #' Simulates competing risks data for \eqn{N} individuals who are at risk of mutually exclusive event types.
 #' Three event types are simulated, where one can be interpreted as censoring.
@@ -39,7 +39,7 @@ simCRdata <- function(
   lifecycle::deprecate_warn(
     "0.2.0",
     "simCRdata()",
-    "sim_event_graph()"
+    "sim_events()"
   )
   .simCRdata(N = N, beta = beta, eta = eta, nu = nu, cens = cens, ...)
 }

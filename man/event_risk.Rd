@@ -6,7 +6,7 @@
 \usage{
 event_risk(
   data,
-  graph,
+  model,
   process,
   tau,
   type = c("risk", "time_lost"),
@@ -14,9 +14,9 @@ event_risk(
 )
 }
 \arguments{
-\item{data}{Output of \code{\link[=sim_event_graph]{sim_event_graph()}}.}
+\item{data}{Output of \code{\link[=sim_events]{sim_events()}}.}
 
-\item{graph}{The \code{\link[=sim_graph]{sim_graph()}} \code{data} was simulated from.}
+\item{model}{The \code{\link[=sim_model]{sim_model()}} \code{data} was simulated from.}
 
 \item{process}{Character vector. Process(es) to summarise.}
 
@@ -38,13 +38,13 @@ if none):
 \item{\code{"time_lost"}}{\eqn{E[\tau - \min(T, \tau)]}, the restricted mean
 time lost.}
 }
-Compare runs with and without \code{\link[=sim_event_graph]{sim_event_graph()}}'s \code{intervene} to
+Compare runs with and without \code{\link[=sim_events]{sim_events()}}'s \code{intervene} to
 estimate an intervention's effect. Estimates are biased if anyone is
 censored before \code{tau} (a warning is given); simulate with \code{cens = 0} to
 avoid this.
 }
 \examples{
-graph <- sim_graph(
+model <- sim_model(
   A0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   disease = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
@@ -56,15 +56,15 @@ graph <- sim_graph(
 
 # Halve the disease hazard and compare against no intervention:
 set.seed(1)
-observed <- sim_event_graph(graph, n = 2000)
-intervened <- sim_event_graph(graph, n = 2000, intervene = list(disease = 0.5))
+observed <- sim_events(model, n = 2000)
+intervened <- sim_events(model, n = 2000, intervene = list(disease = 0.5))
 
-event_risk(observed, graph, c("death", "disease"), tau = 5)
-event_risk(intervened, graph, c("death", "disease"), tau = 5)
+event_risk(observed, model, c("death", "disease"), tau = 5)
+event_risk(intervened, model, c("death", "disease"), tau = 5)
 
 # Years lost before tau, separately for A0 = 0 and A0 = 1:
-event_risk(intervened, graph, "death", tau = 5, type = "time_lost", by = "A0")
+event_risk(intervened, model, "death", tau = 5, type = "time_lost", by = "A0")
 }
 \seealso{
-\code{\link[=sim_event_graph]{sim_event_graph()}}
+\code{\link[=sim_events]{sim_events()}}
 }

@@ -29,7 +29,7 @@ Defaults to \code{rep(0.1, 2)}.}
 A data frame containing the simulated survival data.
 }
 \description{
-\code{simSurvData()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.
+\code{simSurvData()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_events]{sim_events()}} instead.
 }
 \details{
 Simulates survival data for \eqn{N} individuals who are at risk for censoring (0) and an event (1).

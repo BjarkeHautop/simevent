@@ -70,7 +70,7 @@ A \code{data.table} with columns:
 \item{L1, L2, ...:}{Additional covariates (if specified)}
 }
 \description{
-\code{simEventTV()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.
+\code{simEventTV()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_events]{sim_events()}} instead.
 }
 \details{
 \code{simEventTV} simulates event data with the option of adding time-varying effects.

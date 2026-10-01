@@ -9,7 +9,7 @@ test_that("deprecated functions warn and still return their results", {
 
   expect_warning(
     simSurvData(5),
-    "sim_event_graph",
+    "sim_events",
     class = "lifecycle_warning_deprecated"
   )
   expect_warning(

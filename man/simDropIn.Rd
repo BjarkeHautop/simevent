@@ -183,7 +183,7 @@ given their covariates. Takes a numeric vector covariates and returns a binary v
 A data frame containing the simulated event history data.
 }
 \description{
-\code{simDropIn()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.
+\code{simDropIn()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_events]{sim_events()}} instead.
 }
 \details{
 \code{simDropIn} simulates data corresponding to \code{N} individuals that are at risk

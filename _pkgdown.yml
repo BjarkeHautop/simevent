@@ -10,24 +10,24 @@ reference:
   contents:
   - simevent-package
 
-- title: Graph-based simulation
+- title: Simulation
   desc: >
-    Build a simulation spec as a graph of covariates, event processes, and
+    Build a simulation model of covariates, event processes, and
     effects between them, and simulate event history data from it.
   contents:
-  - sim_graph
+  - sim_model
   - sim_covariate
   - sim_derived
   - sim_process
   - sim_effect
-  - sim_event_graph
-  - sim_graph_from_fits
-  - summary.sim_graph
+  - sim_events
+  - sim_model_from_fits
+  - summary.sim_model
 
-- title: Treating graph-based simulated data
+- title: Treating simulated data
   desc: >
     Functions for formatting, plotting, and summarising data simulated with
-    `sim_event_graph()`.
+    `sim_events()`.
   contents:
   - interval_format_data
   - plot_event_data

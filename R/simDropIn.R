@@ -1,6 +1,6 @@
 #' Simulate Event Data from a "Drop In" Setting
 #'
-#' `simDropIn()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#' `simDropIn()` is deprecated as of simevent 0.2.0. Use [sim_events()] instead.
 #'
 #' `simDropIn` simulates data corresponding to \code{N} individuals that are at risk
 #' for 4 or 5 events: Censoring (C), Death (D), Drop In Initiation (Z), Change in
@@ -132,7 +132,7 @@ simDropIn <- function(
   lifecycle::deprecate_warn(
     "0.2.0",
     "simDropIn()",
-    "sim_event_graph()"
+    "sim_events()"
   )
   .simDropIn(
     N = N,

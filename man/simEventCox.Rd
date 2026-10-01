@@ -54,7 +54,7 @@ A \code{data.table} with one row per event per individual containing:
 }
 }
 \description{
-\code{simEventCox()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_graph_from_fits]{sim_graph_from_fits()}} instead.
+\code{simEventCox()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_model_from_fits]{sim_model_from_fits()}} instead.
 }
 \details{
 Simulates recurrent and terminal event data for a cohort of individuals based on a list

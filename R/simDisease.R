@@ -1,6 +1,6 @@
 #' Simulate Data in a Disease Setting
 #'
-#' `simDisease()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#' `simDisease()` is deprecated as of simevent 0.2.0. Use [sim_events()] instead.
 #'
 #' Simulates event data representing three event types: Censoring (0), Death (1), and
 #' Change in Covariate Process (2). Death and Censoring are terminal events, while Change
@@ -68,7 +68,7 @@ simDisease <- function(
   lifecycle::deprecate_warn(
     "0.2.0",
     "simDisease()",
-    "sim_event_graph()"
+    "sim_events()"
   )
   .simDisease(
     N = N,

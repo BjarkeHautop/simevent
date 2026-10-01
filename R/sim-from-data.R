@@ -1,6 +1,6 @@
 #' Simulate Event History Data from Parameters Fitted to Observed Data
 #'
-#' `sim.from.data()` is deprecated as of simevent 0.2.0. Use [sim_graph_from_fits()] instead.
+#' `sim.from.data()` is deprecated as of simevent 0.2.0. Use [sim_model_from_fits()] instead.
 #'
 #' `sim.from.data` simulates new multistate event history data using
 #' process/baseline parameters previously estimated from observed data (e.g.
@@ -13,7 +13,7 @@
 #' from real data, so that the simulated data mimics an observed dataset's
 #' distribution (optionally under an intervention via
 #' \code{alpha.intervention}/\code{baseline.intervention}). See
-#' \code{\link{sim_graph_from_fits}} for a more convenient way to do this
+#' \code{\link{sim_model_from_fits}} for a more convenient way to do this
 #' directly from \code{coxph} fits and the data they were fit to, without
 #' hand-building \code{sim.parameters}.
 #'
@@ -70,7 +70,7 @@ sim.from.data <- function(
   lifecycle::deprecate_warn(
     "0.2.0",
     "sim.from.data()",
-    "sim_graph_from_fits()"
+    "sim_model_from_fits()"
   )
   .sim.from.data(
     n = n,

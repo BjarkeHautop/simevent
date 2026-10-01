@@ -1,6 +1,6 @@
 #' Simulate Event History Data with Treatment and Time-Dependent Covariate
 #'
-#' `simTreatment()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#' `simTreatment()` is deprecated as of simevent 0.2.0. Use [sim_events()] instead.
 #'
 #' Simulates event history data with four types of events representing censoring (0), death (1), treatment (2), and covariate change (3).
 #' Death and censoring are terminal events; treatment and covariate events can occur only once.
@@ -93,7 +93,7 @@ simTreatment <- function(
   lifecycle::deprecate_warn(
     "0.2.0",
     "simTreatment()",
-    "sim_event_graph()"
+    "sim_events()"
   )
   .simTreatment(
     N = N,

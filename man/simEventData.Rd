@@ -67,7 +67,7 @@ A \code{data.table} with columns:
 \item{N0, N1, ...}{Event counts up to the current event}
 }
 \description{
-\code{simEventData()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.
+\code{simEventData()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_events]{sim_events()}} instead.
 }
 \details{
 \code{simEventData} simulates event times and types for a cohort of individuals in a

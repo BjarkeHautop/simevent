@@ -1,6 +1,6 @@
 #' Simulate Survival Data with Censoring and Event Times
 #'
-#' `simSurvData()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#' `simSurvData()` is deprecated as of simevent 0.2.0. Use [sim_events()] instead.
 #'
 #' Simulates survival data for \eqn{N} individuals who are at risk for censoring (0) and an event (1).
 #' The hazard functions for censoring and event times follow Weibull distributions parameterized by
@@ -36,7 +36,7 @@ simSurvData <- function(
   lifecycle::deprecate_warn(
     "0.2.0",
     "simSurvData()",
-    "sim_event_graph()"
+    "sim_events()"
   )
   .simSurvData(N = N, beta = beta, eta = eta, nu = nu, cens = cens, ...)
 }

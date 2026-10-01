@@ -78,7 +78,7 @@ A data frame containing the simulated data with columns:
 \item{L}{Covariate indicating change in covariate process}
 }
 \description{
-\code{simDisease()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.
+\code{simDisease()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_events]{sim_events()}} instead.
 }
 \details{
 Simulates event data representing three event types: Censoring (0), Death (1), and

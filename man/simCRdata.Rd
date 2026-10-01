@@ -30,7 +30,7 @@ A \code{data.frame} with simulated competing risk data including:
 }
 }
 \description{
-\code{simCRdata()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_event_graph]{sim_event_graph()}} instead.
+\code{simCRdata()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_events]{sim_events()}} instead.
 }
 \details{
 Simulates competing risks data for \eqn{N} individuals who are at risk of mutually exclusive event types.

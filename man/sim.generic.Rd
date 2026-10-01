@@ -57,13 +57,13 @@ A \code{data.table} of simulated event history data with columns
 column per non-terminal process.
 }
 \description{
-\code{sim.generic()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_graph]{sim_graph()}} instead.
+\code{sim.generic()} is deprecated as of simevent 0.2.0. Use \code{\link[=sim_model]{sim_model()}} instead.
 }
 \details{
 \code{sim.generic} simulates multistate event history data from a set of
 user-specified baseline covariates, event processes (with Weibull
 intensities and Cox-type effects), and their effects on one another, by
-translating the specification into a \code{\link{sim_graph}()} and
+translating the specification into a \code{\link{sim_model}()} and
 simulating from it.
 
 Where the preset wrapper functions (\code{\link{simCRdata}},

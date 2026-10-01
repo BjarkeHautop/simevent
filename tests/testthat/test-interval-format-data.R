@@ -1,11 +1,11 @@
-test_that("interval_format_data builds tstart/tstop intervals from sim_event_graph() output", {
+test_that("interval_format_data builds tstart/tstop intervals from sim_events() output", {
   set.seed(300)
-  graph <- sim_graph(
+  model <- sim_model(
     L0 = sim_covariate(function(N) runif(N)),
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.1, nu = 1.1)
   )
-  data <- sim_event_graph(graph, n = 20)
+  data <- sim_events(model, n = 20)
 
   data_int <- interval_format_data(data)
 
@@ -17,12 +17,12 @@ test_that("interval_format_data builds tstart/tstop intervals from sim_event_gra
 
 test_that("interval_format_data lags a transient process's count by one row per id", {
   set.seed(301)
-  graph <- sim_graph(
+  model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1),
     relapse = sim_process("transient", eta = 0.5, nu = 1)
   )
-  data <- sim_event_graph(graph, n = 50)
+  data <- sim_events(model, n = 50)
   # Restrict to individuals with at least one relapse, so there's something
   # to lag.
   multi_event_ids <- data[data$relapse > 0, ]$id
@@ -43,11 +43,11 @@ test_that("interval_format_data lags a transient process's count by one row per 
 
 test_that("interval_format_data splits intervals at t_prime when time_var = TRUE", {
   set.seed(302)
-  graph <- sim_graph(
+  model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1)
   )
-  data <- sim_event_graph(graph, n = 100)
+  data <- sim_events(model, n = 100)
   t_prime <- stats::median(data$time)
 
   data_int <- interval_format_data(data, time_var = TRUE, t_prime = t_prime)
@@ -58,22 +58,22 @@ test_that("interval_format_data splits intervals at t_prime when time_var = TRUE
 })
 
 test_that("interval_format_data requires t_prime when time_var = TRUE", {
-  graph <- sim_graph(
+  model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1)
   )
-  data <- sim_event_graph(graph, n = 10, seed = 1)
+  data <- sim_events(model, n = 10, seed = 1)
 
   expect_error(interval_format_data(data, time_var = TRUE), "t_prime")
   expect_no_error(interval_format_data(data, t_prime = NULL))
 })
 
 test_that("interval_format_data labels the pre-t_prime half of a split as \"none\"", {
-  graph <- sim_graph(
+  model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1)
   )
-  data <- sim_event_graph(graph, n = 100, seed = 2)
+  data <- sim_events(model, n = 100, seed = 2)
   t_prime <- stats::median(data$time)
 
   data_int <- interval_format_data(data, time_var = TRUE, t_prime = t_prime)

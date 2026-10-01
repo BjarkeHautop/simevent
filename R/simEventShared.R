@@ -48,7 +48,7 @@
 # user-supplied beta without rownames falls back to the historical positional
 # behavior, requiring exactly N_stop rows in c(cov_names, event_names) order.
 # event_names defaults to the historical N0, N1, ... labels, but a caller that
-# already has real process names (e.g. simEventGraph()) can supply them
+# already has real process names (e.g. sim_events()) can supply them
 # directly, so beta/simmatrix/output columns use them end-to-end instead of
 # requiring a name -> "N<k>" -> name round trip.
 .simEvent_default_beta <- function(

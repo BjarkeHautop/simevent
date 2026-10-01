@@ -1,11 +1,11 @@
 #' Simulate Event History Data from a Generic Process Specification
 #'
-#' `sim.generic()` is deprecated as of simevent 0.2.0. Use [sim_graph()] instead.
+#' `sim.generic()` is deprecated as of simevent 0.2.0. Use [sim_model()] instead.
 #'
 #' `sim.generic` simulates multistate event history data from a set of
 #' user-specified baseline covariates, event processes (with Weibull
 #' intensities and Cox-type effects), and their effects on one another, by
-#' translating the specification into a \code{\link{sim_graph}()} and
+#' translating the specification into a \code{\link{sim_model}()} and
 #' simulating from it.
 #'
 #' Where the preset wrapper functions (\code{\link{simCRdata}},
@@ -68,7 +68,7 @@ sim.generic <- function(
   lifecycle::deprecate_warn(
     "0.2.0",
     "sim.generic()",
-    "sim_graph()"
+    "sim_model()"
   )
   .sim.generic(
     baseline = baseline,
@@ -122,8 +122,8 @@ sim.generic <- function(
     sim_effect(effect[[1]], effect[[2]], as.numeric(effect[[3]]))
   })
 
-  graph <- do.call(
-    sim_graph,
+  model <- do.call(
+    sim_model,
     c(covariate_nodes, process_nodes, list(effects = effect_nodes))
   )
 
@@ -133,8 +133,8 @@ sim.generic <- function(
     browser()
   }
 
-  res <- run_sim_graph(
-    graph,
+  res <- run_sim(
+    model,
     n = n,
     intervene = intervene,
     cens = cens,
@@ -143,15 +143,15 @@ sim.generic <- function(
     lower = 1e-25,
     upper = 1e8
   )
-  .sim_generic_delta(res, graph)
+  .sim_generic_delta(res, model)
 }
 
-# sim.generic() predates sim_event_graph()'s `event` column and returns the
+# sim.generic() predates sim_events()'s `event` column and returns the
 # old 0-indexed `delta` codes instead: censoring processes first, then
 # terminal, then the rest in declared order.
-.sim_generic_delta <- function(res, graph) {
+.sim_generic_delta <- function(res, model) {
   event <- delta <- NULL
-  types <- vapply(graph$processes, `[[`, character(1), "type")
+  types <- vapply(model$processes, `[[`, character(1), "type")
   delta_order <- c(
     names(types)[types == "censoring"],
     names(types)[types == "terminal"],

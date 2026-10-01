@@ -1,6 +1,6 @@
 #' Simulate Continuous Time-to-Event Data with Multiple Event Types and time dependent effects
 #'
-#' `simEventDataTdPhi()` is deprecated as of simevent 0.2.0. Use [sim_event_graph()] instead.
+#' `simEventDataTdPhi()` is deprecated as of simevent 0.2.0. Use [sim_events()] instead.
 #'
 #' `simEventDataTdPhi` simulates event times and types for a cohort of individuals in a
 #' counting process framework. It supports multiple event types (by default 4),
@@ -60,7 +60,7 @@ simEventDataTdPhi <- function(
   lifecycle::deprecate_warn(
     "0.2.0",
     "simEventDataTdPhi()",
-    "sim_event_graph()"
+    "sim_events()"
   )
   .simEventDataTdPhi(
     N = N,

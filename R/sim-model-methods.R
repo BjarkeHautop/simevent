@@ -1,16 +1,16 @@
-#' Summarise a `sim_graph()`
+#' Summarise a `sim_model()`
 #'
-#' Tabulates a [sim_graph()]'s covariates, processes and effects.
+#' Tabulates a [sim_model()]'s covariates, processes and effects.
 #'
-#' @param object A [sim_graph()].
-#' @param x A `summary.sim_graph` object, as returned by `summary()`.
+#' @param object A [sim_model()].
+#' @param x A `summary.sim_model` object, as returned by `summary()`.
 #' @param ... Not used.
 #'
 #' @return A list of three `data.frame`s: `covariates`, `processes` and
 #'   `effects`.
-#' @seealso [sim_graph()]
+#' @seealso [sim_model()]
 #' @examples
-#' graph <- sim_graph(
+#' model <- sim_model(
 #'   age = sim_covariate(function(N) runif(N, min = 40, max = 80)),
 #'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
 #'   relapse = sim_process("transient", eta = 0.2, nu = 1),
@@ -20,11 +20,11 @@
 #'     sim_effect("relapse", "death", coef = 1)
 #'   )
 #' )
-#' graph
-#' summary(graph)
+#' model
+#' summary(model)
 #' @export
-summary.sim_graph <- function(object, ...) {
-  shown <- object$covariates[!.sim_graph_hidden(names(object$covariates))]
+summary.sim_model <- function(object, ...) {
+  shown <- object$covariates[!.sim_hidden(names(object$covariates))]
   covariates <- data.frame(
     name = names(shown),
     kind = vapply(
@@ -57,18 +57,18 @@ summary.sim_graph <- function(object, ...) {
   )
   structure(
     list(covariates = covariates, processes = processes, effects = effects),
-    class = "summary.sim_graph"
+    class = "summary.sim_model"
   )
 }
 
-#' @rdname summary.sim_graph
+#' @rdname summary.sim_model
 #' @export
-print.summary.sim_graph <- function(x, ...) {
-  cat("<sim_graph> covariates\n")
+print.summary.sim_model <- function(x, ...) {
+  cat("<sim_model> covariates\n")
   print(x$covariates, row.names = FALSE)
-  cat("\n<sim_graph> processes\n")
+  cat("\n<sim_model> processes\n")
   print(x$processes, row.names = FALSE)
-  cat("\n<sim_graph> effects\n")
+  cat("\n<sim_model> effects\n")
   print(x$effects, row.names = FALSE)
   invisible(x)
 }

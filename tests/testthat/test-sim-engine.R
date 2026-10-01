@@ -15,13 +15,13 @@ test_that("draw_baseline_covariates works with no covariates", {
 })
 
 test_that("apply_intervention fixes a covariate and scales a process's eta", {
-  graph <- sim_graph(
+  model <- sim_model(
     L0 = sim_covariate(function(N) rep(0, N)),
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.2, nu = 1.1)
   )
 
-  out <- apply_intervention(graph, list(L0 = 5, death = 2))
+  out <- apply_intervention(model, list(L0 = 5, death = 2))
 
   expect_equal(out$covs$L0(3), rep(5, 3))
   expect_equal(unname(out$eta["censoring"]), 0.1)
@@ -29,26 +29,26 @@ test_that("apply_intervention fixes a covariate and scales a process's eta", {
 })
 
 test_that("apply_intervention leaves eta/covs untouched when nothing is intervened on", {
-  graph <- sim_graph(
+  model <- sim_model(
     L0 = sim_covariate(function(N) rep(0, N)),
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.2, nu = 1.1)
   )
 
-  out <- apply_intervention(graph, list())
+  out <- apply_intervention(model, list())
 
   expect_equal(unname(out$eta), c(0.1, 0.2))
   expect_equal(out$covs$L0(3), rep(0, 3))
 })
 
 test_that("apply_intervention names eta by process", {
-  graph <- sim_graph(
+  model <- sim_model(
     illness = sim_process("transient", eta = 0.3, nu = 1),
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.2, nu = 1.1)
   )
 
-  out <- apply_intervention(graph, list())
+  out <- apply_intervention(model, list())
 
   expect_equal(unname(out$eta["censoring"]), 0.1)
   expect_equal(unname(out$eta["death"]), 0.2)
@@ -56,14 +56,14 @@ test_that("apply_intervention names eta by process", {
 })
 
 test_that("apply_intervention wraps a sim_derived() covariate to take N first", {
-  graph <- sim_graph(
+  model <- sim_model(
     region = sim_covariate(function(N) rep(2, N)),
     region2 = sim_derived(function(region) as.numeric(region == 2)),
     d = sim_process("terminal", eta = 0.1, nu = 1.1),
     effects = list(sim_effect("region2", "d", 1))
   )
 
-  out <- apply_intervention(graph, list())
+  out <- apply_intervention(model, list())
 
   expect_equal(out$covs$region2(N = 4, region = c(1, 2, 3, 2)), c(0, 1, 0, 1))
 })
@@ -308,13 +308,13 @@ test_that("sample_event_types gives \"max_cens\" once max_cens is reached", {
   expect_true(events[2] %in% c("censoring", "death"))
 })
 
-test_that(".sim_graph_at_risk gates a transient process by its limit and scales censoring by cens", {
-  graph <- sim_graph(
+test_that(".sim_at_risk gates a transient process by its limit and scales censoring by cens", {
+  model <- sim_model(
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     illness = sim_process("transient", eta = 0.2, nu = 1, limit = 2)
   )
-  at_risk_fn <- .sim_graph_at_risk(graph, cens = 3)
+  at_risk_fn <- .sim_at_risk(model, cens = 3)
 
   event_counts <- list(
     censoring = c(0, 0, 0),
@@ -330,8 +330,8 @@ test_that(".sim_graph_at_risk gates a transient process by its limit and scales 
   expect_equal(risk["illness", ], c(1, 1, 0))
 })
 
-test_that(".sim_graph_uses_time detects effects referring to t", {
-  graph <- sim_graph(
+test_that(".sim_uses_time detects effects referring to t", {
+  model <- sim_model(
     L0 = sim_covariate(function(N) rnorm(N)),
     checkup = sim_process("transient", eta = 0.1, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
@@ -340,17 +340,17 @@ test_that(".sim_graph_uses_time detects effects referring to t", {
       sim_effect("last_time(checkup) > 2", "death", 1)
     )
   )
-  expect_false(.sim_graph_uses_time(graph$effects))
+  expect_false(.sim_uses_time(model$effects))
 
-  graph_t <- sim_graph(
+  model_t <- sim_model(
     checkup = sim_process("transient", eta = 0.1, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(sim_effect("t - last_time(checkup) < 1", "death", 1))
   )
-  expect_true(.sim_graph_uses_time(graph_t$effects))
+  expect_true(.sim_uses_time(model_t$effects))
 })
 
-test_that(".sim_graph_solve_in_step inverts the within-step cumulative hazard", {
+test_that(".sim_solve_in_step inverts the within-step cumulative hazard", {
   left <- c(0, 1.5)
   right <- c(1, 2)
   rate <- matrix(c(0.2, 0.3, 0.1, 0.4), nrow = 2)
@@ -359,12 +359,12 @@ test_that(".sim_graph_solve_in_step inverts the within-step cumulative hazard", 
   }
 
   for (nu in list(c(1.2, 1.2), c(0.8, 1.5))) {
-    baselines <- .sim_graph_baselines(list(
+    baselines <- .sim_baselines(list(
       a = sim_process("terminal", eta = 1, nu = nu[1]),
       b = sim_process("terminal", eta = 1, nu = nu[2])
     ))
     remaining <- 0.5 * cum_haz(right, nu)
-    x <- .sim_graph_solve_in_step(left, right, rate, nu, baselines, remaining)
+    x <- .sim_solve_in_step(left, right, rate, nu, baselines, remaining)
     expect_true(all(x >= left & x <= right))
     expect_equal(cum_haz(x, nu), remaining, tolerance = 1e-8)
   }
