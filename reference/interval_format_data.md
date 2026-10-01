@@ -1,7 +1,7 @@
 # Convert Simulated Event Data to Start-Stop Format
 
 Converts
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 output to start-stop format for `coxph(Surv(tstart, tstop, ...))`.
 
 ## Usage
@@ -20,7 +20,7 @@ interval_format_data(
 - data:
 
   Output of
-  [`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md).
+  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md).
 
 - proc_cols:
 
@@ -43,19 +43,19 @@ interval_format_data(
 
 ## See also
 
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 
 ## Examples
 
 ``` r
-graph <- sim_graph(
+model <- sim_model(
   L0 = sim_covariate(function(N) runif(N)),
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   relapse = sim_process("transient", eta = 0.2, nu = 1),
   effects = list(sim_effect("relapse", "death", 0.5))
 )
-data <- sim_event_graph(graph, n = 500)
+data <- sim_events(model, n = 500)
 data_int <- interval_format_data(data, proc_cols = "relapse")
 head(data_int)
 #>       id      time     event        L0 relapse     k   tstart     tstop
@@ -86,12 +86,12 @@ survival::coxph(
 
 # Splitting at t_prime tests whether an effect changes over time. Here L0
 # raises the death hazard before time 2 only:
-graph_tv <- sim_graph(
+model_tv <- sim_model(
   L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
   death = sim_process("terminal", eta = 0.2, nu = 1),
   effects = list(sim_effect("L0 * (t < 2)", "death", coef = 1))
 )
-data_tv <- sim_event_graph(graph_tv, n = 2000)
+data_tv <- sim_events(model_tv, n = 2000)
 data_split <- interval_format_data(data_tv, time_var = TRUE, t_prime = 2)
 
 # One L0 coefficient per period: about 1 before t_prime, about 0 after.

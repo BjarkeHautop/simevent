@@ -3,7 +3,7 @@
 <url><loc>https://github.com/BjarkeHautop/simevent/LICENSE-text.html</loc></url>
 <url><loc>https://github.com/BjarkeHautop/simevent/LICENSE.html</loc></url>
 <url><loc>https://github.com/BjarkeHautop/simevent/articles/index.html</loc></url>
-<url><loc>https://github.com/BjarkeHautop/simevent/articles/sim-event-graph.html</loc></url>
+<url><loc>https://github.com/BjarkeHautop/simevent/articles/sim-events.html</loc></url>
 <url><loc>https://github.com/BjarkeHautop/simevent/articles/simevent.html</loc></url>
 <url><loc>https://github.com/BjarkeHautop/simevent/authors.html</loc></url>
 <url><loc>https://github.com/BjarkeHautop/simevent/index.html</loc></url>
@@ -32,11 +32,11 @@
 <url><loc>https://github.com/BjarkeHautop/simevent/reference/sim_covariate.html</loc></url>
 <url><loc>https://github.com/BjarkeHautop/simevent/reference/sim_derived.html</loc></url>
 <url><loc>https://github.com/BjarkeHautop/simevent/reference/sim_effect.html</loc></url>
-<url><loc>https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.html</loc></url>
-<url><loc>https://github.com/BjarkeHautop/simevent/reference/sim_graph.html</loc></url>
-<url><loc>https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.html</loc></url>
+<url><loc>https://github.com/BjarkeHautop/simevent/reference/sim_events.html</loc></url>
+<url><loc>https://github.com/BjarkeHautop/simevent/reference/sim_model.html</loc></url>
+<url><loc>https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.html</loc></url>
 <url><loc>https://github.com/BjarkeHautop/simevent/reference/sim_process.html</loc></url>
 <url><loc>https://github.com/BjarkeHautop/simevent/reference/simevent-package.html</loc></url>
-<url><loc>https://github.com/BjarkeHautop/simevent/reference/summary.sim_graph.html</loc></url>
+<url><loc>https://github.com/BjarkeHautop/simevent/reference/summary.sim_model.html</loc></url>
 </urlset>
 

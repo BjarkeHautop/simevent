@@ -1,7 +1,7 @@
 # Simulation and Estimation with Modified Shape Parameter
 
 `alphaSim()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 instead.
 
 ## Usage
@@ -119,7 +119,7 @@ function either
 ``` r
 alphaSim(N = 100, eta = rep(0.1,3), nu = rep(1.1,3), alpha = 0.5, setting = "Disease")
 #> Warning: `alphaSim()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_event_graph()` instead.
+#> ℹ Please use `sim_events()` instead.
 #> $effectDeath
 #> [1] 0.6607143
 #> 

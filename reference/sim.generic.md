@@ -1,7 +1,7 @@
 # Simulate Event History Data from a Generic Process Specification
 
 `sim.generic()` is deprecated as of simevent 0.2.0. Use
-[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 instead.
 
 ## Usage
@@ -85,7 +85,7 @@ non-terminal process.
 user-specified baseline covariates, event processes (with Weibull
 intensities and Cox-type effects), and their effects on one another, by
 translating the specification into a
-[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 and simulating from it.
 
 Where the preset wrapper functions
@@ -107,7 +107,7 @@ processes <- list(
 effects <- list(c("L0", "death", 1))
 data <- sim.generic(baseline, processes, effects, n = 100)
 #> Warning: `sim.generic()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_graph()` instead.
+#> ℹ Please use `sim_model()` instead.
 head(data)
 #> Key: <id>
 #>       id       time delta    L0

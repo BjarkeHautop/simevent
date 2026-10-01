@@ -1,4 +1,4 @@
-# Plot Graph-Based Simulated Event History Data
+# Plot Simulated Event History Data
 
 One horizontal timeline per individual, with events marked by type.
 
@@ -13,7 +13,7 @@ plot_event_data(data, title = "Event Data")
 - data:
 
   Output of
-  [`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md).
+  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md).
 
 - title:
 
@@ -25,16 +25,16 @@ A `ggplot` object.
 
 ## See also
 
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 
 ## Examples
 
 ``` r
-graph <- sim_graph(
+model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
-data <- sim_event_graph(graph, n = 10)
+data <- sim_events(model, n = 10)
 plot_event_data(data)
 
 

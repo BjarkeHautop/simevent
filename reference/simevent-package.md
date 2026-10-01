@@ -21,8 +21,6 @@ Authors:
 
 - Michaela Lukacova <michaela.lukacova@sund.ku.dk>
 
-Other contributors:
+- Bjarke Hautop Kristensen <bjarke.kristensen@sund.ku.dk>
 
-- Helene Charlotte Wiese Rytgaard (Original author of
-  sim.generic()/sim.from.data(), ported from MultiStateTMLE)
-  \[contributor\]
+- Helene Charlotte Wiese Rytgaard <hely@sund.ku.dk>

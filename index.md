@@ -28,23 +28,24 @@ pak::pak("BjarkeHautop/simevent")
 library(simevent)
 ```
 
-The package builds event history data from a *graph*: baseline
+The package builds event history data from a *model*: baseline
 covariates, event processes (censoring, terminal, or transient, with
-Weibull intensities), and the Cox-type effects between them.
-[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
-defines the graph and
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+Weibull or user-given intensities), and the Cox-type effects between
+them.
+[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
+defines the model and
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 simulates from it. On top of this, the package provides:
 
-- [`sim_graph_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
-  for building a graph from `coxph()` fits to observed data, to simulate
+- [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md)
+  for building a model from `coxph()` fits to observed data, to simulate
   new data resembling it.
 - [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)
   and
   [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md)
   for reformatting and plotting simulated data.
 - The `intervene` argument of
-  [`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md),
+  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md),
   together with
   [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md),
   for simulating and evaluating interventions on processes and
@@ -55,11 +56,11 @@ plotting the event histories:
 
 ``` r
 
-graph <- sim_graph(
+model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
-data <- sim_event_graph(graph, n = 100)
+data <- sim_events(model, n = 100)
 plot_event_data(data, title = "Survival Data")
 ```
 
@@ -67,7 +68,7 @@ plot_event_data(data, title = "Survival Data")
 
 For a full walkthrough of the simulation framework and all of the
 functions above, see
-[`vignette("sim-event-graph")`](https://github.com/BjarkeHautop/simevent/articles/sim-event-graph.md).
+[`vignette("sim-events")`](https://github.com/BjarkeHautop/simevent/articles/sim-events.md).
 
 ## Contributing
 

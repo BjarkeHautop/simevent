@@ -3,6 +3,6 @@
 ### All vignettes
 
 - [Migrating to
-  sim_event_graph()](https://github.com/BjarkeHautop/simevent/articles/sim-event-graph.md):
+  sim_events()](https://github.com/BjarkeHautop/simevent/articles/sim-events.md):
 - [Getting Started with
   simevent](https://github.com/BjarkeHautop/simevent/articles/simevent.md):

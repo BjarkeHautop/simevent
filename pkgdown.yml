@@ -1,10 +1,10 @@
 pandoc: 3.8.3
-pkgdown: 2.2.1
-pkgdown_sha: ~
+pkgdown: 2.2.1.9000
+pkgdown_sha: edeaffaf3a19330d0749ca8c5021dc3709e6c959
 articles:
-  sim-event-graph: sim-event-graph.html
+  sim-events: sim-events.html
   simevent: simevent.html
-last_built: 2026-09-30T10:58Z
+last_built: 2026-10-01T13:06Z
 urls:
   reference: https://github.com/BjarkeHautop/simevent/reference
   article: https://github.com/BjarkeHautop/simevent/articles

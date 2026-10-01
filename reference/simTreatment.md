@@ -1,7 +1,7 @@
 # Simulate Event History Data with Treatment and Time-Dependent Covariate
 
 `simTreatment()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 instead.
 
 ## Usage
@@ -223,7 +223,7 @@ effect of covariate `L = 1` on the hazard of treatment.
 ``` r
 simTreatment(10)
 #> Warning: `simTreatment()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_event_graph()` instead.
+#> ℹ Please use `sim_events()` instead.
 #> Key: <ID>
 #>        ID       Time Delta          L0     A     L
 #>     <int>      <num> <int>       <num> <num> <num>

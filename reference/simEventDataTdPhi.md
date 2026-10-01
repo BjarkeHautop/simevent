@@ -1,7 +1,7 @@
 # Simulate Continuous Time-to-Event Data with Multiple Event Types and time dependent effects
 
 `simEventDataTdPhi()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 instead.
 
 ## Usage
@@ -190,7 +190,7 @@ generator can depend on `L0`. Their distributions can be changed via
 # Simulate data for 10 individuals with default settings
 sim_data <- simEventDataTdPhi(N = 10, beta2 = rep(0.01, 4))
 #> Warning: `simEventDataTdPhi()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_event_graph()` instead.
+#> ℹ Please use `sim_events()` instead.
 head(sim_data)
 #> Key: <ID>
 #>       ID      Time Delta         L0    A0    N0    N1    N2    N3

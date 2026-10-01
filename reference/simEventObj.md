@@ -1,7 +1,7 @@
 # Simulate Survival and Competing Risk Data Based on a General Model
 
 `simEventObj()` is deprecated as of simevent 0.2.0. Use
-[`sim_graph_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
+[`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md)
 instead.
 
 ## Usage
@@ -100,6 +100,6 @@ predict2.coxph <- function(obj, sim_data, ...) {
 old_vars <- data_obs[, c("L0", "A0")]
 new_data <- simEventObj(100, cox_fit, old_vars = old_vars)
 #> Warning: `simEventObj()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_graph_from_fits()` instead.
+#> ℹ Please use `sim_model_from_fits()` instead.
 #> Error in predict2(obj, sim_data): could not find function "predict2"
 ```

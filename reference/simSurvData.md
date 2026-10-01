@@ -1,7 +1,7 @@
 # Simulate Survival Data with Censoring and Event Times
 
 `simSurvData()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 instead.
 
 ## Usage
@@ -63,7 +63,7 @@ censoring and event hazards are specified via a matrix `beta`.
 ``` r
 simSurvData(10)
 #> Warning: `simSurvData()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_event_graph()` instead.
+#> ℹ Please use `sim_events()` instead.
 #> Key: <ID>
 #>        ID       Time Delta         L0    A0
 #>     <int>      <num> <int>      <num> <num>

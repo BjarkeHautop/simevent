@@ -1,7 +1,7 @@
 # Simulate Continuous Time-to-Event Data with Multiple Event Types
 
 `simEventData()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 instead.
 
 ## Usage

@@ -28,23 +28,24 @@ pak::pak("BjarkeHautop/simevent")
 library(simevent)
 ```
 
-The package builds event history data from a *graph*: baseline
+The package builds event history data from a *model*: baseline
 covariates, event processes (censoring, terminal, or transient, with
-Weibull intensities), and the Cox-type effects between them.
-[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
-defines the graph and
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+Weibull or user-given intensities), and the Cox-type effects between
+them.
+[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
+defines the model and
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 simulates from it. On top of this, the package provides:
 
-- [`sim_graph_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
-  for building a graph from `coxph()` fits to observed data, to simulate
+- [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md)
+  for building a model from `coxph()` fits to observed data, to simulate
   new data resembling it.
 - [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)
   and
   [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md)
   for reformatting and plotting simulated data.
 - The `intervene` argument of
-  [`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md),
+  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md),
   together with
   [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md),
   for simulating and evaluating interventions on processes and
@@ -55,11 +56,11 @@ plotting the event histories:
 
 ``` r
 
-graph <- sim_graph(
+model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
-data <- sim_event_graph(graph, n = 100)
+data <- sim_events(model, n = 100)
 plot_event_data(data, title = "Survival Data")
 ```
 
@@ -67,7 +68,7 @@ plot_event_data(data, title = "Survival Data")
 
 For a full walkthrough of the simulation framework and all of the
 functions above, see
-[`vignette("sim-event-graph")`](https://github.com/BjarkeHautop/simevent/articles/sim-event-graph.md).
+[`vignette("sim-events")`](https://github.com/BjarkeHautop/simevent/articles/sim-events.md).
 
 ## Contributing
 
@@ -83,70 +84,70 @@ Overview of the simevent package.
   [`simevent-package`](https://github.com/BjarkeHautop/simevent/reference/simevent-package.md)
   : simevent: Simulation and Analysis of Event History Data
 
-## Graph-based simulation
+## Simulation
 
-Build a simulation spec as a graph of covariates, event processes, and
-effects between them, and simulate event history data from it.
+Build a simulation model of covariates, event processes, and effects
+between them, and simulate event history data from it.
 
-- [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+- [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
   :
 
-  Build a Simulation Graph for
-  [`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+  Build a Simulation Model for
+  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 
 - [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)
   :
 
   Define a Baseline Covariate for
-  [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+  [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 
 - [`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md)
   :
 
   Define a Derived Covariate for
-  [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+  [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 
 - [`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md)
   :
 
   Define an Event Process for
-  [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+  [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 
 - [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
   :
 
   Define an Effect for
-  [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+  [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 
-- [`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+- [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
   :
 
   Simulate Event History Data from a
-  [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+  [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 
-- [`sim_graph_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
+- [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md)
   :
 
   Build a
-  [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+  [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
   from Fitted Cox Models
 
-- [`summary(`*`<sim_graph>`*`)`](https://github.com/BjarkeHautop/simevent/reference/summary.sim_graph.md)
-  [`print(`*`<summary.sim_graph>`*`)`](https://github.com/BjarkeHautop/simevent/reference/summary.sim_graph.md)
+- [`summary(`*`<sim_model>`*`)`](https://github.com/BjarkeHautop/simevent/reference/summary.sim_model.md)
+  [`print(`*`<summary.sim_model>`*`)`](https://github.com/BjarkeHautop/simevent/reference/summary.sim_model.md)
   :
 
   Summarise a
-  [`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+  [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 
-## Treating graph-based simulated data
+## Treating simulated data
 
 Functions for formatting, plotting, and summarising data simulated with
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md).
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md).
 
 - [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)
   : Convert Simulated Event Data to Start-Stop Format
 - [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md)
-  : Plot Graph-Based Simulated Event History Data
+  : Plot Simulated Event History Data
 - [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md)
   : Risk of, or Time Lost to, an Event by a Time Horizon
 
@@ -222,6 +223,6 @@ process, and estimating their effect. Will be removed in the future.
 ### All vignettes
 
 - [Migrating to
-  sim_event_graph()](https://github.com/BjarkeHautop/simevent/articles/sim-event-graph.md):
+  sim_events()](https://github.com/BjarkeHautop/simevent/articles/sim-events.md):
 - [Getting Started with
   simevent](https://github.com/BjarkeHautop/simevent/articles/simevent.md):

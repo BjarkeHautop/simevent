@@ -52,7 +52,7 @@ to accommodate estimation of time-varying effects.
 ``` r
 data <- simEventData(10)
 #> Warning: `simEventData()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_event_graph()` instead.
+#> ℹ Please use `sim_events()` instead.
 IntFormatData(data)
 #> Warning: `IntFormatData()` was deprecated in simevent 0.2.0.
 #> ℹ Please use `interval_format_data()` instead.

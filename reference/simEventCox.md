@@ -1,7 +1,7 @@
 # Simulate Event History Data Based on Cox Models
 
 `simEventCox()` is deprecated as of simevent 0.2.0. Use
-[`sim_graph_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph_from_fits.md)
+[`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md)
 instead.
 
 ## Usage
@@ -126,5 +126,5 @@ cox_fits <- list("D" = cox_death, "L" = cox_Disease)
 old_vars <- data_obs[, c("L0", "A0")]
 new_data <- simEventCox(100, cox_fits = cox_fits, old_vars = old_vars)
 #> Warning: `simEventCox()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_graph_from_fits()` instead.
+#> ℹ Please use `sim_model_from_fits()` instead.
 ```

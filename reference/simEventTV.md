@@ -1,7 +1,7 @@
 # Simulate Event Data with Time-Varying Effects
 
 `simEventTV()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 instead.
 
 ## Usage
@@ -173,7 +173,7 @@ change of the beta matrix at time `t_prime`.
 eta <- rep(0.1, 2)
 simEventTV(N = 100, t_prime = 1, eta = eta, term_deltas = c(0, 1))
 #> Warning: `simEventTV()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_event_graph()` instead.
+#> ℹ Please use `sim_events()` instead.
 #> Key: <ID>
 #>         ID        Time Delta         L0    A0    N0    N1
 #>      <int>       <num> <int>      <num> <num> <num> <num>

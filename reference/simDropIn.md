@@ -1,7 +1,7 @@
 # Simulate Event Data from a "Drop In" Setting
 
 `simDropIn()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 instead.
 
 ## Usage
@@ -316,7 +316,7 @@ risk for 4 or 5 events: Censoring (C), Death (D), Drop In Initiation
 ``` r
 simDropIn(10)
 #> Warning: `simDropIn()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_event_graph()` instead.
+#> ℹ Please use `sim_events()` instead.
 #> Key: <ID>
 #>        ID        Time Delta        L0    A0     Z     L
 #>     <int>       <num> <int>     <num> <num> <num> <num>

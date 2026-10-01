@@ -1,10 +1,14 @@
 # Getting Started with simevent
 
-> **Warning**
->
-> The functions described in this vignette are deprecated as of simevent
-> 0.2.0. Use the graph-based API instead, described in
-> [`vignette("sim-event-graph")`](https://github.com/BjarkeHautop/simevent/articles/sim-event-graph.md).
+Warning
+
+The functions described in this vignette are deprecated as of simevent
+0.2.0. Use
+[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
+and
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+instead, described in
+[`vignette("sim-events")`](https://github.com/BjarkeHautop/simevent/articles/sim-events.md).
 
 ``` r
 
@@ -338,11 +342,11 @@ data <- simEventData(
 [`simEventData()`](https://github.com/BjarkeHautop/simevent/reference/simEventData.md)
 is fully general, but for common settings the package provides
 ready-made wrappers built on top of it.
-[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 is a general-purpose alternative to writing another such wrapper: see
-[`vignette("sim-event-graph")`](https://github.com/BjarkeHautop/simevent/articles/sim-event-graph.md)
+[`vignette("sim-events")`](https://github.com/BjarkeHautop/simevent/articles/sim-events.md)
 for how each of the wrappers below can be reproduced as a
-[`sim_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_graph.md)
+[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 specification.
 
 ### Survival Data with `simSurvData()`

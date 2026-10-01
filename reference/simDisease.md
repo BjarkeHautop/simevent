@@ -1,7 +1,7 @@
 # Simulate Data in a Disease Setting
 
 `simDisease()` is deprecated as of simevent 0.2.0. Use
-[`sim_event_graph()`](https://github.com/BjarkeHautop/simevent/reference/sim_event_graph.md)
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
 instead.
 
 ## Usage
@@ -174,7 +174,7 @@ value decreases the intensity. Time-varying effects can be included via
 ``` r
 simDisease(10)
 #> Warning: `simDisease()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_event_graph()` instead.
+#> ℹ Please use `sim_events()` instead.
 #> Key: <ID>
 #>        ID       Time Delta        L0    A0     L
 #>     <int>      <num> <int>     <num> <num> <num>
