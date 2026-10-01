@@ -63,33 +63,34 @@ apply_intervention <- function(model, intervene) {
   )
 }
 
-# The time of a process's k-th occurrence so far (per column), or Inf where
+# The time of a process's k-th occurrence so far (per column), or 0 where
 # fewer than k occurrences have happened yet.
 .sim_nth_time <- function(type_log, time_log, proc, k, n_rows) {
   n <- ncol(time_log)
   if (n_rows == 0) {
-    return(rep(Inf, n))
+    return(rep(0, n))
   }
   hit <- type_log[seq_len(n_rows), , drop = FALSE] == proc
   vapply(
     seq_len(n),
     function(j) {
       w <- which(hit[, j])
-      if (length(w) < k) Inf else time_log[w[k], j]
+      if (length(w) < k) 0 else time_log[w[k], j]
     },
     numeric(1)
   )
 }
 
-# Evaluation environment for a sim_effect() `from` expression: covariates and
-# event counts bound by name (as before), plus `t` (current time) and the
-# history accessors `last_time()`/`nth_time()`, which read the process name
-# out of their unevaluated argument (so e.g. `last_time(checkup)` doesn't
-# require `checkup` to resolve to anything itself). With rep_times > 1,
+# Evaluation environment for sim_effect() `from` expressions: covariates and
+# event counts bound by name, `t` (current time), the T_<proc>.<k> event
+# times used by `effects`, and `last_time()`, which reads the process name
+# out of its unevaluated argument (so `last_time(checkup)` doesn't require
+# `checkup` to resolve to anything itself). With rep_times > 1,
 # covariates/event_counts/t cover rep_times time points per individual
 # (rep(x, times = rep_times) layout) while the event logs cover each
 # individual once, so the history accessors' results are replicated to match.
 .sim_effect_env <- function(
+  effects,
   covariates,
   event_counts,
   process_names,
@@ -101,6 +102,26 @@ apply_intervention <- function(model, intervene) {
 ) {
   env <- list2env(c(covariates, event_counts), parent = parent.frame())
   env$t <- t
+  used <- unique(unlist(lapply(effects, function(eff) {
+    expr <- eff$parsed_from
+    if (is.null(expr)) {
+      expr <- tryCatch(str2lang(eff$from), error = function(e) NULL)
+    }
+    all.vars(expr)
+  })))
+  history <- .sim_history_vars(used, process_names)
+  for (i in seq_len(nrow(history))) {
+    env[[history$name[i]]] <- rep(
+      .sim_nth_time(
+        event_type_log,
+        event_time_log,
+        history$proc[i],
+        history$k[i],
+        n_events_so_far
+      ),
+      times = rep_times
+    )
+  }
   env$last_time <- function(proc) {
     nm <- deparse(substitute(proc))
     if (!nm %in% process_names) {
@@ -111,22 +132,6 @@ apply_intervention <- function(model, intervene) {
       times = rep_times
     )
   }
-  env$nth_time <- function(proc, k) {
-    nm <- deparse(substitute(proc))
-    if (!nm %in% process_names) {
-      stop("nth_time(): unknown process '", nm, "'")
-    }
-    rep(
-      .sim_nth_time(
-        event_type_log,
-        event_time_log,
-        nm,
-        k,
-        n_events_so_far
-      ),
-      times = rep_times
-    )
-  }
   env
 }
 
@@ -134,7 +139,7 @@ apply_intervention <- function(model, intervene) {
 # sim_effect() coefs * current value of their `from`). `from` naming a
 # covariate or process directly is looked up by name; anything else is
 # parsed and evaluated as an R expression against covariates/event
-# counts/`t`/last_time()/nth_time().
+# counts/`t`/T_<proc>.<k>/last_time().
 # Returns a length(event_counts[[1]]) x length(process_names) matrix.
 # rep_times: see .sim_effect_env().
 process_hazard_multipliers <- function(
@@ -164,6 +169,7 @@ process_hazard_multipliers <- function(
     if (is.null(value)) {
       if (is.null(env)) {
         env <- .sim_effect_env(
+          effects,
           covariates,
           event_counts,
           process_names,
@@ -569,7 +575,7 @@ run_sim <- function(
   )
 
   # Full per-individual event log (time + which process, one row per event
-  # so far), so sim_effect() expressions can use last_time()/nth_time().
+  # so far), so sim_effect() expressions can use T_<proc>.<k>/last_time().
   event_time_log <- matrix(0, nrow = max_events, ncol = n)
   event_type_log <- matrix(NA_character_, nrow = max_events, ncol = n)
 

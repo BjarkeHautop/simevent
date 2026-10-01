@@ -18,8 +18,8 @@
 - `sim_events()` gains a `seed` argument for reproducible simulation without
   touching the global RNG stream.
 - `sim_model()` now rejects: reserved node names (`id`, `time`, `event`,
-  `max_cens`, `none`, `t`, `last_time`, `nth_time`), models without a terminal
-  process, duplicate effects, effects from censoring/terminal processes, and
+  `max_cens`, `none`, `t`, `last_time`), models without a terminal process,
+  duplicate effects, effects from censoring/terminal processes, and
   `sim_covariate()` generators whose arguments don't name an earlier covariate.
 - Added a `summary()` method for `sim_model()` objects.
 - Added `sim_model()`, `sim_covariate()`, `sim_derived()`, `sim_process()`,

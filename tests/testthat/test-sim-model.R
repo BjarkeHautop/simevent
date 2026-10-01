@@ -799,3 +799,69 @@ test_that("sim_model_from_fits reproduces a non-Weibull baseline hazard", {
   )
   expect_lte(max(simulated$time), max(observed$time))
 })
+
+test_that("sim_model validates T_<proc>.<k> event-time variables", {
+  cens <- sim_process("censoring", eta = 0.1, nu = 1)
+  op <- sim_process("transient", eta = 0.1, nu = 1, limit = 1)
+  death <- sim_process("terminal", eta = 0.1, nu = 1)
+
+  model <- sim_model(
+    censoring = cens,
+    operation = op,
+    death = death,
+    effects = list(sim_effect("T_operation.1 > 0", "death", 1))
+  )
+  expect_s3_class(model, "sim_model")
+
+  expect_error(
+    sim_model(
+      operation = op,
+      death = death,
+      effects = list(sim_effect("T_operation.2 > 0", "death", 1))
+    ),
+    "beyond the process's limit"
+  )
+  expect_error(
+    sim_model(
+      operation = op,
+      death = death,
+      effects = list(sim_effect("T_death.1 > 0", "operation", 1))
+    ),
+    "censoring/terminal"
+  )
+  expect_error(
+    sim_model(
+      operation = op,
+      death = death,
+      effects = list(sim_effect("T_surgery.1 > 0", "death", 1))
+    ),
+    "not found in model: T_surgery.1"
+  )
+  expect_error(
+    sim_model(
+      T_operation.1 = sim_covariate(function(N) rnorm(N)),
+      operation = op,
+      death = death
+    ),
+    "clash with event-time variables"
+  )
+})
+
+test_that("sim_events: an effect on T_<proc>.<k> applies only after the event", {
+  model <- sim_model(
+    operation = sim_process("transient", eta = 0.5, nu = 1, limit = 1),
+    death = sim_process("terminal", eta = 0.05, nu = 1),
+    effects = list(sim_effect("T_operation.1 > 0", "death", coef = 3))
+  )
+  data <- sim_events(model, n = 2000, seed = 1)
+  op_time <- data[data$event == "operation", c("id", "time")]
+  death_time <- data[data$event == "death", c("id", "time")]
+  after <- merge(op_time, death_time, by = "id")
+  # Death hazard is 0.05 before operation and 0.05 * exp(3) ~ 1 after it.
+  expect_equal(
+    mean(after$time.y - after$time.x),
+    1 / (0.05 * exp(3)),
+    tolerance = 0.1
+  )
+  expect_equal(nrow(after) / 2000, 0.5 / 0.55, tolerance = 0.05)
+})

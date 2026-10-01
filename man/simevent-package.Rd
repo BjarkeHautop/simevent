@@ -22,11 +22,8 @@ Useful links:
 Authors:
 \itemize{
   \item Michaela Lukacova \email{michaela.lukacova@sund.ku.dk}
-}
-
-Other contributors:
-\itemize{
-  \item Helene Charlotte Wiese Rytgaard (Original author of sim.generic()/sim.from.data(), ported from MultiStateTMLE) [contributor]
+  \item Bjarke Hautop Kristensen \email{bjarke.kristensen@sund.ku.dk}
+  \item Helene Charlotte Wiese Rytgaard \email{hely@sund.ku.dk}
 }
 
 }

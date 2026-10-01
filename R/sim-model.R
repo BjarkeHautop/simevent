@@ -194,10 +194,12 @@ sim_process <- function(
 #'   also use:
 #'   \describe{
 #'     \item{`t`}{The current time (see [sim_events()]'s `time_step`).}
+#'     \item{`T_<proc>.<k>`}{Time of `proc`'s `k`-th event, `0` if it
+#'       hasn't happened yet, e.g. `T_operation.1`. Multiply by the event
+#'       count, as in `operation * f(t - T_operation.1)`, so the effect only
+#'       applies once the event has happened.}
 #'     \item{`last_time(proc)`}{Time of `proc`'s latest event, `-Inf` if
 #'       none.}
-#'     \item{`nth_time(proc, k)`}{Time of `proc`'s `k`-th event, `Inf` if
-#'       fewer than `k`.}
 #'   }
 #' @param to Character. Name of the affected process.
 #' @param coef Numeric. Cox-type coefficient.
@@ -209,7 +211,8 @@ sim_process <- function(
 #' sim_effect("(age - 60)^2", "death", coef = 0.001)
 #' sim_effect("relapse == 3", "death", coef = 1.2)
 #' sim_effect("t - last_time(checkup) < 1", "death", coef = 0.5)
-#' sim_effect("t >= nth_time(relapse, 3)", "death", coef = 0.8)
+#' sim_effect("operation * (t - T_operation.1)", "death", coef = 0.1)
+#' sim_effect("operation * exp(-(t - T_operation.1))", "death", coef = 2)
 #' @export
 sim_effect <- function(from, to, coef) {
   checkmate::assert_string(from)
@@ -275,8 +278,7 @@ sim_model <- function(..., effects = list()) {
     "max_cens",
     "none",
     "t",
-    "last_time",
-    "nth_time"
+    "last_time"
   )
   reserved <- intersect(names(nodes), reserved_names)
   if (length(reserved) > 0) {
@@ -285,6 +287,15 @@ sim_model <- function(..., effects = list()) {
       paste(reserved, collapse = ", "),
       ". Reserved names are ",
       paste(reserved_names, collapse = ", "),
+      "."
+    )
+  }
+  process_names <- names(nodes)[is_process]
+  clash <- .sim_history_vars(names(nodes), process_names)$name
+  if (length(clash) > 0) {
+    stop(
+      "sim_model() node name(s) clash with event-time variables: ",
+      paste(clash, collapse = ", "),
       "."
     )
   }
@@ -329,7 +340,6 @@ sim_model <- function(..., effects = list()) {
   }
 
   checkmate::assert_list(effects, types = "sim_effect")
-  process_names <- names(nodes)[is_process]
   effect_keys <- vapply(
     effects,
     function(eff) paste(eff$from, eff$to, sep = " -> "),
@@ -349,8 +359,8 @@ sim_model <- function(..., effects = list()) {
     eff <- effects[[i]]
     if (!(eff$from %in% names(nodes))) {
       # Not a bare node name: must be a valid R expression whose free
-      # variables are all covariate/process names (or `t`); last_time()/
-      # nth_time() take a process name as an unevaluated argument, which
+      # variables are all covariate/process names, `t` or T_<proc>.<k>;
+      # last_time() takes a process name as an unevaluated argument, which
       # all.vars() still picks up as a reference to validate here.
       parsed <- tryCatch(
         str2lang(eff$from),
@@ -364,13 +374,29 @@ sim_model <- function(..., effects = list()) {
         }
       )
       used <- setdiff(all.vars(parsed), "t")
-      unknown <- setdiff(used, names(nodes))
+      history <- .sim_history_vars(used, process_names)
+      unknown <- setdiff(used, c(names(nodes), history$name))
       if (length(unknown) > 0) {
         stop(
           "sim_effect() 'from' expression '",
           eff$from,
           "' references name(s) not found in model: ",
           paste(unknown, collapse = ", ")
+        )
+      }
+      limit <- vapply(
+        nodes[history$proc],
+        function(node) if (node$type == "transient") node$limit else 1,
+        numeric(1)
+      )
+      unreachable <- history$name[history$k > limit]
+      if (length(unreachable) > 0) {
+        stop(
+          "sim_effect() 'from' expression '",
+          eff$from,
+          "' uses ",
+          paste(unreachable, collapse = ", "),
+          ", beyond the process's limit, so always 0."
         )
       }
       eff$parsed_from <- parsed
@@ -386,7 +412,9 @@ sim_model <- function(..., effects = list()) {
     sources <- if (eff$from %in% names(nodes)) {
       eff$from
     } else {
-      setdiff(all.vars(eff$parsed_from), "t")
+      used <- setdiff(all.vars(eff$parsed_from), "t")
+      history <- .sim_history_vars(used, process_names)
+      c(setdiff(used, history$name), history$proc)
     }
     bad_source <- intersect(sources, ended)
     if (length(bad_source) > 0) {
@@ -405,6 +433,20 @@ sim_model <- function(..., effects = list()) {
       effects = effects
     ),
     class = "sim_model"
+  )
+}
+
+# The T_<proc>.<k> event-time variables among `vars`, as a data.frame with
+# columns name, proc and k. Process names may themselves contain "." or "_".
+.sim_history_vars <- function(vars, process_names) {
+  pattern <- "^T_(.+)\\.([1-9][0-9]*)$"
+  vars <- vars[grepl(pattern, vars)]
+  proc <- sub(pattern, "\\1", vars)
+  keep <- proc %in% process_names
+  data.frame(
+    name = vars[keep],
+    proc = proc[keep],
+    k = as.integer(sub(pattern, "\\2", vars[keep]))
   )
 }
 

@@ -99,11 +99,11 @@ head(data_intervened)
 
 `sim_effect()`'s `from` doesn't have to name a single covariate or process. Any
 other string is parsed and evaluated as an R expression, against every
-covariate/process value plus the current time `t` and two history accessors,
-`last_time(proc)` and `nth_time(proc, k)`. Covers thresholds, interactions, and
-nonlinear transforms inline, and effects depending on a process's full
-occurrence history, not just its current count, without a separate
-`sim_derived()` covariate.
+covariate/process value plus the current time `t`, the event times
+`T_<proc>.<k>` (time of `proc`'s `k`-th event, `0` if it hasn't happened yet)
+and `last_time(proc)`. Covers thresholds, interactions, and nonlinear transforms
+inline, and effects depending on a process's full occurrence history, not just
+its current count, without a separate `sim_derived()` covariate.
 
 For example, an effect that only fires on a process's 3rd occurrence, not the
 1st or 2nd:
@@ -129,8 +129,36 @@ mean(deaths$relapse == 3)
 
 Most deaths happen right at the 3rd relapse, not before or after.
 
-`last_time()`/`nth_time()` give the same access to timing, not just counts. Here
-the death hazard drops for one time unit right after each checkup:
+`T_<proc>.<k>` and `last_time()` give access to timing, not just counts.
+`T_<proc>.<k>` is the time of `proc`'s `k`-th event, and `0` if it hasn't
+happened yet. Effects on time since an event therefore take the form
+`proc * f(t - T_proc.k)`: multiplying by the event count switches the effect off
+until the event has happened, whatever `f` is.
+
+Here the death hazard spikes right after an operation and then fades:
+
+```{r}
+#| label: sim-model-event-time-effect
+
+operation_model <- sim_model(
+  censoring = sim_process("censoring", eta = 0.05, nu = 1),
+  operation = sim_process("transient", eta = 0.2, nu = 1, limit = 1),
+  death = sim_process("terminal", eta = 0.02, nu = 1),
+  effects = list(
+    sim_effect("operation * exp(-(t - T_operation.1))", "death", coef = 3)
+  )
+)
+
+operation_data <- sim_events(operation_model, n = 2000)
+head(operation_data)
+```
+
+Without the `operation *`, the not-yet-operated would have
+`exp(-(t - 0)) = exp(-t)`, a spike at time 0 that never happened. For a risk
+that instead builds up after the operation, use
+`operation * (t - T_operation.1)`.
+
+And here the death hazard drops for one time unit right after each checkup:
 
 ```{r}
 #| label: sim-model-history-effect
@@ -148,9 +176,8 @@ checkup_data <- sim_events(checkup_model, n = 2000)
 head(checkup_data)
 ```
 
-`last_time(proc)` is `-Inf` before `proc`'s first occurrence, and
-`nth_time(proc, k)` is `Inf` before its `k`-th, so both work directly in
-comparisons with no `NA` handling required.
+`last_time(proc)` is `-Inf` before `proc`'s first occurrence, so
+`t - last_time(proc) < 1` needs no `NA` handling.
 
 # Reproducing the Preset Wrappers
 

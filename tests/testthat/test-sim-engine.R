@@ -143,33 +143,26 @@ test_that("process_hazard_multipliers: last_time() gives -Inf before any occurre
   expect_equal(phi[, "d"], c(exp(2), 1))
 })
 
-test_that("process_hazard_multipliers: nth_time() gives Inf before the k-th occurrence", {
-  time_log <- matrix(c(0.5, 1, 1.5), nrow = 3)
-  type_log <- matrix(c("a", "a", "a"), nrow = 3)
+test_that("process_hazard_multipliers: T_<proc>.<k> is 0 before the k-th occurrence", {
+  # individual 1: 'a' at t = 0.5 and 1; individual 2: 'b' at t = 0.7 only.
+  time_log <- matrix(c(0.5, 1, 0.7, 0), nrow = 2)
+  type_log <- matrix(c("a", "a", "b", NA), nrow = 2)
 
   phi <- process_hazard_multipliers(
-    list(sim_effect("t >= nth_time(a, 3)", "d", coef = 1)),
+    list(
+      sim_effect("T_a.2", "d", coef = 1),
+      sim_effect("T_a.1 > 0", "b", coef = 1)
+    ),
     covariates = list(),
-    event_counts = list(a = 3, d = 0),
-    process_names = c("a", "d"),
-    t = 1.2,
+    event_counts = list(a = c(2, 0), b = c(0, 1), d = c(0, 0)),
+    process_names = c("a", "b", "d"),
+    t = c(2, 2),
     event_time_log = time_log,
     event_type_log = type_log,
-    n_events_so_far = 3
+    n_events_so_far = 2
   )
-  expect_equal(unname(phi[, "d"]), 1) # t=1.2 hasn't reached the 3rd occurrence (t=1.5) yet
-
-  phi2 <- process_hazard_multipliers(
-    list(sim_effect("t >= nth_time(a, 3)", "d", coef = 1)),
-    covariates = list(),
-    event_counts = list(a = 3, d = 0),
-    process_names = c("a", "d"),
-    t = 2,
-    event_time_log = time_log,
-    event_type_log = type_log,
-    n_events_so_far = 3
-  )
-  expect_equal(unname(phi2[, "d"]), exp(1))
+  expect_equal(unname(phi[, "d"]), exp(c(1, 0)))
+  expect_equal(unname(phi[, "b"]), exp(c(1, 0)))
 })
 
 test_that("process_hazard_multipliers is all-ones with no effects", {
