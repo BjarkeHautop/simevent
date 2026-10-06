@@ -21,7 +21,8 @@ sim_model() specification."></head><body>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/sim-events.html">Migrating to sim_events()</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
+    <li><a class="dropdown-item" href="../articles/sim-events.html">Migrating to sim_events()</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -74,9 +75,9 @@ sim_model() specification."></head><body>
 
 
 <dt id="arg-intervene">intervene<a class="anchor" aria-label="anchor" href="#arg-intervene"></a></dt>
-<dd><p>Named list of interventions. A covariate name fixes that
-covariate to the given value for everyone; a process name multiplies
-that process's hazard by the given value.</p></dd>
+<dd><p>Named list of interventions. A covariate or marker name
+fixes it to the given value for everyone, for all time; a process name
+multiplies that process's hazard by the given value.</p></dd>
 
 
 <dt id="arg-cens">cens<a class="anchor" aria-label="anchor" href="#arg-cens"></a></dt>

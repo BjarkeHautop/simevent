@@ -19,7 +19,8 @@
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/sim-events.html">Migrating to sim_events()</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
+    <li><a class="dropdown-item" href="../articles/sim-events.html">Migrating to sim_events()</a></li>
   </ul></li>
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -50,7 +51,7 @@
 <li>
 <code><a href="../reference/sim_model.html">sim_model()</a></code> now rejects: reserved node names (<code>id</code>, <code>time</code>, <code>event</code>, <code>max_cens</code>, <code>none</code>, <code>t</code>, <code>last_time</code>), models without a terminal process, duplicate effects, effects from censoring/terminal processes, and <code><a href="../reference/sim_covariate.html">sim_covariate()</a></code> generators whose arguments don’t name an earlier covariate.</li>
 <li>Added a <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> method for <code><a href="../reference/sim_model.html">sim_model()</a></code> objects.</li>
-<li>Added <code><a href="../reference/sim_model.html">sim_model()</a></code>, <code><a href="../reference/sim_covariate.html">sim_covariate()</a></code>, <code><a href="../reference/sim_derived.html">sim_derived()</a></code>, <code><a href="../reference/sim_process.html">sim_process()</a></code>, <code><a href="../reference/sim_effect.html">sim_effect()</a></code>, <code><a href="../reference/sim_events.html">sim_events()</a></code> and <code><a href="../reference/sim_model_from_fits.html">sim_model_from_fits()</a></code>.</li>
+<li>Added <code><a href="../reference/sim_model.html">sim_model()</a></code>, <code><a href="../reference/sim_covariate.html">sim_covariate()</a></code>, <code><a href="../reference/sim_derived.html">sim_derived()</a></code>, <code><a href="../reference/sim_marker.html">sim_marker()</a></code>, <code><a href="../reference/sim_process.html">sim_process()</a></code>, <code><a href="../reference/sim_effect.html">sim_effect()</a></code>, <code><a href="../reference/sim_events.html">sim_events()</a></code> and <code><a href="../reference/sim_model_from_fits.html">sim_model_from_fits()</a></code>.</li>
 <li>Added <code><a href="../reference/event_risk.html">event_risk()</a></code> for summarising risk / time lost from <code><a href="../reference/sim_events.html">sim_events()</a></code> output, <code><a href="../reference/interval_format_data.html">interval_format_data()</a></code> and <code><a href="../reference/plot_event_data.html">plot_event_data()</a></code>.</li>
 </ul></div>
 </div>

@@ -34,9 +34,9 @@ sim_events(
 
 - intervene:
 
-  Named list of interventions. A covariate name fixes that covariate to
-  the given value for everyone; a process name multiplies that process's
-  hazard by the given value.
+  Named list of interventions. A covariate or marker name fixes it to
+  the given value for everyone, for all time; a process name multiplies
+  that process's hazard by the given value.
 
 - cens:
 

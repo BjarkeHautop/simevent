@@ -58,6 +58,7 @@
   [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md),
   [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md),
   [`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md),
+  [`sim_marker()`](https://github.com/BjarkeHautop/simevent/reference/sim_marker.md),
   [`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md),
   [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md),
   [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)

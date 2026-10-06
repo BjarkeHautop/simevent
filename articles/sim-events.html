@@ -37,7 +37,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/sim-events.html">Migrating to sim_events()</a></li>
+<li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
+    <li><a class="dropdown-item" href="../articles/sim-events.html">Migrating to sim_events()</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -125,12 +126,12 @@
 <span><span class="co">#&gt; Key: &lt;id&gt;</span></span>
 <span><span class="co">#&gt;       id       time     event    L0</span></span>
 <span><span class="co">#&gt;    &lt;int&gt;      &lt;num&gt;    &lt;fctr&gt; &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1:     1 13.3233536 censoring     0</span></span>
-<span><span class="co">#&gt; 2:     2  0.2306254     death     1</span></span>
-<span><span class="co">#&gt; 3:     3  5.3464510 censoring     0</span></span>
-<span><span class="co">#&gt; 4:     4  4.7820494 censoring     0</span></span>
-<span><span class="co">#&gt; 5:     5  1.4265980     death     0</span></span>
-<span><span class="co">#&gt; 6:     6  0.1194136     death     1</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:     1 14.6471363     death     0</span></span>
+<span><span class="co">#&gt; 2:     2  2.2188976     death     1</span></span>
+<span><span class="co">#&gt; 3:     3  2.0060093     death     0</span></span>
+<span><span class="co">#&gt; 4:     4  2.6018297 censoring     1</span></span>
+<span><span class="co">#&gt; 5:     5  2.2088810     death     0</span></span>
+<span><span class="co">#&gt; 6:     6  0.4328825     death     0</span></span></code></pre></div>
 </div>
 <p><code><a href="../reference/sim_events.html">sim_events()</a></code>’s <code>intervene</code> argument replaces <code><a href="../reference/sim.generic.html">sim.generic()</a></code>’s <code>alpha.intervention</code>/<code>baseline.intervention</code> pair with a single named list: give a process name to scale its <code>eta</code>, or a covariate name to fix it to a constant.</p>
 <div class="cell">
@@ -142,14 +143,14 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data_intervened</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;id&gt;</span></span>
-<span><span class="co">#&gt;       id     time     event    L0</span></span>
-<span><span class="co">#&gt;    &lt;int&gt;    &lt;num&gt;    &lt;fctr&gt; &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     1 1.022860     death     1</span></span>
-<span><span class="co">#&gt; 2:     2 3.900718     death     1</span></span>
-<span><span class="co">#&gt; 3:     3 5.282937     death     1</span></span>
-<span><span class="co">#&gt; 4:     4 1.646237 censoring     1</span></span>
-<span><span class="co">#&gt; 5:     5 1.040135 censoring     1</span></span>
-<span><span class="co">#&gt; 6:     6 9.280683 censoring     1</span></span></code></pre></div>
+<span><span class="co">#&gt;       id      time     event    L0</span></span>
+<span><span class="co">#&gt;    &lt;int&gt;     &lt;num&gt;    &lt;fctr&gt; &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1:     1 1.1215323 censoring     1</span></span>
+<span><span class="co">#&gt; 2:     2 2.8328921 censoring     1</span></span>
+<span><span class="co">#&gt; 3:     3 1.6078496 censoring     1</span></span>
+<span><span class="co">#&gt; 4:     4 0.3269929 censoring     1</span></span>
+<span><span class="co">#&gt; 5:     5 4.2708292 censoring     1</span></span>
+<span><span class="co">#&gt; 6:     6 2.2299752     death     1</span></span></code></pre></div>
 </div>
 <section class="level2"><h3 id="non-linear-and-history-dependent-effects">Non-Linear and History-Dependent Effects<a class="anchor" aria-label="anchor" href="#non-linear-and-history-dependent-effects"></a>
 </h3>
