@@ -30,7 +30,13 @@ summary.sim_model <- function(object, ...) {
     kind = vapply(
       shown,
       function(node) {
-        if (inherits(node, "sim_derived")) "derived" else "baseline"
+        if (inherits(node, "sim_derived")) {
+          "derived"
+        } else if (inherits(node, "sim_marker")) {
+          "marker"
+        } else {
+          "baseline"
+        }
       },
       character(1)
     ),

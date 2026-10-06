@@ -81,6 +81,70 @@ sim_derived <- function(fn) {
   wrapper
 }
 
+#' Define a Time-Varying Covariate for `sim_model()`
+#'
+#' `sim_marker` builds a covariate, such as a lab value measured at visits,
+#' that is drawn at baseline and redrawn whenever one of the `update`
+#' processes fires. It stays constant between those events. In [sim_events()]
+#' output, each row holds its value after that row's event.
+#'
+#' @param init Function of `N` giving the initial values, as for
+#'   [sim_covariate()]. Covariates defined after the marker see its initial
+#'   value.
+#' @param update Character. Names of the `"transient"` [sim_process()]es
+#'   whose events redraw the marker.
+#' @param draw Function returning the new values. It may take, by name:
+#'   `N` (number of individuals updated), `t` (the event time), any
+#'   covariate or marker (current value, including this marker's own), and
+#'   any process (number of events so far, including the triggering event).
+#'
+#' @return An object of class `sim_marker`, for use in [sim_model()].
+#' @seealso [sim_model()], [sim_covariate()]
+#' @examples
+#' # Blood pressure measured at each visit, lowered by treatment and driving
+#' # both treatment initiation and stroke:
+#' model <- sim_model(
+#'   age = sim_covariate(function(N) rnorm(N, mean = 60, sd = 10)),
+#'   visit = sim_process("transient", eta = 1, nu = 1),
+#'   bp = sim_marker(
+#'     init = function(N, age) rnorm(N, 130 + 0.5 * (age - 60), 12),
+#'     update = "visit",
+#'     draw = function(N, bp, treatment) {
+#'       rnorm(N, 0.8 * bp + 26 - 2 * treatment, 6)
+#'     }
+#'   ),
+#'   treatment = sim_process("transient", eta = 0.05, nu = 1, limit = 1),
+#'   stroke = sim_process("terminal", eta = 0.01, nu = 1.2),
+#'   effects = list(
+#'     sim_effect("bp - 130", "treatment", coef = 0.08),
+#'     sim_effect("bp - 130", "stroke", coef = 0.03),
+#'     sim_effect("treatment", "stroke", coef = -0.2)
+#'   )
+#' )
+#' head(sim_events(model, n = 5, max_cens = 5), 10)
+#' @export
+sim_marker <- function(init, update, draw) {
+  checkmate::assert_function(init)
+  if (!("N" %in% names(formals(init)))) {
+    stop(
+      "sim_marker()'s init must have a formal argument named 'N' ",
+      "(the number of individuals to simulate); got formal argument(s): ",
+      paste(names(formals(init)), collapse = ", ")
+    )
+  }
+  checkmate::assert_character(
+    update,
+    min.len = 1,
+    any.missing = FALSE,
+    unique = TRUE
+  )
+  checkmate::assert_function(draw)
+  structure(
+    list(generator = init, update = update, draw = draw),
+    class = "sim_marker"
+  )
+}
+
 #' Define an Event Process for `sim_model()`
 #'
 #' `sim_process` builds an event process whose baseline intensity is Weibull,
@@ -224,16 +288,16 @@ sim_effect <- function(from, to, coef) {
 #' Build a Simulation Model for `sim_events()`
 #'
 #' `sim_model` assembles a set of named [sim_covariate()]/[sim_derived()]/
-#' [sim_process()] nodes and [sim_effect()] edges between them into a single
+#' [sim_marker()]/[sim_process()] nodes and [sim_effect()] edges between them into a single
 #' specification, which [sim_events()] can then simulate from.
 #'
-#' @param ... Named [sim_covariate()]/[sim_derived()]/[sim_process()]
-#'   objects. A covariate may only depend on covariates listed before it.
+#' @param ... Named [sim_covariate()]/[sim_derived()]/[sim_marker()]/
+#'   [sim_process()] objects. A covariate may only depend on covariates listed before it.
 #' @param effects List of [sim_effect()]s.
 #'
 #' @return An object of class `sim_model`.
 #' @seealso [sim_events()], [sim_covariate()], [sim_derived()],
-#'   [sim_process()], [sim_effect()]
+#'   [sim_marker()], [sim_process()], [sim_effect()]
 #' @examples
 #' model <- sim_model(
 #'   age = sim_covariate(function(N) runif(N, min = 40, max = 80)),
@@ -254,13 +318,14 @@ sim_model <- function(..., effects = list()) {
     nodes,
     inherits,
     logical(1),
-    what = c("sim_covariate", "sim_derived")
+    what = c("sim_covariate", "sim_derived", "sim_marker")
   )
   is_process <- vapply(nodes, inherits, logical(1), what = "sim_process")
   if (!all(is_baseline | is_process)) {
     stop(
       "All named arguments to sim_model() must be sim_covariate(), ",
-      "sim_derived(), or sim_process() objects; offending name(s): ",
+      "sim_derived(), sim_marker(), or sim_process() objects; offending ",
+      "name(s): ",
       paste(names(nodes)[!(is_baseline | is_process)], collapse = ", ")
     )
   }
@@ -311,16 +376,40 @@ sim_model <- function(..., effects = list()) {
   for (nm in baseline_names) {
     node <- nodes[[nm]]
     earlier <- baseline_names[seq_len(match(nm, baseline_names) - 1)]
-    if (inherits(node, "sim_covariate")) {
+    if (inherits(node, c("sim_covariate", "sim_marker"))) {
       missing <- setdiff(names(formals(node$generator)), c("N", earlier))
       if (length(missing) > 0) {
         stop(
-          "sim_covariate() '",
+          class(node)[1],
+          "() '",
           nm,
           "' has argument(s) '",
           paste(missing, collapse = ", "),
-          "' that do not name an earlier sim_covariate()/sim_derived() in ",
-          "the same sim_model() call."
+          "' that do not name an earlier sim_covariate()/sim_derived()/",
+          "sim_marker() in the same sim_model() call."
+        )
+      }
+    }
+    if (inherits(node, "sim_marker")) {
+      transient <- process_names[process_types == "transient"]
+      bad_update <- setdiff(node$update, transient)
+      if (length(bad_update) > 0) {
+        stop(
+          "sim_marker() '",
+          nm,
+          "' has update '",
+          paste(bad_update, collapse = ", "),
+          "', which must name \"transient\" sim_process()es in the model."
+        )
+      }
+      missing <- setdiff(names(formals(node$draw)), c("N", "t", names(nodes)))
+      if (length(missing) > 0) {
+        stop(
+          "sim_marker() '",
+          nm,
+          "' has draw argument(s) '",
+          paste(missing, collapse = ", "),
+          "' that are not N, t, or a node in the same sim_model() call."
         )
       }
     }
@@ -507,9 +596,9 @@ print.sim_model <- function(x, ...) {
 #'
 #' @param model A [sim_model()].
 #' @param n Integer. Number of individuals to simulate.
-#' @param intervene Named list of interventions. A covariate name fixes that
-#'   covariate to the given value for everyone; a process name multiplies
-#'   that process's hazard by the given value.
+#' @param intervene Named list of interventions. A covariate or marker name
+#'   fixes it to the given value for everyone, for all time; a process name
+#'   multiplies that process's hazard by the given value.
 #' @param cens Numeric. Multiplier on censoring hazards; `0` turns censoring
 #'   off. Default 1.
 #' @param max_cens Numeric. End of follow-up: anyone still followed is

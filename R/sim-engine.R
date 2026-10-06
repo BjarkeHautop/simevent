@@ -533,6 +533,27 @@ sample_event_types <- function(
   events
 }
 
+# New values of marker `nm` for individuals `rows`, from its sim_marker()
+# draw function, whose arguments are matched by name against N, t, and the
+# covariates' and processes' current values.
+.sim_draw_marker <- function(nm, draw, rows, covariates, event_counts, t) {
+  args <- c(
+    list(N = length(rows), t = t[rows]),
+    lapply(c(covariates, event_counts), `[`, rows)
+  )
+  value <- do.call(draw, args[names(formals(draw))])
+  if (!is.numeric(value) || length(value) != length(rows)) {
+    stop(
+      "sim_marker() '",
+      nm,
+      "''s draw must return a numeric vector of length N (",
+      length(rows),
+      ")."
+    )
+  }
+  value
+}
+
 # Top-level driver, called by sim_events(): draws baseline covariates,
 # then repeatedly samples a next-event time and type for everyone still
 # alive until all individuals have hit a censoring/terminal event.
@@ -558,6 +579,10 @@ run_sim <- function(
   intervened <- apply_intervention(model, intervene)
   covariates <- draw_baseline_covariates(intervened$covs, n)
   output_covariates <- names(covariates)[!.sim_hidden(names(covariates))]
+  # An intervened marker stays fixed, so isn't redrawn.
+  is_marker <- vapply(model$covariates, inherits, logical(1), "sim_marker")
+  markers <- model$covariates[is_marker]
+  markers <- markers[setdiff(names(markers), names(intervene))]
 
   eta <- intervened$eta
   nu <- vapply(model$processes, `[[`, numeric(1), "nu")
@@ -660,6 +685,19 @@ run_sim <- function(
     for (nm in process_names) {
       hit <- alive[events == nm]
       event_counts[[nm]][hit] <- event_counts[[nm]][hit] + 1
+    }
+    for (nm in names(markers)) {
+      hit <- alive[events %in% markers[[nm]]$update]
+      if (length(hit) > 0) {
+        covariates[[nm]][hit] <- .sim_draw_marker(
+          nm,
+          markers[[nm]]$draw,
+          hit,
+          covariates,
+          event_counts,
+          t_k
+        )
+      }
     }
 
     event_time_log[idx, ] <- t_k
