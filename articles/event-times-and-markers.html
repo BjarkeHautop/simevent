@@ -89,14 +89,19 @@
 <a class="anchor" aria-label="anchor" href="#event-times-t_proc-k"></a>
 </h2>
 <p>Inside a <code><a href="../reference/sim_effect.html">sim_effect()</a></code> expression, <code>T_&lt;proc&gt;.&lt;k&gt;</code> is the time of process <code>proc</code>’s <code>k</code>-th event, and <code>0</code> if it hasn’t happened yet. Combined with the current time <code>t</code>, this gives effects on time since an event: <code>t - T_operation.1</code> is the time since the first operation.</p>
-<p>Since <code>T_&lt;proc&gt;.&lt;k&gt;</code> is <code>0</code> before the event, <code>t - T_operation.1</code> is just <code>t</code> for someone not yet operated. Multiplying by the event count, as in <code>operation * f(t - T_operation.1)</code>, can be use to have the effect off until the event has happened.</p>
+<p>Since <code>T_&lt;proc&gt;.&lt;k&gt;</code> is <code>0</code> before the event, <code>t - T_operation.1</code> is just <code>t</code> for someone not yet operated. Multiplying by the event count, as in <code>operation * f(t - T_operation.1)</code>, can be used to have the effect off until the event has happened.</p>
 <section class="level2"><h3 id="example-post-operative-mortality">Example: Post-Operative Mortality<a class="anchor" aria-label="anchor" href="#example-post-operative-mortality"></a>
 </h3>
-<p>Patients may undergo an operation, which raises the death hazard sharply right afterwards. The extra risk fades as the patient recovers:</p>
+<p>Suppose patients may undergo an operation, which raises the death hazard immediately after, and then gradually fades off. Such an example could look like this:</p>
 <p><span class="math display">
   \lambda_{\text{death}}(t)
   = \lambda_0(t) \exp\left( 3 \cdot \text{operation}(t) \cdot e^{-2(t-T_{\text{operation},1})} \right).
 </span></p>
+<p>Here all baseline hazards are constant (<span class="math inline">\nu = 1</span>), so <span class="math inline">\lambda_0(t) = 0.02</span>. After the operation, measured in time since the operation, <span class="math inline">u = t - T_{\text{operation},1}</span>, the death hazard is therefore</p>
+<p><span class="math display">
+  h(u) = 0.02 \exp\left( 3 e^{-2u} \right).
+</span></p>
+<p>Right after the operation the hazard is <span class="math inline">h(0) = 0.02 e^3 \approx 0.40</span>, about 20 times the baseline. As time passes, <span class="math inline">e^{-2u}</span> goes to 0 and the hazard returns to the baseline of <span class="math inline">0.02</span>. Two time units after the operation, it is only about 6% above the baseline.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">operation_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
@@ -125,17 +130,15 @@
 <span><span class="co">#&gt; 5:     3  6.4647265     death         1</span></span>
 <span><span class="co">#&gt; 6:     4  0.3566003 operation         1</span></span></code></pre></div>
 </div>
-<p>Here all baseline hazards are constant (<span class="math inline">\nu = 1</span>), so <span class="math inline">\lambda_0(t) = 0.02</span>. After the operation, measured in time since the operation, <span class="math inline">u = t - T_{\text{operation},1}</span>, the death hazard is therefore</p>
+<p>To check the simulation, follow each operated patient from their operation until death or censoring. The Nelson–Aalen estimator then estimates the cumulative death hazard since the operation, which is (substituting <span class="math inline">w = 3 e^{-2v}</span>, so <span class="math inline">dv = -dw / (2w)</span>)</p>
 <p><span class="math display">
-  h(u) = 0.02 \exp\left( 3 e^{-2u} \right),
+  \begin{aligned}
+    H(u) &amp; = \int_0^u h(v) \, dv
+    = 0.02 \int_{3 e^{-2u}}^{3} \frac{e^w}{2w} \, dw \\
+         &amp; = 0.01 \left[ \operatorname{Ei}(3) - \operatorname{Ei}\left( 3 e^{-2u} \right) \right],
+  \end{aligned}
 </span></p>
-<p>with cumulative hazard (substituting <span class="math inline">w = 3 e^{-2v}</span>)</p>
-<p><span class="math display">
-  H(u) = \int_0^u h(v) \, dv
-       = 0.01 \left[ \operatorname{Ei}(3) - \operatorname{Ei}\left( 3 e^{-2u} \right) \right],
-</span></p>
-<p>where <span class="math inline">\operatorname{Ei}</span> is the exponential integral. The hazard starts at <span class="math inline">0.02 e^3 \approx 0.40</span>, 20 times the baseline, and falls back to <span class="math inline">0.02</span> within a couple of time units.</p>
-<p>To check the simulation, follow each operated patient from their operation until death or censoring, and compare the Nelson–Aalen estimate of the cumulative death hazard with <span class="math inline">H(u)</span>. Censoring and the end of follow-up don’t depend on time since the operation, so the estimate is unbiased.</p>
+<p>where <span class="math inline">\operatorname{Ei}(x) = \int_{-\infty}^x e^w / w \, dw</span> is the exponential integral. Censoring and the end of follow-up don’t depend on time since the operation, so the estimate is unbiased. Below, <span class="math inline">H(u)</span> is computed by numerical integration.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">operation_time</span> <span class="op">&lt;-</span> <span class="va">operation_data</span><span class="op">[</span><span class="va">event</span> <span class="op">==</span> <span class="st">"operation"</span>, <span class="fu">.</span><span class="op">(</span><span class="va">id</span>, T_op <span class="op">=</span> <span class="va">time</span><span class="op">)</span><span class="op">]</span></span>
@@ -197,9 +200,7 @@
 <td>Grows linearly with time since the second relapse</td>
 </tr>
 </tbody>
-</table>
-<p>The index <code>k</code> can’t exceed the process’s <code>limit</code>, since that event could never happen; <code><a href="../reference/sim_model.html">sim_model()</a></code> gives an error instead.</p>
-</section></section><section class="section level2"><h2 id="time-varying-markers-sim_marker">Time-Varying Markers: <code>sim_marker()</code>
+</table></section></section><section class="section level2"><h2 id="time-varying-markers-sim_marker">Time-Varying Markers: <code>sim_marker()</code>
 <a class="anchor" aria-label="anchor" href="#time-varying-markers-sim_marker"></a>
 </h2>
 <p>A <code><a href="../reference/sim_covariate.html">sim_covariate()</a></code> is drawn once at baseline and never changes. A <code><a href="../reference/sim_marker.html">sim_marker()</a></code> is drawn at baseline and then <em>redrawn</em> each time one of its <code>update</code> processes fires, staying constant in between. It takes:</p>
@@ -214,13 +215,13 @@
 <p>The marker can be used in <code><a href="../reference/sim_effect.html">sim_effect()</a></code> like any other covariate, and the hazards always use its current value.</p>
 <section class="level2"><h3 id="example-blood-pressure-and-stroke">Example: Blood Pressure and Stroke<a class="anchor" aria-label="anchor" href="#example-blood-pressure-and-stroke"></a>
 </h3>
-<p>Patients have blood pressure measured at visits. High blood pressure makes treatment initiation more likely, treatment lowers subsequent blood pressure, and both blood pressure and treatment affect the stroke hazard. Blood pressure is therefore a time-varying confounder of the effect of treatment on stroke.</p>
+<p>Suppose patients have blood pressure measured at visits. High blood pressure makes treatment initiation more likely, treatment lowers subsequent blood pressure, and both blood pressure and treatment affect the stroke hazard. Blood pressure is therefore a time-varying confounder of the effect of treatment on stroke.</p>
 <p>Let’s define such a setup, where each new measurement depends on the previous one and on treatment:</p>
 <p><span class="math display">
   \text{bp}_{\text{new}}
   \sim N\left( 130 + 0.8 (\text{bp}_{\text{prev}} - 130) - 2 \cdot \text{treatment}, \; 6^2 \right).
 </span></p>
-<p>Untreated, blood pressure fluctuates around 130. Treatment lowers each new measurement by 2, and since each measurement carries over 0.8 of the previous one’s deviation, the effect accumulates to <span class="math inline">2 / (1 - 0.8) = 10</span>: the treated settle around 120.</p>
+<p>Untreated, blood pressure has mean 130. Treatment lowers each new measurement mean by 2, and since each measurement carries over 0.8 of the previous one’s deviation, the effect converges to a mean of <span class="math inline">130 - 2 / (1 - 0.8) = 120</span>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bp_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
@@ -278,8 +279,7 @@
 <span><span class="co">#&gt; 7:     1 7.116576  visit 53.73546 125.1255 135.7371     7         0</span></span>
 <span><span class="co">#&gt; 8:     1 7.236297  visit 53.73546 127.7269 135.7371     8         0</span></span></code></pre></div>
 </div>
-<p>Each row holds the marker’s value <em>after</em> that row’s event, so <code>bp</code> changes on <code>visit</code> rows and is carried forward otherwise.</p>
-<p>Blood pressure trajectories for a few patients, with the treatment start marked:</p>
+<p>Let’s visualize the blood pressure for a few patients, with the treatment start marked:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ids</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">6</span></span>
@@ -306,7 +306,7 @@
 </div>
 </section><section class="level2"><h3 id="recovering-the-effects">Recovering the Effects<a class="anchor" aria-label="anchor" href="#recovering-the-effects"></a>
 </h3>
-<p>To check the simulation works correctly we fit a Cox model for stroke. The blood pressure in force during a row’s interval is the previous row’s value (or the baseline value, for the first row):</p>
+<p>To check the simulation works correctly we fit a Cox model for stroke, with each row as an interval from the previous event to this one. Each row stores the values <em>after</em> its event, so the values during the interval are those of the previous row, or the baseline values for a patient’s first row:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bp_data</span><span class="op">[</span>, <span class="fu">`:=`</span><span class="op">(</span></span>

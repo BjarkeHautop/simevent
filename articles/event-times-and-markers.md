@@ -30,16 +30,28 @@ time since the first operation.
 
 Since `T_<proc>.<k>` is `0` before the event, `t - T_operation.1` is
 just `t` for someone not yet operated. Multiplying by the event count,
-as in `operation * f(t - T_operation.1)`, can be use to have the effect
+as in `operation * f(t - T_operation.1)`, can be used to have the effect
 off until the event has happened.
 
 ### Example: Post-Operative Mortality
 
-Patients may undergo an operation, which raises the death hazard sharply
-right afterwards. The extra risk fades as the patient recovers:
+Suppose patients may undergo an operation, which raises the death hazard
+immediately after, and then gradually fades off. Such an example could
+look like this:
 
 \lambda\_{\text{death}}(t) = \lambda_0(t) \exp\left( 3 \cdot
 \text{operation}(t) \cdot e^{-2(t-T\_{\text{operation},1})} \right).
+
+Here all baseline hazards are constant (\nu = 1), so \lambda_0(t) =
+0.02. After the operation, measured in time since the operation, u = t -
+T\_{\text{operation},1}, the death hazard is therefore
+
+h(u) = 0.02 \exp\left( 3 e^{-2u} \right).
+
+Right after the operation the hazard is h(0) = 0.02 e^3 \approx 0.40,
+about 20 times the baseline. As time passes, e^{-2u} goes to 0 and the
+hazard returns to the baseline of 0.02. Two time units after the
+operation, it is only about 6% above the baseline.
 
 ``` r
 
@@ -70,26 +82,20 @@ head(operation_data)
 #> 6:     4  0.3566003 operation         1
 ```
 
-Here all baseline hazards are constant (\nu = 1), so \lambda_0(t) =
-0.02. After the operation, measured in time since the operation, u = t -
-T\_{\text{operation},1}, the death hazard is therefore
-
-h(u) = 0.02 \exp\left( 3 e^{-2u} \right),
-
-with cumulative hazard (substituting w = 3 e^{-2v})
-
-H(u) = \int_0^u h(v) \\ dv = 0.01 \left\[ \operatorname{Ei}(3) -
-\operatorname{Ei}\left( 3 e^{-2u} \right) \right\],
-
-where \operatorname{Ei} is the exponential integral. The hazard starts
-at 0.02 e^3 \approx 0.40, 20 times the baseline, and falls back to 0.02
-within a couple of time units.
-
 To check the simulation, follow each operated patient from their
-operation until death or censoring, and compare the Nelson–Aalen
-estimate of the cumulative death hazard with H(u). Censoring and the end
-of follow-up don’t depend on time since the operation, so the estimate
-is unbiased.
+operation until death or censoring. The Nelson–Aalen estimator then
+estimates the cumulative death hazard since the operation, which is
+(substituting w = 3 e^{-2v}, so dv = -dw / (2w))
+
+\begin{aligned} H(u) & = \int_0^u h(v) \\ dv = 0.02 \int\_{3
+e^{-2u}}^{3} \frac{e^w}{2w} \\ dw \\ & = 0.01 \left\[
+\operatorname{Ei}(3) - \operatorname{Ei}\left( 3 e^{-2u} \right)
+\right\], \end{aligned}
+
+where \operatorname{Ei}(x) = \int\_{-\infty}^x e^w / w \\ dw is the
+exponential integral. Censoring and the end of follow-up don’t depend on
+time since the operation, so the estimate is unbiased. Below, H(u) is
+computed by numerical integration.
 
 ``` r
 
@@ -134,11 +140,6 @@ is added to the log-hazard, for example:
 | `operation * (t - T_operation.1 < 1)` | Constant for one time unit after, then gone |
 | `(relapse >= 2) * (t - T_relapse.2)` | Grows linearly with time since the second relapse |
 
-The index `k` can’t exceed the process’s `limit`, since that event could
-never happen;
-[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
-gives an error instead.
-
 ## Time-Varying Markers: `sim_marker()`
 
 A
@@ -163,11 +164,11 @@ like any other covariate, and the hazards always use its current value.
 
 ### Example: Blood Pressure and Stroke
 
-Patients have blood pressure measured at visits. High blood pressure
-makes treatment initiation more likely, treatment lowers subsequent
-blood pressure, and both blood pressure and treatment affect the stroke
-hazard. Blood pressure is therefore a time-varying confounder of the
-effect of treatment on stroke.
+Suppose patients have blood pressure measured at visits. High blood
+pressure makes treatment initiation more likely, treatment lowers
+subsequent blood pressure, and both blood pressure and treatment affect
+the stroke hazard. Blood pressure is therefore a time-varying confounder
+of the effect of treatment on stroke.
 
 Let’s define such a setup, where each new measurement depends on the
 previous one and on treatment:
@@ -176,10 +177,10 @@ previous one and on treatment:
 (\text{bp}\_{\text{prev}} - 130) - 2 \cdot \text{treatment}, \\ 6^2
 \right).
 
-Untreated, blood pressure fluctuates around 130. Treatment lowers each
-new measurement by 2, and since each measurement carries over 0.8 of the
-previous one’s deviation, the effect accumulates to 2 / (1 - 0.8) = 10:
-the treated settle around 120.
+Untreated, blood pressure has mean 130. Treatment lowers each new
+measurement mean by 2, and since each measurement carries over 0.8 of
+the previous one’s deviation, the effect converges to a mean of 130 - 2
+/ (1 - 0.8) = 120.
 
 ``` r
 
@@ -239,11 +240,8 @@ head(bp_data, 8)
 #> 8:     1 7.236297  visit 53.73546 127.7269 135.7371     8         0
 ```
 
-Each row holds the marker’s value *after* that row’s event, so `bp`
-changes on `visit` rows and is carried forward otherwise.
-
-Blood pressure trajectories for a few patients, with the treatment start
-marked:
+Let’s visualize the blood pressure for a few patients, with the
+treatment start marked:
 
 ``` r
 
@@ -268,9 +266,11 @@ ggplot(trajectories, aes(time, bp)) +
 
 ### Recovering the Effects
 
-To check the simulation works correctly we fit a Cox model for stroke.
-The blood pressure in force during a row’s interval is the previous
-row’s value (or the baseline value, for the first row):
+To check the simulation works correctly we fit a Cox model for stroke,
+with each row as an interval from the previous event to this one. Each
+row stores the values *after* its event, so the values during the
+interval are those of the previous row, or the baseline values for a
+patient’s first row:
 
 ``` r
 

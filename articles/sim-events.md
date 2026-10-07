@@ -74,14 +74,14 @@ model
 data <- sim_events(model, n = 100)
 head(data)
 #> Key: <id>
-#>       id       time     event    L0
-#>    <int>      <num>    <fctr> <int>
-#> 1:     1 14.6471363     death     0
-#> 2:     2  2.2188976     death     1
-#> 3:     3  2.0060093     death     0
-#> 4:     4  2.6018297 censoring     1
-#> 5:     5  2.2088810     death     0
-#> 6:     6  0.4328825     death     0
+#>       id       time  event    L0
+#>    <int>      <num> <fctr> <int>
+#> 1:     1  1.2480386  death     0
+#> 2:     2 10.7407380  death     0
+#> 3:     3  2.0493456  death     1
+#> 4:     4  2.5380421  death     0
+#> 5:     5  0.7404856  death     1
+#> 6:     6  4.2134773  death     0
 ```
 
 [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)’s
@@ -100,14 +100,14 @@ data_intervened <- sim_events(
 )
 head(data_intervened)
 #> Key: <id>
-#>       id      time     event    L0
-#>    <int>     <num>    <fctr> <num>
-#> 1:     1 1.1215323 censoring     1
-#> 2:     2 2.8328921 censoring     1
-#> 3:     3 1.6078496 censoring     1
-#> 4:     4 0.3269929 censoring     1
-#> 5:     5 4.2708292 censoring     1
-#> 6:     6 2.2299752     death     1
+#>       id     time     event    L0
+#>    <int>    <num>    <fctr> <num>
+#> 1:     1 3.136764 censoring     1
+#> 2:     2 1.656973     death     1
+#> 3:     3 2.129145 censoring     1
+#> 4:     4 2.286815 censoring     1
+#> 5:     5 1.814609     death     1
+#> 6:     6 3.552374 censoring     1
 ```
 
 ### Non-Linear and History-Dependent Effects
