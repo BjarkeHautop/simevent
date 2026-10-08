@@ -51,6 +51,7 @@ coxph(Surv(tstart, tstop, ...))."></head><body>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">interval_format_data</span><span class="op">(</span></span>
 <span>  <span class="va">data</span>,</span>
 <span>  proc_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
+<span>  mark_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  time_var <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  t_prime <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -68,6 +69,13 @@ coxph(Surv(tstart, tstop, ...))."></head><body>
 <dd><p>Character vector. <code>"transient"</code>-process columns to use
 as time-varying covariates: each row then holds the count <em>before</em> its
 event.</p></dd>
+
+
+<dt id="arg-mark-cols">mark_cols<a class="anchor" aria-label="anchor" href="#arg-mark-cols"></a></dt>
+<dd><p>Character vector. <code><a href="sim_mark.html">sim_mark()</a></code> columns to use as
+time-varying covariates: each row then holds the value <em>before</em> its
+event, i.e. the one in force during its interval, taken from the
+<code>&lt;name&gt;_0</code> baseline column for the first row.</p></dd>
 
 
 <dt id="arg-time-var">time_var<a class="anchor" aria-label="anchor" href="#arg-time-var"></a></dt>

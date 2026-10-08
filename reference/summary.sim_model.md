@@ -68,7 +68,7 @@ summary(model)
 #>      death  terminal  weibull 0.1 1.1   Inf
 #> 
 #> <sim_model> effects
-#>     from    to coef
-#>      age death 0.03
-#>  relapse death 1.00
+#>  from..age. from..relapse.    to coef
+#>         age        relapse death 0.03
+#>         age        relapse death 1.00
 ```

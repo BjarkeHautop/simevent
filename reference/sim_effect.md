@@ -1,6 +1,10 @@
 # Define an Effect for `sim_model()`
 
-Multiplies the hazard of process `to` by `exp(coef * from)`.
+Multiplies the hazard of process `to` by `exp(coef * from)`, or, if `to`
+is a
+[`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md),
+adds `coef * from` to the linear predictor `lp` its new values are drawn
+from.
 
 ## Usage
 
@@ -34,11 +38,11 @@ sim_effect(from, to, coef)
 
 - to:
 
-  Character. Name of the affected process.
+  Character. Name of the affected process or mark.
 
 - coef:
 
-  Numeric. Cox-type coefficient.
+  Numeric. Cox-type coefficient, or for a mark, linear coefficient.
 
 ## Value
 

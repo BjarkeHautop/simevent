@@ -83,7 +83,7 @@
 <li>
 <strong>Event times</strong>, <code>T_&lt;proc&gt;.&lt;k&gt;</code>: effects that depend on <em>when</em> an event happened.</li>
 <li>
-<strong>Markers</strong>, <code><a href="../reference/sim_marker.html">sim_marker()</a></code>: covariates that are re-measured over time, e.g. a lab value drawn at each visit.</li>
+<strong>Markers</strong>, <code><a href="../reference/sim_mark.html">sim_mark()</a></code>: covariates that are re-measured over time, e.g. a lab value drawn at each visit.</li>
 </ol>
 <section class="section level2"><h2 id="event-times-t_proc-k">Event Times: <code>T_&lt;proc&gt;.&lt;k&gt;</code>
 <a class="anchor" aria-label="anchor" href="#event-times-t_proc-k"></a>
@@ -200,19 +200,20 @@
 <td>Grows linearly with time since the second relapse</td>
 </tr>
 </tbody>
-</table></section></section><section class="section level2"><h2 id="time-varying-markers-sim_marker">Time-Varying Markers: <code>sim_marker()</code>
-<a class="anchor" aria-label="anchor" href="#time-varying-markers-sim_marker"></a>
+</table></section></section><section class="section level2"><h2 id="time-varying-markers-sim_mark">Time-Varying Markers: <code>sim_mark()</code>
+<a class="anchor" aria-label="anchor" href="#time-varying-markers-sim_mark"></a>
 </h2>
-<p>A <code><a href="../reference/sim_covariate.html">sim_covariate()</a></code> is drawn once at baseline and never changes. A <code><a href="../reference/sim_marker.html">sim_marker()</a></code> is drawn at baseline and then <em>redrawn</em> each time one of its <code>update</code> processes fires, staying constant in between. It takes:</p>
+<p>A <code><a href="../reference/sim_covariate.html">sim_covariate()</a></code> is drawn once at baseline and never changes. A <code><a href="../reference/sim_mark.html">sim_mark()</a></code> is drawn at baseline and then <em>redrawn</em> each time one of its <code>update</code> processes fires, staying constant in between. It takes:</p>
 <ul>
 <li>
 <code>init</code>: a function of <code>N</code> (and earlier covariates) giving the baseline values, as for <code><a href="../reference/sim_covariate.html">sim_covariate()</a></code>.</li>
 <li>
 <code>update</code>: the transient processes whose events redraw the marker.</li>
 <li>
-<code>draw</code>: a function giving the new values. Its arguments are matched by name against <code>N</code>, the event time <code>t</code>, any covariate or marker (including the marker’s own current value), and any process’s event count so far.</li>
+<code>draw</code>: a function of <code>N</code> and <code>lp</code> giving the new values.</li>
 </ul>
-<p>The marker can be used in <code><a href="../reference/sim_effect.html">sim_effect()</a></code> like any other covariate, and the hazards always use its current value.</p>
+<p>What a new value depends on is specified with <code><a href="../reference/sim_effect.html">sim_effect()</a></code>s <em>into</em> the marker. At each update, their <code>coef * from</code> terms are summed into the linear predictor <code>lp</code>, which <code>draw</code> can then use, e.g. as the mean of <code><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm()</a></code>. These effects can use anything a hazard effect can, including the marker’s own value before the update, and see the triggering event as having happened.</p>
+<p>The marker can also be used in <code><a href="../reference/sim_effect.html">sim_effect()</a></code> like any other covariate, and the hazards always use its current value.</p>
 <section class="level2"><h3 id="example-blood-pressure-and-stroke">Example: Blood Pressure and Stroke<a class="anchor" aria-label="anchor" href="#example-blood-pressure-and-stroke"></a>
 </h3>
 <p>Suppose patients have blood pressure measured at visits. High blood pressure makes treatment initiation more likely, treatment lowers subsequent blood pressure, and both blood pressure and treatment affect the stroke hazard. Blood pressure is therefore a time-varying confounder of the effect of treatment on stroke.</p>
@@ -227,19 +228,17 @@
 <code class="sourceCode R"><span><span class="va">bp_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
 <span>  age <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">N</span>, mean <span class="op">=</span> <span class="fl">60</span>, sd <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  visit <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"transient"</span>, eta <span class="op">=</span> <span class="fl">1</span>, nu <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  bp <span class="op">=</span> <span class="fu"><a href="../reference/sim_marker.html">sim_marker</a></span><span class="op">(</span></span>
+<span>  bp <span class="op">=</span> <span class="fu"><a href="../reference/sim_mark.html">sim_mark</a></span><span class="op">(</span></span>
 <span>    init <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">N</span>, <span class="va">age</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">130</span> <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="va">age</span> <span class="op">-</span> <span class="fl">60</span><span class="op">)</span>, <span class="fl">12</span><span class="op">)</span>,</span>
 <span>    update <span class="op">=</span> <span class="st">"visit"</span>,</span>
-<span>    draw <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">N</span>, <span class="va">bp</span>, <span class="va">treatment</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">130</span> <span class="op">+</span> <span class="fl">0.8</span> <span class="op">*</span> <span class="op">(</span><span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">treatment</span>, <span class="fl">6</span><span class="op">)</span></span>
-<span>    <span class="op">}</span></span>
+<span>    draw <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">N</span>, <span class="va">lp</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">N</span>, mean <span class="op">=</span> <span class="fl">130</span> <span class="op">+</span> <span class="va">lp</span>, sd <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
 <span>  <span class="op">)</span>,</span>
-<span>  <span class="co"># Keep the baseline value too, as sim_derived() sees the marker's init:</span></span>
-<span>  bp0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_derived.html">sim_derived</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">bp</span><span class="op">)</span> <span class="va">bp</span><span class="op">)</span>,</span>
 <span>  treatment <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"transient"</span>, eta <span class="op">=</span> <span class="fl">0.05</span>, nu <span class="op">=</span> <span class="fl">1</span>, limit <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  censoring <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.05</span>, nu <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  stroke <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.02</span>, nu <span class="op">=</span> <span class="fl">1.2</span><span class="op">)</span>,</span>
 <span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"bp - 130"</span>, <span class="st">"bp"</span>, coef <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"treatment"</span>, <span class="st">"bp"</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"bp - 130"</span>, <span class="st">"treatment"</span>, coef <span class="op">=</span> <span class="fl">0.08</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"bp - 130"</span>, <span class="st">"stroke"</span>, coef <span class="op">=</span> <span class="fl">0.04</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"treatment"</span>, <span class="st">"stroke"</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span><span class="op">)</span></span>
@@ -249,8 +248,7 @@
 <span><span class="co">#&gt; &lt;sim_model&gt; covariates</span></span>
 <span><span class="co">#&gt;  name     kind</span></span>
 <span><span class="co">#&gt;   age baseline</span></span>
-<span><span class="co">#&gt;    bp   marker</span></span>
-<span><span class="co">#&gt;   bp0  derived</span></span>
+<span><span class="co">#&gt;    bp     mark</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; &lt;sim_model&gt; processes</span></span>
 <span><span class="co">#&gt;       name      type baseline  eta  nu limit</span></span>
@@ -260,15 +258,19 @@
 <span><span class="co">#&gt;     stroke  terminal  weibull 0.02 1.2   Inf</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; &lt;sim_model&gt; effects</span></span>
-<span><span class="co">#&gt;       from        to  coef</span></span>
-<span><span class="co">#&gt;   bp - 130 treatment  0.08</span></span>
-<span><span class="co">#&gt;   bp - 130    stroke  0.04</span></span>
-<span><span class="co">#&gt;  treatment    stroke -0.50</span></span>
+<span><span class="co">#&gt;         from        to  coef</span></span>
+<span><span class="co">#&gt;  bp[k] - 130   bp[k+1]  0.80</span></span>
+<span><span class="co">#&gt;    treatment   bp[k+1] -2.00</span></span>
+<span><span class="co">#&gt;     bp - 130 treatment  0.08</span></span>
+<span><span class="co">#&gt;     bp - 130    stroke  0.04</span></span>
+<span><span class="co">#&gt;    treatment    stroke -0.50</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; mark[k]: value after the mark's k-th update (k = 0: init)</span></span>
 <span></span>
 <span><span class="va">bp_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">bp_model</span>, n <span class="op">=</span> <span class="fl">3000</span>, max_cens <span class="op">=</span> <span class="fl">10</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">bp_data</span>, <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;id&gt;</span></span>
-<span><span class="co">#&gt;       id     time  event      age       bp      bp0 visit treatment</span></span>
+<span><span class="co">#&gt;       id     time  event      age       bp     bp_0 visit treatment</span></span>
 <span><span class="co">#&gt;    &lt;int&gt;    &lt;num&gt; &lt;fctr&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt; &lt;num&gt;     &lt;num&gt;</span></span>
 <span><span class="co">#&gt; 1:     1 1.140060  visit 53.73546 127.2870 135.7371     1         0</span></span>
 <span><span class="co">#&gt; 2:     1 1.353592  visit 53.73546 130.9426 135.7371     2         0</span></span>
@@ -279,11 +281,12 @@
 <span><span class="co">#&gt; 7:     1 7.116576  visit 53.73546 125.1255 135.7371     7         0</span></span>
 <span><span class="co">#&gt; 8:     1 7.236297  visit 53.73546 127.7269 135.7371     8         0</span></span></code></pre></div>
 </div>
+<p>The summary unrolls the effects into the marker over its updates: <code>bp[k+1]</code>, the value after the <code>k+1</code>-th visit, is drawn from <code>bp[k]</code> and the current treatment status. In the data, <code>bp</code> is the value after each row’s event, and <code>bp_0</code> the baseline value.</p>
 <p>Let’s visualize the blood pressure for a few patients, with the treatment start marked:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ids</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">6</span></span>
-<span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="va">bp_data</span><span class="op">[</span><span class="va">id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">ids</span>, <span class="fu">.</span><span class="op">(</span>time <span class="op">=</span> <span class="fl">0</span>, bp <span class="op">=</span> <span class="va">bp0</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, by <span class="op">=</span> <span class="va">id</span><span class="op">]</span></span>
+<span><span class="va">baseline</span> <span class="op">&lt;-</span> <span class="va">bp_data</span><span class="op">[</span><span class="va">id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">ids</span>, <span class="fu">.</span><span class="op">(</span>time <span class="op">=</span> <span class="fl">0</span>, bp <span class="op">=</span> <span class="va">bp_0</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, by <span class="op">=</span> <span class="va">id</span><span class="op">]</span></span>
 <span><span class="va">trajectories</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">baseline</span>, <span class="va">bp_data</span><span class="op">[</span><span class="va">id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">ids</span>, <span class="fu">.</span><span class="op">(</span><span class="va">id</span>, <span class="va">time</span>, <span class="va">bp</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">treated</span> <span class="op">&lt;-</span> <span class="va">bp_data</span><span class="op">[</span><span class="va">id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">ids</span> <span class="op">&amp;</span> <span class="va">event</span> <span class="op">==</span> <span class="st">"treatment"</span><span class="op">]</span></span>
 <span></span>
@@ -306,41 +309,41 @@
 </div>
 </section><section class="level2"><h3 id="recovering-the-effects">Recovering the Effects<a class="anchor" aria-label="anchor" href="#recovering-the-effects"></a>
 </h3>
-<p>To check the simulation works correctly we fit a Cox model for stroke, with each row as an interval from the previous event to this one. Each row stores the values <em>after</em> its event, so the values during the interval are those of the previous row, or the baseline values for a patient’s first row:</p>
+<p>To check the simulation works correctly we fit a Cox model for stroke, with each row as an interval from the previous event to this one. Each row stores the values <em>after</em> its event, so the values during the interval are those of the previous row, or the baseline values for a patient’s first row. <code><a href="../reference/interval_format_data.html">interval_format_data()</a></code> does this shift, for marker columns (<code>mark_cols</code>) and process counts (<code>proc_cols</code>):</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bp_data</span><span class="op">[</span>, <span class="fu">`:=`</span><span class="op">(</span></span>
-<span>  tstart <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/shift.html" class="external-link">shift</a></span><span class="op">(</span><span class="va">time</span>, fill <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
-<span>  bp_now <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/shift.html" class="external-link">shift</a></span><span class="op">(</span><span class="va">bp</span>, fill <span class="op">=</span> <span class="va">bp0</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>  treated_now <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/data.table/man/shift.html" class="external-link">shift</a></span><span class="op">(</span><span class="va">treatment</span>, fill <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="op">)</span>, by <span class="op">=</span> <span class="va">id</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="va">bp_int</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interval_format_data.html">interval_format_data</a></span><span class="op">(</span></span>
+<span>  <span class="va">bp_data</span>,</span>
+<span>  proc_cols <span class="op">=</span> <span class="st">"treatment"</span>,</span>
+<span>  mark_cols <span class="op">=</span> <span class="st">"bp"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">tstart</span>, <span class="va">time</span>, <span class="va">event</span> <span class="op">==</span> <span class="st">"stroke"</span><span class="op">)</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">bp_now</span> <span class="op">-</span> <span class="fl">130</span><span class="op">)</span> <span class="op">+</span> <span class="va">treated_now</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">bp_data</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">tstart</span>, <span class="va">tstop</span>, <span class="va">event</span> <span class="op">==</span> <span class="st">"stroke"</span><span class="op">)</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span><span class="op">)</span> <span class="op">+</span> <span class="va">treatment</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">bp_int</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Call:</span></span>
-<span><span class="co">#&gt; coxph(formula = Surv(tstart, time, event == "stroke") ~ I(bp_now - </span></span>
-<span><span class="co">#&gt;     130) + treated_now, data = bp_data)</span></span>
+<span><span class="co">#&gt; coxph(formula = Surv(tstart, tstop, event == "stroke") ~ I(bp - </span></span>
+<span><span class="co">#&gt;     130) + treatment, data = bp_int)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;                      coef exp(coef)  se(coef)      z        p</span></span>
-<span><span class="co">#&gt; I(bp_now - 130)  0.034805  1.035418  0.003734  9.321  &lt; 2e-16</span></span>
-<span><span class="co">#&gt; treated_now     -0.460699  0.630843  0.102513 -4.494 6.99e-06</span></span>
+<span><span class="co">#&gt;                  coef exp(coef)  se(coef)      z        p</span></span>
+<span><span class="co">#&gt; I(bp - 130)  0.034805  1.035418  0.003734  9.321  &lt; 2e-16</span></span>
+<span><span class="co">#&gt; treatment   -0.460699  0.630843  0.102513 -4.494 6.99e-06</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Likelihood ratio test=100.9  on 2 df, p=&lt; 2.2e-16</span></span>
 <span><span class="co">#&gt; n= 24636, number of events= 638</span></span></code></pre></div>
 </div>
 <p>The estimates are close to the simulated effects of <code>0.04</code> and <code>-0.5</code>.</p>
-<p>The marker’s own <code>draw</code> can be checked the same way. On each <code>visit</code> row, <code>bp</code> is the new measurement and <code>bp_now</code> the previous one, so regressing one on the other and treatment should give roughly <code>0.8</code>, <code>-2</code>, and a residual standard deviation of <code>6</code>:</p>
+<p>The effects into the marker can be checked the same way. On each <code>visit</code> row, <code>bp</code> in <code>bp_int</code> is the previous measurement, and <code>bp</code> in <code>bp_data</code> the new one, so regressing one on the other and treatment should give roughly <code>0.8</code>, <code>-2</code>, and a residual standard deviation of <code>6</code>:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bp_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span><span class="op">)</span> <span class="op">~</span> <span class="fl">0</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">bp_now</span> <span class="op">-</span> <span class="fl">130</span><span class="op">)</span> <span class="op">+</span> <span class="va">treated_now</span>,</span>
-<span>  data <span class="op">=</span> <span class="va">bp_data</span><span class="op">[</span><span class="va">event</span> <span class="op">==</span> <span class="st">"visit"</span><span class="op">]</span></span>
-<span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">visits</span> <span class="op">&lt;-</span> <span class="va">bp_int</span><span class="op">[</span><span class="va">event</span> <span class="op">==</span> <span class="st">"visit"</span><span class="op">]</span></span>
+<span><span class="va">visits</span><span class="op">[</span><span class="va">bp_data</span>, <span class="va">bp_new</span> <span class="op">:=</span> <span class="va">i.bp</span>, on <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">id</span>, <span class="va">time</span><span class="op">)</span><span class="op">]</span></span>
+<span></span>
+<span><span class="va">bp_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">bp_new</span> <span class="op">-</span> <span class="fl">130</span><span class="op">)</span> <span class="op">~</span> <span class="fl">0</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span><span class="op">)</span> <span class="op">+</span> <span class="va">treatment</span>, data <span class="op">=</span> <span class="va">visits</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">bp_fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt; I(bp_now - 130)     treated_now </span></span>
-<span><span class="co">#&gt;       0.8015799      -2.0838156</span></span>
+<span><span class="co">#&gt; I(bp - 130)   treatment </span></span>
+<span><span class="co">#&gt;   0.8015799  -2.0838156</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/sigma.html" class="external-link">sigma</a></span><span class="op">(</span><span class="va">bp_fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 6.010538</span></span></code></pre></div>
 </div>

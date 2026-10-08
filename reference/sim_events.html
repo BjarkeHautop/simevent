@@ -75,7 +75,7 @@ sim_model() specification."></head><body>
 
 
 <dt id="arg-intervene">intervene<a class="anchor" aria-label="anchor" href="#arg-intervene"></a></dt>
-<dd><p>Named list of interventions. A covariate or marker name
+<dd><p>Named list of interventions. A covariate or mark name
 fixes it to the given value for everyone, for all time; a process name
 multiplies that process's hazard by the given value.</p></dd>
 
@@ -114,7 +114,8 @@ Default <code>0.01</code>.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A <code>data.table</code> with one row per event: <code>id</code>, <code>time</code>, <code>event</code>
-(factor naming the process, or <code>"max_cens"</code>), the covariates, and each
+(factor naming the process, or <code>"max_cens"</code>), the covariates (each
+<code><a href="sim_mark.html">sim_mark()</a></code> followed by its baseline value, as <code>&lt;name&gt;_0</code>), and each
 <code>"transient"</code> process's number of events so far.</p>
     </div>
     <div class="section level2">

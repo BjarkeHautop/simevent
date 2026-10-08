@@ -107,7 +107,7 @@ between them, and simulate event history data from it.
   Define a Derived Covariate for
   [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 
-- [`sim_marker()`](https://github.com/BjarkeHautop/simevent/reference/sim_marker.md)
+- [`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md)
   :
 
   Define a Time-Varying Covariate for

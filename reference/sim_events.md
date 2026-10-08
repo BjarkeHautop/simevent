@@ -34,9 +34,9 @@ sim_events(
 
 - intervene:
 
-  Named list of interventions. A covariate or marker name fixes it to
-  the given value for everyone, for all time; a process name multiplies
-  that process's hazard by the given value.
+  Named list of interventions. A covariate or mark name fixes it to the
+  given value for everyone, for all time; a process name multiplies that
+  process's hazard by the given value.
 
 - cens:
 
@@ -74,8 +74,10 @@ sim_events(
 ## Value
 
 A `data.table` with one row per event: `id`, `time`, `event` (factor
-naming the process, or `"max_cens"`), the covariates, and each
-`"transient"` process's number of events so far.
+naming the process, or `"max_cens"`), the covariates (each
+[`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md)
+followed by its baseline value, as `<name>_0`), and each `"transient"`
+process's number of events so far.
 
 ## See also
 

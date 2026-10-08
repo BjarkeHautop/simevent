@@ -15,8 +15,8 @@ history in
 1.  **Event times**, `T_<proc>.<k>`: effects that depend on *when* an
     event happened.
 2.  **Markers**,
-    [`sim_marker()`](https://github.com/BjarkeHautop/simevent/reference/sim_marker.md):
-    covariates that are re-measured over time, e.g. a lab value drawn at
+    [`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md):
+    covariates that are re-measured over time, e.g. a lab value drawn at
     each visit.
 
 ## Event Times: `T_<proc>.<k>`
@@ -140,12 +140,12 @@ is added to the log-hazard, for example:
 | `operation * (t - T_operation.1 < 1)` | Constant for one time unit after, then gone |
 | `(relapse >= 2) * (t - T_relapse.2)` | Grows linearly with time since the second relapse |
 
-## Time-Varying Markers: `sim_marker()`
+## Time-Varying Markers: `sim_mark()`
 
 A
 [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)
 is drawn once at baseline and never changes. A
-[`sim_marker()`](https://github.com/BjarkeHautop/simevent/reference/sim_marker.md)
+[`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md)
 is drawn at baseline and then *redrawn* each time one of its `update`
 processes fires, staying constant in between. It takes:
 
@@ -153,12 +153,17 @@ processes fires, staying constant in between. It takes:
   values, as for
   [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md).
 - `update`: the transient processes whose events redraw the marker.
-- `draw`: a function giving the new values. Its arguments are matched by
-  name against `N`, the event time `t`, any covariate or marker
-  (including the marker’s own current value), and any process’s event
-  count so far.
+- `draw`: a function of `N` and `lp` giving the new values.
 
-The marker can be used in
+What a new value depends on is specified with
+[`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)s
+*into* the marker. At each update, their `coef * from` terms are summed
+into the linear predictor `lp`, which `draw` can then use, e.g. as the
+mean of [`rnorm()`](https://rdrr.io/r/stats/Normal.html). These effects
+can use anything a hazard effect can, including the marker’s own value
+before the update, and see the triggering event as having happened.
+
+The marker can also be used in
 [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
 like any other covariate, and the hazards always use its current value.
 
@@ -187,19 +192,17 @@ the previous one’s deviation, the effect converges to a mean of 130 - 2
 bp_model <- sim_model(
   age = sim_covariate(function(N) rnorm(N, mean = 60, sd = 10)),
   visit = sim_process("transient", eta = 1, nu = 1),
-  bp = sim_marker(
+  bp = sim_mark(
     init = function(N, age) rnorm(N, 130 + 0.5 * (age - 60), 12),
     update = "visit",
-    draw = function(N, bp, treatment) {
-      rnorm(N, 130 + 0.8 * (bp - 130) - 2 * treatment, 6)
-    }
+    draw = function(N, lp) rnorm(N, mean = 130 + lp, sd = 6)
   ),
-  # Keep the baseline value too, as sim_derived() sees the marker's init:
-  bp0 = sim_derived(function(bp) bp),
   treatment = sim_process("transient", eta = 0.05, nu = 1, limit = 1),
   censoring = sim_process("censoring", eta = 0.05, nu = 1),
   stroke = sim_process("terminal", eta = 0.02, nu = 1.2),
   effects = list(
+    sim_effect("bp - 130", "bp", coef = 0.8),
+    sim_effect("treatment", "bp", coef = -2),
     sim_effect("bp - 130", "treatment", coef = 0.08),
     sim_effect("bp - 130", "stroke", coef = 0.04),
     sim_effect("treatment", "stroke", coef = -0.5)
@@ -209,8 +212,7 @@ summary(bp_model)
 #> <sim_model> covariates
 #>  name     kind
 #>   age baseline
-#>    bp   marker
-#>   bp0  derived
+#>    bp     mark
 #> 
 #> <sim_model> processes
 #>       name      type baseline  eta  nu limit
@@ -220,15 +222,19 @@ summary(bp_model)
 #>     stroke  terminal  weibull 0.02 1.2   Inf
 #> 
 #> <sim_model> effects
-#>       from        to  coef
-#>   bp - 130 treatment  0.08
-#>   bp - 130    stroke  0.04
-#>  treatment    stroke -0.50
+#>         from        to  coef
+#>  bp[k] - 130   bp[k+1]  0.80
+#>    treatment   bp[k+1] -2.00
+#>     bp - 130 treatment  0.08
+#>     bp - 130    stroke  0.04
+#>    treatment    stroke -0.50
+#> 
+#> mark[k]: value after the mark's k-th update (k = 0: init)
 
 bp_data <- sim_events(bp_model, n = 3000, max_cens = 10, seed = 1)
 head(bp_data, 8)
 #> Key: <id>
-#>       id     time  event      age       bp      bp0 visit treatment
+#>       id     time  event      age       bp     bp_0 visit treatment
 #>    <int>    <num> <fctr>    <num>    <num>    <num> <num>     <num>
 #> 1:     1 1.140060  visit 53.73546 127.2870 135.7371     1         0
 #> 2:     1 1.353592  visit 53.73546 130.9426 135.7371     2         0
@@ -240,13 +246,18 @@ head(bp_data, 8)
 #> 8:     1 7.236297  visit 53.73546 127.7269 135.7371     8         0
 ```
 
+The summary unrolls the effects into the marker over its updates:
+`bp[k+1]`, the value after the `k+1`-th visit, is drawn from `bp[k]` and
+the current treatment status. In the data, `bp` is the value after each
+row’s event, and `bp_0` the baseline value.
+
 Let’s visualize the blood pressure for a few patients, with the
 treatment start marked:
 
 ``` r
 
 ids <- 1:6
-baseline <- bp_data[id %in% ids, .(time = 0, bp = bp0[1]), by = id]
+baseline <- bp_data[id %in% ids, .(time = 0, bp = bp_0[1]), by = id]
 trajectories <- rbind(baseline, bp_data[id %in% ids, .(id, time, bp)])
 treated <- bp_data[id %in% ids & event == "treatment"]
 
@@ -270,27 +281,30 @@ To check the simulation works correctly we fit a Cox model for stroke,
 with each row as an interval from the previous event to this one. Each
 row stores the values *after* its event, so the values during the
 interval are those of the previous row, or the baseline values for a
-patient’s first row:
+patient’s first row.
+[`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)
+does this shift, for marker columns (`mark_cols`) and process counts
+(`proc_cols`):
 
 ``` r
 
-bp_data[, `:=`(
-  tstart = shift(time, fill = 0),
-  bp_now = shift(bp, fill = bp0[1]),
-  treated_now = shift(treatment, fill = 0)
-), by = id]
+bp_int <- interval_format_data(
+  bp_data,
+  proc_cols = "treatment",
+  mark_cols = "bp"
+)
 
 coxph(
-  Surv(tstart, time, event == "stroke") ~ I(bp_now - 130) + treated_now,
-  data = bp_data
+  Surv(tstart, tstop, event == "stroke") ~ I(bp - 130) + treatment,
+  data = bp_int
 )
 #> Call:
-#> coxph(formula = Surv(tstart, time, event == "stroke") ~ I(bp_now - 
-#>     130) + treated_now, data = bp_data)
+#> coxph(formula = Surv(tstart, tstop, event == "stroke") ~ I(bp - 
+#>     130) + treatment, data = bp_int)
 #> 
-#>                      coef exp(coef)  se(coef)      z        p
-#> I(bp_now - 130)  0.034805  1.035418  0.003734  9.321  < 2e-16
-#> treated_now     -0.460699  0.630843  0.102513 -4.494 6.99e-06
+#>                  coef exp(coef)  se(coef)      z        p
+#> I(bp - 130)  0.034805  1.035418  0.003734  9.321  < 2e-16
+#> treatment   -0.460699  0.630843  0.102513 -4.494 6.99e-06
 #> 
 #> Likelihood ratio test=100.9  on 2 df, p=< 2.2e-16
 #> n= 24636, number of events= 638
@@ -298,20 +312,20 @@ coxph(
 
 The estimates are close to the simulated effects of `0.04` and `-0.5`.
 
-The marker’s own `draw` can be checked the same way. On each `visit`
-row, `bp` is the new measurement and `bp_now` the previous one, so
-regressing one on the other and treatment should give roughly `0.8`,
-`-2`, and a residual standard deviation of `6`:
+The effects into the marker can be checked the same way. On each `visit`
+row, `bp` in `bp_int` is the previous measurement, and `bp` in `bp_data`
+the new one, so regressing one on the other and treatment should give
+roughly `0.8`, `-2`, and a residual standard deviation of `6`:
 
 ``` r
 
-bp_fit <- lm(
-  I(bp - 130) ~ 0 + I(bp_now - 130) + treated_now,
-  data = bp_data[event == "visit"]
-)
+visits <- bp_int[event == "visit"]
+visits[bp_data, bp_new := i.bp, on = .(id, time)]
+
+bp_fit <- lm(I(bp_new - 130) ~ 0 + I(bp - 130) + treatment, data = visits)
 coef(bp_fit)
-#> I(bp_now - 130)     treated_now 
-#>       0.8015799      -2.0838156
+#> I(bp - 130)   treatment 
+#>   0.8015799  -2.0838156
 sigma(bp_fit)
 #> [1] 6.010538
 ```

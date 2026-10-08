@@ -2,7 +2,7 @@
 
 `sim_model` assembles a set of named
 [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)/[`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md)/
-[`sim_marker()`](https://github.com/BjarkeHautop/simevent/reference/sim_marker.md)/[`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md)
+[`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md)/[`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md)
 nodes and
 [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
 edges between them into a single specification, which
@@ -20,7 +20,7 @@ sim_model(..., effects = list())
 - ...:
 
   Named
-  [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)/[`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md)/[`sim_marker()`](https://github.com/BjarkeHautop/simevent/reference/sim_marker.md)/
+  [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)/[`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md)/[`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md)/
   [`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md)
   objects. A covariate may only depend on covariates listed before it.
 
@@ -38,7 +38,7 @@ An object of class `sim_model`.
 [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md),
 [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md),
 [`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md),
-[`sim_marker()`](https://github.com/BjarkeHautop/simevent/reference/sim_marker.md),
+[`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md),
 [`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md),
 [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
 

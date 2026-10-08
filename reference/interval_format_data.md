@@ -10,6 +10,7 @@ output to start-stop format for `coxph(Surv(tstart, tstop, ...))`.
 interval_format_data(
   data,
   proc_cols = character(0),
+  mark_cols = character(0),
   time_var = FALSE,
   t_prime = NULL
 )
@@ -26,6 +27,14 @@ interval_format_data(
 
   Character vector. `"transient"`-process columns to use as time-varying
   covariates: each row then holds the count *before* its event.
+
+- mark_cols:
+
+  Character vector.
+  [`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md)
+  columns to use as time-varying covariates: each row then holds the
+  value *before* its event, i.e. the one in force during its interval,
+  taken from the `<name>_0` baseline column for the first row.
 
 - time_var:
 
