@@ -20,15 +20,18 @@ applies once the event has happened.}
 none.}
 }}
 
-\item{to}{Character. Name of the affected process.}
+\item{to}{Character. Name of the affected process or mark.}
 
-\item{coef}{Numeric. Cox-type coefficient.}
+\item{coef}{Numeric. Cox-type coefficient, or for a mark, linear
+coefficient.}
 }
 \value{
 An object of class \code{sim_effect}, for use in \code{\link[=sim_model]{sim_model()}}.
 }
 \description{
-Multiplies the hazard of process \code{to} by \code{exp(coef * from)}.
+Multiplies the hazard of process \code{to} by \code{exp(coef * from)}, or, if \code{to}
+is a \code{\link[=sim_mark]{sim_mark()}}, adds \code{coef * from} to the linear predictor \code{lp} its
+new values are drawn from.
 }
 \examples{
 sim_effect("age", "death", coef = 0.03)

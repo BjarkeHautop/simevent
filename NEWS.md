@@ -22,7 +22,7 @@
   duplicate effects, effects from censoring/terminal processes, and
   `sim_covariate()` generators whose arguments don't name an earlier covariate.
 - Added a `summary()` method for `sim_model()` objects.
-- Added `sim_model()`, `sim_covariate()`, `sim_derived()`, `sim_marker()`,
+- Added `sim_model()`, `sim_covariate()`, `sim_derived()`, `sim_mark()`,
   `sim_process()`, `sim_effect()`, `sim_events()` and `sim_model_from_fits()`.
 - Added `event_risk()` for summarising risk / time lost from `sim_events()`
   output, `interval_format_data()` and `plot_event_data()`.

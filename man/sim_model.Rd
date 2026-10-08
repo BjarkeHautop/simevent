@@ -7,7 +7,7 @@
 sim_model(..., effects = list())
 }
 \arguments{
-\item{...}{Named \code{\link[=sim_covariate]{sim_covariate()}}/\code{\link[=sim_derived]{sim_derived()}}/\code{\link[=sim_marker]{sim_marker()}}/
+\item{...}{Named \code{\link[=sim_covariate]{sim_covariate()}}/\code{\link[=sim_derived]{sim_derived()}}/\code{\link[=sim_mark]{sim_mark()}}/
 \code{\link[=sim_process]{sim_process()}} objects. A covariate may only depend on covariates listed before it.}
 
 \item{effects}{List of \code{\link[=sim_effect]{sim_effect()}}s.}
@@ -17,7 +17,7 @@ An object of class \code{sim_model}.
 }
 \description{
 \code{sim_model} assembles a set of named \code{\link[=sim_covariate]{sim_covariate()}}/\code{\link[=sim_derived]{sim_derived()}}/
-\code{\link[=sim_marker]{sim_marker()}}/\code{\link[=sim_process]{sim_process()}} nodes and \code{\link[=sim_effect]{sim_effect()}} edges between them into a single
+\code{\link[=sim_mark]{sim_mark()}}/\code{\link[=sim_process]{sim_process()}} nodes and \code{\link[=sim_effect]{sim_effect()}} edges between them into a single
 specification, which \code{\link[=sim_events]{sim_events()}} can then simulate from.
 }
 \examples{
@@ -34,5 +34,5 @@ model
 }
 \seealso{
 \code{\link[=sim_events]{sim_events()}}, \code{\link[=sim_covariate]{sim_covariate()}}, \code{\link[=sim_derived]{sim_derived()}},
-\code{\link[=sim_marker]{sim_marker()}}, \code{\link[=sim_process]{sim_process()}}, \code{\link[=sim_effect]{sim_effect()}}
+\code{\link[=sim_mark]{sim_mark()}}, \code{\link[=sim_process]{sim_process()}}, \code{\link[=sim_effect]{sim_effect()}}
 }

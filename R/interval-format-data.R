@@ -7,6 +7,10 @@
 #' @param proc_cols Character vector. `"transient"`-process columns to use
 #'   as time-varying covariates: each row then holds the count *before* its
 #'   event.
+#' @param mark_cols Character vector. [sim_mark()] columns to use as
+#'   time-varying covariates: each row then holds the value *before* its
+#'   event, i.e. the one in force during its interval, taken from the
+#'   `<name>_0` baseline column for the first row.
 #' @param time_var Logical. Split intervals at `t_prime`? Default `FALSE`.
 #' @param t_prime Numeric. Split time. Adds a `t_group` column (1 before,
 #'   2 after), so an effect can differ between the periods (see Examples).
@@ -53,11 +57,17 @@
 interval_format_data <- function(
   data,
   proc_cols = character(0),
+  mark_cols = character(0),
   time_var = FALSE,
   t_prime = NULL
 ) {
   id <- k <- tstart <- tstop <- time <- t_group <- event <- NULL
   checkmate::assert_character(proc_cols, any.missing = FALSE)
+  checkmate::assert_character(mark_cols, any.missing = FALSE)
+  checkmate::assert_names(
+    names(data),
+    must.include = c(mark_cols, sprintf("%s_0", mark_cols))
+  )
   checkmate::assert_flag(time_var)
   checkmate::assert_number(t_prime, finite = TRUE, null.ok = !time_var)
   data <- data.table::copy(data.table::as.data.table(data))
@@ -68,6 +78,17 @@ interval_format_data <- function(
       by = id,
       .SDcols = proc_cols
     ]
+  }
+  if (length(mark_cols) > 0) {
+    data[,
+      (mark_cols) := lapply(.SD, data.table::shift),
+      by = id,
+      .SDcols = mark_cols
+    ]
+    first <- which(!duplicated(data$id))
+    for (nm in mark_cols) {
+      data.table::set(data, first, nm, data[[paste0(nm, "_0")]][first])
+    }
   }
 
   data[, k := stats::ave(id, id, FUN = seq_along)]

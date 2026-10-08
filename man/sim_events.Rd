@@ -22,7 +22,7 @@ sim_events(
 
 \item{n}{Integer. Number of individuals to simulate.}
 
-\item{intervene}{Named list of interventions. A covariate or marker name
+\item{intervene}{Named list of interventions. A covariate or mark name
 fixes it to the given value for everyone, for all time; a process name
 multiplies that process's hazard by the given value.}
 
@@ -47,7 +47,8 @@ Default \code{0.01}.}
 }
 \value{
 A \code{data.table} with one row per event: \code{id}, \code{time}, \code{event}
-(factor naming the process, or \code{"max_cens"}), the covariates, and each
+(factor naming the process, or \code{"max_cens"}), the covariates (each
+\code{\link[=sim_mark]{sim_mark()}} followed by its baseline value, as \verb{<name>_0}), and each
 \code{"transient"} process's number of events so far.
 }
 \description{

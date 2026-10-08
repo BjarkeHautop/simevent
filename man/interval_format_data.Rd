@@ -7,6 +7,7 @@
 interval_format_data(
   data,
   proc_cols = character(0),
+  mark_cols = character(0),
   time_var = FALSE,
   t_prime = NULL
 )
@@ -17,6 +18,11 @@ interval_format_data(
 \item{proc_cols}{Character vector. \code{"transient"}-process columns to use
 as time-varying covariates: each row then holds the count \emph{before} its
 event.}
+
+\item{mark_cols}{Character vector. \code{\link[=sim_mark]{sim_mark()}} columns to use as
+time-varying covariates: each row then holds the value \emph{before} its
+event, i.e. the one in force during its interval, taken from the
+\verb{<name>_0} baseline column for the first row.}
 
 \item{time_var}{Logical. Split intervals at \code{t_prime}? Default \code{FALSE}.}
 

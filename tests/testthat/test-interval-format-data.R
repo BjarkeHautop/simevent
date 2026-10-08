@@ -83,3 +83,30 @@ test_that("interval_format_data labels the pre-t_prime half of a split as \"none
   expect_true(all(split_rows$tstop == t_prime))
   expect_false(anyNA(data_int$event))
 })
+
+test_that("interval_format_data lags a mark, from its baseline value", {
+  model <- sim_model(
+    bp = sim_mark(
+      init = function(N) rnorm(N),
+      update = "visit",
+      draw = function(N) rnorm(N)
+    ),
+    visit = sim_process("transient", eta = 1, nu = 1),
+    death = sim_process("terminal", eta = 0.2, nu = 1)
+  )
+  data <- sim_events(model, n = 50, max_cens = 5, seed = 1)
+  data_int <- interval_format_data(data, mark_cols = "bp")
+
+  for (an_id in unique(data$id)) {
+    rows <- data_int[data_int$id == an_id, ]
+    original_rows <- data[data$id == an_id, ]
+    expect_equal(
+      rows$bp,
+      c(original_rows$bp_0[1], original_rows$bp[-nrow(original_rows)])
+    )
+  }
+  expect_error(
+    interval_format_data(data[, !"bp_0"], mark_cols = "bp"),
+    "bp_0"
+  )
+})

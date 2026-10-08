@@ -136,12 +136,9 @@ apply_intervention <- function(model, intervene) {
 }
 
 # For each process, the multiplicative hazard effect exp(sum of incoming
-# sim_effect() coefs * current value of their `from`). `from` naming a
-# covariate or process directly is looked up by name; anything else is
-# parsed and evaluated as an R expression against covariates/event
-# counts/`t`/T_<proc>.<k>/last_time().
-# Returns a length(event_counts[[1]]) x length(process_names) matrix.
-# rep_times: see .sim_effect_env().
+# sim_effect() coefs * current value of their `from`); see
+# .sim_linear_predictors(). Returns a length(event_counts[[1]]) x
+# length(process_names) matrix.
 process_hazard_multipliers <- function(
   effects,
   covariates,
@@ -153,13 +150,47 @@ process_hazard_multipliers <- function(
   n_events_so_far = 0,
   rep_times = 1
 ) {
+  exp(.sim_linear_predictors(
+    effects,
+    covariates,
+    event_counts,
+    process_names,
+    targets = process_names,
+    t = t,
+    event_time_log = event_time_log,
+    event_type_log = event_type_log,
+    n_events_so_far = n_events_so_far,
+    rep_times = rep_times
+  ))
+}
+
+# For each of `targets` (processes or marks), the sum of incoming
+# sim_effect() coefs * current value of their `from`; effects into anything
+# else are ignored. `from` naming a covariate or process directly is looked
+# up by name; anything else is parsed and evaluated as an R expression
+# against covariates/event counts/`t`/T_<proc>.<k>/last_time().
+# Returns a length(event_counts[[1]]) x length(targets) matrix.
+# rep_times: see .sim_effect_env().
+.sim_linear_predictors <- function(
+  effects,
+  covariates,
+  event_counts,
+  process_names,
+  targets,
+  t = NULL,
+  event_time_log = NULL,
+  event_type_log = NULL,
+  n_events_so_far = 0,
+  rep_times = 1
+) {
   n <- length(event_counts[[1]])
-  log_phi <- matrix(
+  lp <- matrix(
     0,
     nrow = n,
-    ncol = length(process_names),
-    dimnames = list(NULL, process_names)
+    ncol = length(targets),
+    dimnames = list(NULL, targets)
   )
+  effects <- Filter(function(eff) eff$to %in% targets, effects)
   env <- NULL
   for (eff in effects) {
     value <- covariates[[eff$from]]
@@ -186,9 +217,9 @@ process_hazard_multipliers <- function(
       }
       value <- eval(expr, envir = env)
     }
-    log_phi[, eff$to] <- log_phi[, eff$to] + eff$coef * value
+    lp[, eff$to] <- lp[, eff$to] + eff$coef * value
   }
-  exp(log_phi)
+  lp
 }
 
 # Each process's unscaled cumulative baseline hazard H(t) and hazard h(t),
@@ -533,18 +564,38 @@ sample_event_types <- function(
   events
 }
 
-# New values of marker `nm` for individuals `rows`, from its sim_marker()
-# draw function, whose arguments are matched by name against N, t, and the
-# covariates' and processes' current values.
-.sim_draw_marker <- function(nm, draw, rows, covariates, event_counts, t) {
-  args <- c(
-    list(N = length(rows), t = t[rows]),
-    lapply(c(covariates, event_counts), `[`, rows)
-  )
+# New values of mark `nm` for individuals `rows`, from its sim_mark() draw
+# function given N and `lp`, the linear predictor of the effects into it at
+# the current state (event `n_events_so_far` included).
+.sim_draw_mark <- function(
+  nm,
+  draw,
+  rows,
+  effects,
+  covariates,
+  event_counts,
+  process_names,
+  t,
+  event_time_log,
+  event_type_log,
+  n_events_so_far
+) {
+  lp <- .sim_linear_predictors(
+    effects,
+    lapply(covariates, `[`, rows),
+    lapply(event_counts, `[`, rows),
+    process_names,
+    targets = nm,
+    t = t[rows],
+    event_time_log = event_time_log[, rows, drop = FALSE],
+    event_type_log = event_type_log[, rows, drop = FALSE],
+    n_events_so_far = n_events_so_far
+  )[, nm]
+  args <- list(N = length(rows), lp = lp)
   value <- do.call(draw, args[names(formals(draw))])
   if (!is.numeric(value) || length(value) != length(rows)) {
     stop(
-      "sim_marker() '",
+      "sim_mark() '",
       nm,
       "''s draw must return a numeric vector of length N (",
       length(rows),
@@ -578,11 +629,28 @@ run_sim <- function(
 
   intervened <- apply_intervention(model, intervene)
   covariates <- draw_baseline_covariates(intervened$covs, n)
-  output_covariates <- names(covariates)[!.sim_hidden(names(covariates))]
-  # An intervened marker stays fixed, so isn't redrawn.
-  is_marker <- vapply(model$covariates, inherits, logical(1), "sim_marker")
-  markers <- model$covariates[is_marker]
-  markers <- markers[setdiff(names(markers), names(intervene))]
+  is_mark <- vapply(model$covariates, inherits, logical(1), "sim_mark")
+  # Each mark's baseline value is also output, as <mark>_0 right after it,
+  # since redraws overwrite it.
+  mark_init <- stats::setNames(
+    covariates[is_mark],
+    sprintf("%s_0", names(covariates)[is_mark])
+  )
+  output_covariates <- unlist(lapply(
+    names(covariates)[!.sim_hidden(names(covariates))],
+    function(nm) if (is_mark[[nm]]) c(nm, paste0(nm, "_0")) else nm
+  ))
+  # An intervened mark stays fixed, so isn't redrawn.
+  marks <- model$covariates[is_mark]
+  marks <- marks[setdiff(names(marks), names(intervene))]
+  # Effects into marks only enter their draws, not the hazards.
+  into_process <- vapply(
+    model$effects,
+    function(eff) eff$to %in% process_names,
+    logical(1)
+  )
+  process_effects <- model$effects[into_process]
+  mark_effects <- model$effects[!into_process]
 
   eta <- intervened$eta
   nu <- vapply(model$processes, `[[`, numeric(1), "nu")
@@ -592,7 +660,7 @@ run_sim <- function(
   max_cens <- min(max_cens, .sim_cumhaz_end(model$processes))
 
   at_risk_fn <- .sim_at_risk(model, cens)
-  uses_time <- .sim_uses_time(model$effects)
+  uses_time <- .sim_uses_time(process_effects)
 
   event_counts <- stats::setNames(
     replicate(length(process_names), rep(0, n), simplify = FALSE),
@@ -624,7 +692,7 @@ run_sim <- function(
         eta,
         nu,
         baselines,
-        model$effects,
+        process_effects,
         process_names,
         event_time_log = event_time_log[, alive, drop = FALSE],
         event_type_log = event_type_log[, alive, drop = FALSE],
@@ -637,7 +705,7 @@ run_sim <- function(
       phi_alive <- draw$phi
     } else {
       phi_alive <- process_hazard_multipliers(
-        model$effects,
+        process_effects,
         covariates_alive,
         event_counts_alive,
         process_names,
@@ -686,26 +754,31 @@ run_sim <- function(
       hit <- alive[events == nm]
       event_counts[[nm]][hit] <- event_counts[[nm]][hit] + 1
     }
-    for (nm in names(markers)) {
-      hit <- alive[events %in% markers[[nm]]$update]
+    event_time_log[idx, ] <- t_k
+    event_type_log[idx, alive] <- events
+
+    for (nm in names(marks)) {
+      hit <- alive[events %in% marks[[nm]]$update]
       if (length(hit) > 0) {
-        covariates[[nm]][hit] <- .sim_draw_marker(
+        covariates[[nm]][hit] <- .sim_draw_mark(
           nm,
-          markers[[nm]]$draw,
+          marks[[nm]]$draw,
           hit,
+          mark_effects,
           covariates,
           event_counts,
-          t_k
+          process_names,
+          t_k,
+          event_time_log,
+          event_type_log,
+          n_events_so_far = idx
         )
       }
     }
 
-    event_time_log[idx, ] <- t_k
-    event_type_log[idx, alive] <- events
-
     result_cols <- c(
       list(id = alive, time = t_k[alive], event = events),
-      lapply(covariates[output_covariates], `[`, alive),
+      lapply(c(covariates, mark_init)[output_covariates], `[`, alive),
       stats::setNames(
         lapply(transient_names, function(nm) event_counts[[nm]][alive]),
         transient_names
