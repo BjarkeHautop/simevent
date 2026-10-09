@@ -721,6 +721,51 @@ test_that("sim_events: effects using t respect max_cens", {
   expect_gt(sum(data$event == "max_cens"), 150)
 })
 
+test_that("sim_events: effects using t converge as time_step shrinks", {
+  # With a single process and no covariates, the sampler's first draw is
+  # runif(n), so each individual's exact event time is the inverse of the
+  # cumulative hazard at -log(U) for the same seed: no Monte Carlo noise.
+  n <- 2000
+  eta <- 0.5
+  v <- -log(withr::with_seed(14, stats::runif(n)))
+  max_error <- function(from, coef, exact, time_step) {
+    model <- sim_model(
+      death = sim_process("terminal", eta = eta, nu = 1),
+      effects = list(sim_effect(from, "death", coef = coef))
+    )
+    data <- sim_events(model, n = n, time_step = time_step, seed = 14)
+    max(abs(data$time[order(data$id)] - exact(v)))
+  }
+
+  # Smooth in t: hazard eta * exp(b * t), error O(time_step^2).
+  b <- 0.5
+  smooth_exact <- function(v) log(1 + b * v / eta) / b
+  smooth <- vapply(
+    c(0.1, 0.01),
+    function(h) max_error("t", b, smooth_exact, h),
+    numeric(1)
+  )
+  expect_lt(smooth[2], 1e-4)
+  expect_gt(smooth[1] / smooth[2], 50)
+
+  # A jump in t at a time off the grid: hazard eta, then k * eta after c0.
+  # The jump moves to a grid point at most time_step / 2 away, so the error
+  # is O(time_step).
+  c0 <- 1.234
+  k <- 3
+  jump_exact <- function(v) {
+    ifelse(v < eta * c0, v / eta, c0 + (v - eta * c0) / (k * eta))
+  }
+  jump <- vapply(
+    c(0.1, 0.01),
+    function(h) max_error("t > 1.234", log(k), jump_exact, h),
+    numeric(1)
+  )
+  expect_lt(jump[1], 0.1 / 2)
+  expect_lt(jump[2], 0.01 / 2)
+  expect_gt(jump[1] / jump[2], 5)
+})
+
 test_that("sim_events validates time_step", {
   model <- sim_model(death = sim_process("terminal", eta = 0.1, nu = 1))
   expect_error(sim_events(model, n = 5, time_step = 0), "positive")
