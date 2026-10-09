@@ -254,6 +254,32 @@ test_that("hazards use the mark's current value", {
   expect_equal(unname(stats::coef(fit)), 0.7, tolerance = 0.1)
 })
 
+test_that("effects into a mark are recovered by regressing its new values", {
+  model <- sim_model(
+    L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
+    visit = sim_process("transient", eta = 1, nu = 1),
+    bp = sim_mark(
+      init = function(N) rnorm(N),
+      update = "visit",
+      draw = function(N, lp) rnorm(N, mean = lp)
+    ),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(
+      sim_effect("L0", "bp", 0.5),
+      sim_effect("bp", "bp", 0.6),
+      sim_effect("t", "bp", 0.1)
+    )
+  )
+  data <- sim_events(model, n = 1000, max_cens = 5, seed = 1)
+
+  # Each visit's new bp against the value before it and the visit time.
+  data_int <- interval_format_data(data, mark_cols = "bp")
+  visits <- data_int[data_int$event == "visit", ]
+  visits$bp_new <- data$bp[data$event == "visit"]
+  fit <- stats::lm(bp_new ~ 0 + L0 + bp + time, data = visits)
+  expect_ci_covers(fit, c(0.5, 0.6, 0.1))
+})
+
 test_that("summary() labels marks and unrolls effects into them", {
   model <- sim_model(
     bp = sim_mark(

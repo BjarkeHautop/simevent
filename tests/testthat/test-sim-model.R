@@ -166,6 +166,98 @@ test_that("sim_events recovers effect coefficients", {
   expect_true(confint(fit_cens)[1, 1] <= -0.5 & -0.5 <= confint(fit_cens)[1, 2])
 })
 
+test_that("sim_events recovers effects from and into a transient process", {
+  model <- sim_model(
+    L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
+    censoring = sim_process("censoring", eta = 0.1, nu = 1),
+    relapse = sim_process("transient", eta = 0.3, nu = 1, limit = 3),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(
+      sim_effect("L0", "death", 0.5),
+      sim_effect("relapse", "death", 0.7),
+      sim_effect("L0", "relapse", -0.5)
+    )
+  )
+  data <- sim_events(model, n = 3000, seed = 1)
+  data_int <- interval_format_data(data, proc_cols = "relapse")
+
+  fit_death <- coxph(
+    Surv(tstart, tstop, event == "death") ~ L0 + relapse,
+    data = data_int
+  )
+  expect_ci_covers(fit_death, c(0.5, 0.7))
+
+  # Only rows still at risk of relapse (below its limit).
+  fit_relapse <- coxph(
+    Surv(tstart, tstop, event == "relapse") ~ L0,
+    data = data_int[data_int$relapse < 3, ]
+  )
+  expect_ci_covers(fit_relapse, -0.5)
+})
+
+test_that("sim_events recovers an effect that changes with t", {
+  model <- sim_model(
+    L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
+    death = sim_process("terminal", eta = 0.2, nu = 1),
+    effects = list(sim_effect("L0 * (t < 2)", "death", coef = 1))
+  )
+  data <- sim_events(model, n = 3000, seed = 1)
+
+  fit <- coxph(
+    Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
+    data = interval_format_data(data, time_var = TRUE, t_prime = 2)
+  )
+  expect_ci_covers(fit, c(1, 0))
+})
+
+test_that("sim_events recovers an effect of time since a T_<proc>.<k>", {
+  # Death hazard is raised only in the year after the second relapse.
+  model <- sim_model(
+    censoring = sim_process("censoring", eta = 0.05, nu = 1),
+    relapse = sim_process("transient", eta = 0.5, nu = 1, limit = 3),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(
+      sim_effect("relapse >= 2 & t - T_relapse.2 < 1", "death", coef = 1.5)
+    )
+  )
+  data <- sim_events(model, n = 3000, seed = 1)
+
+  second <- data[data$event == "relapse" & data$relapse == 2, c("id", "time")]
+  ended <- data.frame(id = second$id, time = second$time + 1)
+  base <- follow_up(data)
+  tv <- tmerge(base, base, id = id, death = event(futime, death))
+  tv <- tmerge(tv, second, id = id, started = tdc(time))
+  tv <- tmerge(tv, ended, id = id, ended = tdc(time))
+
+  fit <- coxph(Surv(tstart, tstop, death) ~ I(started - ended), data = tv)
+  expect_ci_covers(fit, 1.5)
+})
+
+test_that("sim_events recovers an effect of time since last_time()", {
+  # Death hazard is raised for half a time unit after every visit.
+  model <- sim_model(
+    censoring = sim_process("censoring", eta = 0.05, nu = 1),
+    visit = sim_process("transient", eta = 0.5, nu = 1),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(sim_effect("t - last_time(visit) < 0.5", "death", coef = 1))
+  )
+  data <- sim_events(model, n = 3000, seed = 1)
+
+  # Number of open half-unit windows; overlapping windows still mean "within
+  # 0.5 of the last visit".
+  visits <- data[data$event == "visit", c("id", "time")]
+  windows <- rbind(
+    data.frame(id = visits$id, time = visits$time, change = 1),
+    data.frame(id = visits$id, time = visits$time + 0.5, change = -1)
+  )
+  base <- follow_up(data)
+  tv <- tmerge(base, base, id = id, death = event(futime, death))
+  tv <- tmerge(tv, windows, id = id, open = cumtdc(time, change))
+
+  fit <- coxph(Surv(tstart, tstop, death) ~ I(open > 0), data = tv)
+  expect_ci_covers(fit, 1)
+})
+
 test_that("sim_events: a threshold sim_effect() fires specifically on the k-th jump", {
   set.seed(1)
 
