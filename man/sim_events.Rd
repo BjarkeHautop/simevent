@@ -23,13 +23,13 @@ sim_events(
 \item{n}{Integer. Number of individuals to simulate.}
 
 \item{intervene}{Named list of interventions. A covariate or mark name
-fixes it to the given value for everyone, for all time; a process name
-multiplies that process's hazard by the given value.}
+fixes it to the given single value for everyone, for all time; a process
+name multiplies that process's hazard by the given non-negative number.}
 
-\item{cens}{Numeric. Multiplier on censoring hazards; \code{0} turns censoring
-off. Default 1.}
+\item{cens}{Non-negative numeric. Multiplier on censoring hazards; \code{0}
+turns censoring off. Default 1.}
 
-\item{max_cens}{Numeric. End of follow-up: anyone still followed is
+\item{max_cens}{Positive numeric. End of follow-up: anyone still followed is
 censored then, with \code{event = "max_cens"}. Default \code{Inf}. Follow-up also
 ends at the last \code{time} of any \code{\link[=sim_process]{sim_process()}} \code{cumhaz} curve.}
 
@@ -37,7 +37,8 @@ ends at the last \code{time} of any \code{\link[=sim_process]{sim_process()}} \c
 Default 50.}
 
 \item{lower, upper}{Numeric. Root-finding bounds, used when processes have
-different Weibull parameters. Defaults \code{1e-25}/\code{1e8}.}
+different Weibull parameters, with \verb{0 <= lower < upper}. Defaults
+\code{1e-25}/\code{1e8}.}
 
 \item{time_step}{Numeric. Grid step on which \code{\link[=sim_effect]{sim_effect()}}s using \code{t}
 are evaluated; ignored if none do. Smaller is more accurate but slower.

@@ -1,3 +1,5 @@
+skip_if_not_installed("ggplot2")
+
 test_that("plotEventData returns a ggplot object for simEventData output", {
   set.seed(300)
   data_test <- .simEventData(20)

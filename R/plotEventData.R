@@ -11,7 +11,7 @@
 #' @return A \code{ggplot} object representing the event data visualization.
 #' @export
 #'
-#' @examples
+#' @examplesIf requireNamespace("ggplot2", quietly = TRUE)
 #' data <- simEventData(10)
 #' plotEventData(data)
 plotEventData <- function(data, title = "Event Data") {
@@ -24,6 +24,7 @@ plotEventData <- function(data, title = "Event Data") {
 }
 
 .plotEventData <- function(data, title = "Event Data") {
+  .sim_check_ggplot2("plotEventData()")
   max_time <- Time <- ID <- Delta <- NULL
 
   data <- data.table::copy(data)[, c("ID", "Time", "Delta")]

@@ -12,12 +12,13 @@ plot_event_data(data, title = "Event Data")
 \item{title}{Character. Plot title. Default \code{"Event Data"}.}
 }
 \value{
-A \code{ggplot} object.
+A \code{ggplot} object. Requires the \pkg{ggplot2} package.
 }
 \description{
 One horizontal timeline per individual, with events marked by type.
 }
 \examples{
+\dontshow{if (requireNamespace("ggplot2", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
@@ -30,6 +31,7 @@ plot_event_data(data) +
   ggplot2::scale_color_manual(
     values = c(start = "grey", censoring = "blue", death = "red")
   )
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=sim_events]{sim_events()}}

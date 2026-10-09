@@ -13,16 +13,23 @@ test_that("deprecated functions warn and still return their results", {
     class = "lifecycle_warning_deprecated"
   )
   expect_warning(
+    IntFormatData(data),
+    "interval_format_data",
+    class = "lifecycle_warning_deprecated"
+  )
+})
+
+test_that("deprecated plotEventData() warns and still returns a ggplot", {
+  skip_if_not_installed("ggplot2")
+  withr::local_options(lifecycle_verbosity = "warning")
+
+  data <- .simEventData(5)
+  expect_warning(
     p <- plotEventData(data),
     "plot_event_data",
     class = "lifecycle_warning_deprecated"
   )
   expect_s3_class(p, "ggplot")
-  expect_warning(
-    IntFormatData(data),
-    "interval_format_data",
-    class = "lifecycle_warning_deprecated"
-  )
 })
 
 test_that("internal callers of deprecated functions do not warn", {

@@ -5,9 +5,9 @@
 #' @param data Output of [sim_events()].
 #' @param title Character. Plot title. Default `"Event Data"`.
 #'
-#' @return A `ggplot` object.
+#' @return A `ggplot` object. Requires the \pkg{ggplot2} package.
 #' @seealso [sim_events()]
-#' @examples
+#' @examplesIf requireNamespace("ggplot2", quietly = TRUE)
 #' model <- sim_model(
 #'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1)
@@ -22,6 +22,7 @@
 #'   )
 #' @export
 plot_event_data <- function(data, title = "Event Data") {
+  .sim_check_ggplot2("plot_event_data()")
   time <- id <- event <- max_time <- NULL
 
   data <- data.table::copy(data.table::as.data.table(data))[,
@@ -79,4 +80,16 @@ plot_event_data <- function(data, title = "Event Data") {
       axis.text.y = ggplot2::element_blank(),
       legend.position = "top"
     )
+}
+
+# Stops with an informative error if the suggested ggplot2 package is
+# missing.
+.sim_check_ggplot2 <- function(caller) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop(
+      caller,
+      " requires the ggplot2 package. Install it with ",
+      "install.packages(\"ggplot2\")."
+    )
+  }
 }

@@ -70,9 +70,8 @@ sim_derived <- function(fn) {
   structure(list(fn = fn), class = "sim_derived")
 }
 
-# Wraps a sim_derived() fn into a generator simEventShared's
-# .simEvent_draw_baseline() can call like any other add_cov entry (which
-# always passes N first).
+# Wraps a sim_derived() fn into a generator draw_baseline_covariates() can
+# call like any other covariate generator (which always passes N first).
 .sim_wrap_derived <- function(fn) {
   wrapper <- function() {}
   formals(wrapper) <- c(alist(N = ), formals(fn))
@@ -620,17 +619,18 @@ print.sim_model <- function(x, ...) {
 #' @param model A [sim_model()].
 #' @param n Integer. Number of individuals to simulate.
 #' @param intervene Named list of interventions. A covariate or mark name
-#'   fixes it to the given value for everyone, for all time; a process name
-#'   multiplies that process's hazard by the given value.
-#' @param cens Numeric. Multiplier on censoring hazards; `0` turns censoring
-#'   off. Default 1.
-#' @param max_cens Numeric. End of follow-up: anyone still followed is
+#'   fixes it to the given single value for everyone, for all time; a process
+#'   name multiplies that process's hazard by the given non-negative number.
+#' @param cens Non-negative numeric. Multiplier on censoring hazards; `0`
+#'   turns censoring off. Default 1.
+#' @param max_cens Positive numeric. End of follow-up: anyone still followed is
 #'   censored then, with `event = "max_cens"`. Default `Inf`. Follow-up also
 #'   ends at the last `time` of any [sim_process()] `cumhaz` curve.
 #' @param max_events Integer. Maximum number of events per individual.
 #'   Default 50.
 #' @param lower,upper Numeric. Root-finding bounds, used when processes have
-#'   different Weibull parameters. Defaults `1e-25`/`1e8`.
+#'   different Weibull parameters, with `0 <= lower < upper`. Defaults
+#'   `1e-25`/`1e8`.
 #' @param time_step Numeric. Grid step on which [sim_effect()]s using `t`
 #'   are evaluated; ignored if none do. Smaller is more accurate but slower.
 #'   Default `0.01`.
@@ -694,7 +694,17 @@ sim_events <- function(
   checkmate::assert_count(n, positive = TRUE)
   checkmate::assert_int(seed, null.ok = TRUE)
   checkmate::assert_list(intervene, names = "unique")
-  checkmate::assert_number(cens, finite = TRUE)
+  checkmate::assert_number(cens, lower = 0, finite = TRUE)
+  checkmate::assert_number(max_cens, lower = 0)
+  if (max_cens == 0) {
+    stop("max_cens must be positive.")
+  }
+  checkmate::assert_count(max_events, positive = TRUE)
+  checkmate::assert_number(lower, lower = 0, finite = TRUE)
+  checkmate::assert_number(upper, finite = TRUE)
+  if (lower >= upper) {
+    stop("lower must be smaller than upper.")
+  }
   checkmate::assert_number(time_step, lower = 0, finite = TRUE)
   if (time_step == 0) {
     stop("time_step must be positive.")
@@ -709,6 +719,21 @@ sim_events <- function(
       "intervene targets unknown name(s) not in model: ",
       paste(unknown, collapse = ", ")
     )
+  }
+  for (nm in names(intervene)) {
+    var_name <- paste0("intervene$", nm)
+    if (nm %in% process_names) {
+      # A hazard multiplier.
+      checkmate::assert_number(
+        intervene[[nm]],
+        lower = 0,
+        finite = TRUE,
+        .var.name = var_name
+      )
+    } else {
+      # A fixed covariate/mark value.
+      checkmate::assert_scalar(intervene[[nm]], .var.name = var_name)
+    }
   }
 
   run <- function() {
@@ -774,7 +799,7 @@ sim_events <- function(
 # regenerated as its integer codes), with its formal argument literally
 # named `varname` (matching coxph()'s coefficient naming convention
 # paste0(varname, level) for the default treatment contrasts), so
-# .simEvent_draw_baseline()'s dependency detection works unmodified.
+# draw_baseline_covariates() passes it that covariate by name.
 .sim_level_dummy <- function(varname, level_code) {
   f <- function() NULL
   formals(f) <- stats::setNames(alist(x = ), varname)

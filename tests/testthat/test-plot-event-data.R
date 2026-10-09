@@ -1,3 +1,5 @@
+skip_if_not_installed("ggplot2")
+
 test_that("plot_event_data returns a ggplot object for sim_events() output", {
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),

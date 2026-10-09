@@ -99,7 +99,7 @@ intEffectAlpha <- function(
     ...
   )
 
-  if (plot) {
+  if (plot && requireNamespace("ggplot2", quietly = TRUE)) {
     .plotEventData(data[1:250], title = "Under Intervention")
   }
 

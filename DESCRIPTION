@@ -6,10 +6,14 @@ Authors@R: c(
     person(given = "Bjarke", family = "Hautop Kristensen", email = "bjarke.kristensen@sund.ku.dk", role = "aut"),
     person("Helene", "Charlotte Wiese Rytgaard", email = "hely@sund.ku.dk", role = "aut")
   )
-Description: Simulate event history data from a framework where treatment decisions 
-    and disease progression are represented as counting process. The user can specify 
-    number of events and parameters of intensities thereby creating a flexible 
-    simulation framework.
+Description: Simulate continuous-time event history data, such as treatment
+    decisions, disease progression and death, from a model of baseline
+    covariates, time-varying covariates and event processes linked by Cox-type
+    effects. Processes may be censoring, terminal or recurrent, with Weibull or
+    user-supplied cumulative baseline hazards, and models can also be built from
+    fitted Cox models to simulate data resembling observed data. Interventions
+    on covariates and processes can be simulated and their effect on event
+    risks evaluated.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -21,11 +25,11 @@ Imports:
     checkmate,
     lifecycle,
     data.table,
-    ggplot2,
     survival,
     withr,
     Rcpp
 Suggests:
+    ggplot2,
     knitr,
     quarto,
     testthat (>= 3.0.0)

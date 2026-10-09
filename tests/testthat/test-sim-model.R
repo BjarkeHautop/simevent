@@ -222,6 +222,34 @@ test_that("sim_events intervene fixes covariates and scales process intensities"
     sim_events(model, n = 10, intervene = list(bogus = 1)),
     "unknown name"
   )
+  expect_error(
+    sim_events(model, n = 10, intervene = list(death = -1)),
+    "intervene\\$death"
+  )
+  expect_error(
+    sim_events(model, n = 10, intervene = list(L0 = c(0, 1))),
+    "intervene\\$L0"
+  )
+})
+
+test_that("sim_events validates its numeric arguments", {
+  model <- sim_model(
+    censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+    death = sim_process("terminal", eta = 0.1, nu = 1.1)
+  )
+
+  expect_error(sim_events(model, n = 10, cens = -1), "cens")
+  expect_error(sim_events(model, n = 10, max_cens = 0), "max_cens")
+  expect_error(sim_events(model, n = 10, max_cens = -1), "max_cens")
+  expect_error(sim_events(model, n = 10, max_events = 0), "max_events")
+  expect_error(sim_events(model, n = 10, max_events = 2.5), "max_events")
+  expect_error(sim_events(model, n = 10, lower = -1), "lower")
+  expect_error(sim_events(model, n = 10, upper = Inf), "upper")
+  expect_error(
+    sim_events(model, n = 10, lower = 10, upper = 1),
+    "lower must be smaller than upper"
+  )
+  expect_no_error(sim_events(model, n = 10, cens = 0, max_cens = 5))
 })
 
 test_that("sim_events's transient process is unlimited by default", {

@@ -22,6 +22,8 @@ Visualizes event history data by plotting individual event times colored and sha
 Each individual's timeline is displayed horizontally with events marked along it.
 }
 \examples{
+\dontshow{if (requireNamespace("ggplot2", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 data <- simEventData(10)
 plotEventData(data)
+\dontshow{\}) # examplesIf}
 }

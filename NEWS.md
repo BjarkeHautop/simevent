@@ -13,6 +13,11 @@
   `event_risk()`), `IntFormatData()` (use `interval_format_data()`) and
   `plotEventData()` (use `plot_event_data()`).
 
+## Breaking changes
+
+- ggplot2 is now a suggested rather than required dependency;
+  `plot_event_data()` and `plotEventData()` need it installed.
+
 ## New features
 
 - `sim_events()` gains a `seed` argument for reproducible simulation without
@@ -35,8 +40,8 @@
 
 ## Improvements
 
-- changed sim_event_cox to take list_old_vars as input
+- changed `simEventCox()` to take `list_old_vars` as input
 
 ## New features
 
-- Added `sim_statin_data()`
+- Added `simStatinData()`
