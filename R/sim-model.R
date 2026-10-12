@@ -450,11 +450,7 @@ sim_model <- function(..., effects = list()) {
   }
 
   checkmate::assert_list(effects, types = "sim_effect")
-  effect_keys <- vapply(
-    effects,
-    function(eff) paste(eff$from, eff$to, sep = " -> "),
-    character(1)
-  )
+  effect_keys <- .sim_effect_keys(effects)
   if (anyDuplicated(effect_keys) > 0) {
     stop(
       "sim_model() has duplicate sim_effect()s: ",

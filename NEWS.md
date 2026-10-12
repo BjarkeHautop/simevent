@@ -13,26 +13,11 @@
   `event_risk()`), `IntFormatData()` (use `interval_format_data()`) and
   `plotEventData()` (use `plot_event_data()`).
 
-## Breaking changes
-
-- ggplot2 is now a suggested rather than required dependency;
-  `plot_event_data()` and `plotEventData()` need it installed.
-
 ## New features
 
-- `sim_events()` gains a `seed` argument for reproducible simulation without
-  touching the global RNG stream.
-- `sim_model()` now rejects: reserved node names (`id`, `time`, `event`,
-  `max_cens`, `none`, `t`, `last_time`), models without a terminal process,
-  duplicate effects, effects from censoring/terminal processes, and
-  `sim_covariate()` generators whose arguments don't name an earlier covariate.
-- Added a `summary()` method for `sim_model()` objects.
 - Added `sim_model()`, `sim_covariate()`, `sim_derived()`, `sim_mark()`,
-  `sim_process()`, `sim_effect()`, `sim_events()` and `sim_model_from_fits()`.
-- Added `event_risk()` for summarising risk / time lost from `sim_events()`
-  output, `interval_format_data()` and `plot_event_data()`.
-
-# simevent 0.1.1
+  `sim_process()`, `sim_effect()`, `sim_events()` and `sim_model_from_fits()`. #
+  simevent 0.1.1
 
 ## Bug fixes
 

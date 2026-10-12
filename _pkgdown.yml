@@ -24,6 +24,7 @@ reference:
   - sim_events
   - sim_model_from_fits
   - summary.sim_model
+  - update.sim_model
 
 - title: Treating simulated data
   desc: >

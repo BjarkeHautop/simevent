@@ -66,11 +66,10 @@ summary.sim_model <- function(object, ...) {
     "sim_mark"
   )]
   into_mark <- to %in% marks
-  from[into_mark] <- mapply(
-    .sim_index_symbol,
-    from[into_mark],
-    to[into_mark],
-    USE.NAMES = FALSE
+  from[into_mark] <- vapply(
+    which(into_mark),
+    function(i) .sim_index_symbol(from[i], to[i]),
+    character(1)
   )
   to[into_mark] <- paste0(to[into_mark], "[k+1]")
   effects <- data.frame(
@@ -114,4 +113,135 @@ print.summary.sim_model <- function(x, ...) {
     )
   }
   expr
+}
+
+#' Update a `sim_model()`
+#'
+#' Changes nodes and effects of an existing [sim_model()] and rebuilds it
+#' through [sim_model()], so all of its checks run again. Useful for
+#' sensitivity analyses and scenario grids built from one base model; for
+#' fixing a covariate or scaling a hazard in a single simulation, see
+#' [sim_events()]'s `intervene` instead.
+#'
+#' @param object A [sim_model()].
+#' @param ... Named [sim_covariate()]/[sim_derived()]/[sim_mark()]/
+#'   [sim_process()] objects. A name already in the model replaces that node
+#'   in place; a new name is added after the existing nodes; `NULL` removes
+#'   the node.
+#' @param effects List of [sim_effect()]s. One with the same `from` and `to`
+#'   as an existing effect replaces it; any other is added.
+#' @param drop_effects Character vector of effects to remove, as
+#'   `"<from> -> <to>"` (as listed by [summary.sim_model()]). Effects using a
+#'   removed node must be dropped here.
+#'
+#' @return A [sim_model()].
+#' @seealso [sim_model()], [summary.sim_model()]
+#' @examples
+#' model <- sim_model(
+#'   age = sim_covariate(function(N) runif(N, min = 40, max = 80)),
+#'   treated = sim_covariate(function(N) rbinom(N, 1, 0.5)),
+#'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+#'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
+#'   effects = list(
+#'     sim_effect("age", "death", coef = 0.03),
+#'     sim_effect("treated", "death", coef = -0.5)
+#'   )
+#' )
+#'
+#' update(
+#'   model,
+#'   death = sim_process("terminal", eta = 0.1, nu = 1.5),
+#'   frailty = sim_covariate(function(N) rgamma(N, shape = 2, rate = 2)),
+#'   treated = NULL,
+#'   effects = list(sim_effect("log(frailty)", "death", coef = 1)),
+#'   drop_effects = "treated -> death"
+#' )
+#'
+#' # A grid of treatment effects:
+#' models <- lapply(c(-1, -0.5, 0), function(b) {
+#'   update(model, effects = list(sim_effect("treated", "death", coef = b)))
+#' })
+#' @export
+update.sim_model <- function(
+  object,
+  ...,
+  effects = list(),
+  drop_effects = character(0)
+) {
+  checkmate::assert_class(object, "sim_model")
+  changes <- list(...)
+  if (length(changes) > 0) {
+    checkmate::assert_list(changes, names = "unique")
+  }
+  checkmate::assert_list(effects, types = "sim_effect")
+  checkmate::assert_character(drop_effects, any.missing = FALSE)
+
+  nodes <- c(object$covariates, object$processes)
+  removed <- names(changes)[vapply(changes, is.null, logical(1))]
+  unknown <- setdiff(removed, names(nodes))
+  if (length(unknown) > 0) {
+    stop(
+      "update() can't remove node(s) not in the model: ",
+      paste(unknown, collapse = ", ")
+    )
+  }
+  nodes <- nodes[setdiff(names(nodes), removed)]
+  for (nm in setdiff(names(changes), removed)) {
+    nodes[[nm]] <- changes[[nm]]
+  }
+
+  old <- object$effects
+  old_keys <- .sim_effect_keys(old)
+  unknown <- setdiff(drop_effects, old_keys)
+  if (length(unknown) > 0) {
+    stop(
+      "drop_effects names effect(s) not in the model: ",
+      paste(unknown, collapse = "; "),
+      ". Existing effects are: ",
+      paste(old_keys, collapse = "; ")
+    )
+  }
+  old <- old[!(old_keys %in% drop_effects)]
+  old_keys <- old_keys[!(old_keys %in% drop_effects)]
+
+  dangling <- old_keys[vapply(
+    old,
+    function(eff) {
+      any(.sim_effect_refs(eff, names(object$processes)) %in% removed)
+    },
+    logical(1)
+  )]
+  if (length(dangling) > 0) {
+    stop(
+      "update() removes node(s) still used by effect(s): ",
+      paste(dangling, collapse = "; "),
+      ". Add them to drop_effects."
+    )
+  }
+
+  new_keys <- .sim_effect_keys(effects)
+  replace <- match(new_keys, old_keys)
+  old[replace[!is.na(replace)]] <- effects[!is.na(replace)]
+
+  do.call(
+    sim_model,
+    c(nodes, list(effects = c(old, effects[is.na(replace)])))
+  )
+}
+
+# "<from> -> <to>" for each of a list of sim_effect()s.
+.sim_effect_keys <- function(effects) {
+  vapply(
+    effects,
+    function(eff) paste(eff$from, eff$to, sep = " -> "),
+    character(1)
+  )
+}
+
+# Node names a sim_effect() uses: its `to`, and its `from` (a node name, or
+# the names in its expression, with T_<proc>.<k> mapped to <proc>).
+.sim_effect_refs <- function(eff, process_names) {
+  used <- all.vars(str2lang(eff$from))
+  history <- .sim_history_vars(used, process_names)
+  c(eff$to, setdiff(used, history$name), history$proc)
 }

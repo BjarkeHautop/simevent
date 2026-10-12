@@ -3,6 +3,7 @@
 S3method(print,sim_model)
 S3method(print,summary.sim_model)
 S3method(summary,sim_model)
+S3method(update,sim_model)
 export(IntFormatData)
 export(alphaSim)
 export(event_risk)
@@ -41,7 +42,10 @@ importFrom(data.table,
   data.table,
   setkey
 )
-importFrom(stats,predict)
+importFrom(stats,
+  predict,
+  update
+)
 importFrom(survival,
   Surv,
   survfit
