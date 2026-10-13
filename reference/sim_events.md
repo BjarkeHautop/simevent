@@ -35,19 +35,19 @@ sim_events(
 - intervene:
 
   Named list of interventions. A covariate or mark name fixes it to the
-  given value for everyone, for all time; a process name multiplies that
-  process's hazard by the given value.
+  given single value for everyone, for all time; a process name
+  multiplies that process's hazard by the given non-negative number.
 
 - cens:
 
-  Numeric. Multiplier on censoring hazards; `0` turns censoring off.
-  Default 1.
+  Non-negative numeric. Multiplier on censoring hazards; `0` turns
+  censoring off. Default 1.
 
 - max_cens:
 
-  Numeric. End of follow-up: anyone still followed is censored then,
-  with `event = "max_cens"`. Default `Inf`. Follow-up also ends at the
-  last `time` of any
+  Positive numeric. End of follow-up: anyone still followed is censored
+  then, with `event = "max_cens"`. Default `Inf`. Follow-up also ends at
+  the last `time` of any
   [`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md)
   `cumhaz` curve.
 
@@ -58,7 +58,7 @@ sim_events(
 - lower, upper:
 
   Numeric. Root-finding bounds, used when processes have different
-  Weibull parameters. Defaults `1e-25`/`1e8`.
+  Weibull parameters, with `0 <= lower < upper`. Defaults `1e-25`/`1e8`.
 
 - time_step:
 

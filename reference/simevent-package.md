@@ -1,9 +1,13 @@
 # simevent: Simulation and Analysis of Event History Data
 
-Simulate event history data from a framework where treatment decisions
-and disease progression are represented as counting process. The user
-can specify number of events and parameters of intensities thereby
-creating a flexible simulation framework.
+Simulate continuous-time event history data, such as treatment
+decisions, disease progression and death, from a model of baseline
+covariates, time-varying covariates and event processes linked by
+Cox-type effects. Processes may be censoring, terminal or recurrent,
+with Weibull or user-supplied cumulative baseline hazards, and models
+can also be built from fitted Cox models to simulate data resembling
+observed data. Interventions on covariates and processes can be
+simulated and their effect on event risks evaluated.
 
 ## See also
 

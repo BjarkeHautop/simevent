@@ -42,18 +42,6 @@
 
 ### New features
 
-- [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
-  gains a `seed` argument for reproducible simulation without touching
-  the global RNG stream.
-- [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
-  now rejects: reserved node names (`id`, `time`, `event`, `max_cens`,
-  `none`, `t`, `last_time`), models without a terminal process,
-  duplicate effects, effects from censoring/terminal processes, and
-  [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)
-  generators whose arguments don’t name an earlier covariate.
-- Added a [`summary()`](https://rdrr.io/r/base/summary.html) method for
-  [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
-  objects.
 - Added
   [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md),
   [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md),
@@ -64,18 +52,7 @@
   [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
   and
   [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md).
-- Added
-  [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md)
-  for summarising risk / time lost from
-  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
-  output,
-  [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)
-  and
-  [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md).
-
-## simevent 0.1.1
-
-CRAN release: 2026-04-24
+  \# simevent 0.1.1
 
 ### Bug fixes
 
@@ -83,8 +60,11 @@ CRAN release: 2026-04-24
 
 ### Improvements
 
-- changed sim_event_cox to take list_old_vars as input
+- changed
+  [`simEventCox()`](https://github.com/BjarkeHautop/simevent/reference/simEventCox.md)
+  to take `list_old_vars` as input
 
 ### New features
 
-- Added `sim_statin_data()`
+- Added
+  [`simStatinData()`](https://github.com/BjarkeHautop/simevent/reference/simStatinData.md)

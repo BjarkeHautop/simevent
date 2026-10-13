@@ -21,7 +21,7 @@ plot_event_data(data, title = "Event Data")
 
 ## Value
 
-A `ggplot` object.
+A `ggplot` object. Requires the ggplot2 package.
 
 ## See also
 

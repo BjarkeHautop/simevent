@@ -76,17 +76,17 @@ sim_model() specification."></head><body>
 
 <dt id="arg-intervene">intervene<a class="anchor" aria-label="anchor" href="#arg-intervene"></a></dt>
 <dd><p>Named list of interventions. A covariate or mark name
-fixes it to the given value for everyone, for all time; a process name
-multiplies that process's hazard by the given value.</p></dd>
+fixes it to the given single value for everyone, for all time; a process
+name multiplies that process's hazard by the given non-negative number.</p></dd>
 
 
 <dt id="arg-cens">cens<a class="anchor" aria-label="anchor" href="#arg-cens"></a></dt>
-<dd><p>Numeric. Multiplier on censoring hazards; <code>0</code> turns censoring
-off. Default 1.</p></dd>
+<dd><p>Non-negative numeric. Multiplier on censoring hazards; <code>0</code>
+turns censoring off. Default 1.</p></dd>
 
 
 <dt id="arg-max-cens">max_cens<a class="anchor" aria-label="anchor" href="#arg-max-cens"></a></dt>
-<dd><p>Numeric. End of follow-up: anyone still followed is
+<dd><p>Positive numeric. End of follow-up: anyone still followed is
 censored then, with <code>event = "max_cens"</code>. Default <code>Inf</code>. Follow-up also
 ends at the last <code>time</code> of any <code><a href="sim_process.html">sim_process()</a></code> <code>cumhaz</code> curve.</p></dd>
 
@@ -98,7 +98,8 @@ Default 50.</p></dd>
 
 <dt id="arg-lower-upper">lower, upper<a class="anchor" aria-label="anchor" href="#arg-lower-upper"></a></dt>
 <dd><p>Numeric. Root-finding bounds, used when processes have
-different Weibull parameters. Defaults <code>1e-25</code>/<code>1e8</code>.</p></dd>
+different Weibull parameters, with <code>0 &lt;= lower &lt; upper</code>. Defaults
+<code>1e-25</code>/<code>1e8</code>.</p></dd>
 
 
 <dt id="arg-time-step">time_step<a class="anchor" aria-label="anchor" href="#arg-time-step"></a></dt>

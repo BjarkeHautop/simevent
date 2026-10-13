@@ -69,6 +69,12 @@ between them, and simulate event history data from it.
   Summarise a
   [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 
+- [`update(`*`<sim_model>`*`)`](https://github.com/BjarkeHautop/simevent/reference/update.sim_model.md)
+  :
+
+  Update a
+  [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
+
 ## Treating simulated data
 
 Functions for formatting, plotting, and summarising data simulated with
