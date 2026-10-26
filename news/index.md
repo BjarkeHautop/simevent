@@ -52,7 +52,10 @@
   [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
   and
   [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md).
-  \# simevent 0.1.1
+
+## simevent 0.1.1
+
+CRAN release: 2026-04-24
 
 ### Bug fixes
 

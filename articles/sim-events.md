@@ -76,12 +76,12 @@ head(data)
 #> Key: <id>
 #>       id      time     event    L0
 #>    <int>     <num>    <fctr> <int>
-#> 1:     1 2.2905915 censoring     1
-#> 2:     2 1.2442791     death     1
-#> 3:     3 3.2560858     death     1
-#> 4:     4 0.6887724     death     1
-#> 5:     5 2.6900946 censoring     0
-#> 6:     6 1.1920530     death     1
+#> 1:     1 2.4885416     death     1
+#> 2:     2 0.8253054     death     1
+#> 3:     3 3.5667602     death     1
+#> 4:     4 5.7664268 censoring     1
+#> 5:     5 0.9022812     death     1
+#> 6:     6 2.2981553     death     1
 ```
 
 [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)’s
@@ -102,12 +102,12 @@ head(data_intervened)
 #> Key: <id>
 #>       id      time     event    L0
 #>    <int>     <num>    <fctr> <num>
-#> 1:     1  3.519641 censoring     1
-#> 2:     2  2.914310     death     1
-#> 3:     3  2.615459     death     1
-#> 4:     4 17.255809 censoring     1
-#> 5:     5  4.892970     death     1
-#> 6:     6 11.418021 censoring     1
+#> 1:     1 1.3536106     death     1
+#> 2:     2 0.1302415 censoring     1
+#> 3:     3 2.7297260 censoring     1
+#> 4:     4 6.1730435 censoring     1
+#> 5:     5 0.8549490 censoring     1
+#> 6:     6 0.2004715     death     1
 ```
 
 ### Non-Linear and History-Dependent Effects
