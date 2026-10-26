@@ -141,12 +141,12 @@ sim.from.data <- function(
 
   eta <- as.numeric(sapply(sim.parameters[process.order], function(sim.param) {
     sim.param[["weibull.parameters"]][
-      substr(names(sim.param[["weibull.parameters"]]), 1, 3) == "eta"
+      startsWith(names(sim.param[["weibull.parameters"]]), "eta")
     ]
   }))
   nu <- as.numeric(sapply(sim.parameters[process.order], function(sim.param) {
     sim.param[["weibull.parameters"]][
-      substr(names(sim.param[["weibull.parameters"]]), 1, 2) == "nu"
+      startsWith(names(sim.param[["weibull.parameters"]]), "nu")
     ]
   }))
 
@@ -268,6 +268,7 @@ sim.from.data <- function(
   rownames(beta) <- NULL
 
   if (browse) {
+    # jarl-ignore undesirable_function: `browse = TRUE` asks for a debugger
     browser()
   }
 

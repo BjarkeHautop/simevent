@@ -130,6 +130,7 @@ sim.generic <- function(
   intervene <- c(baseline.intervention, alpha.intervention)
 
   if (browse) {
+    # jarl-ignore undesirable_function: `browse = TRUE` asks for a debugger
     browser()
   }
 

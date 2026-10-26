@@ -24,8 +24,8 @@
 #' phi <- c(1, 1)
 #' at_risk <- c(1, 1)
 #' phi_prime <- c(2, 2)
-#' simevent:::inverseScHazTV(p = 0.5, t= 1, t_prime = 2, eta = eta, nu = nu,
-#'                        phi = phi, phi_prime = phi_prime, at_risk = at_risk)
+#' inverseScHazTV(p = 0.5, t= 1, t_prime = 2, eta = eta, nu = nu,
+#'                phi = phi, phi_prime = phi_prime, at_risk = at_risk)
 #'
 #' @keywords internal
 #' @noRd

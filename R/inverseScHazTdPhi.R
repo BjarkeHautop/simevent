@@ -43,7 +43,7 @@
 #' T_star <- c(0, 2)
 #' at_risk <- c(1, 1)
 #'
-#' simevent:::inverseScHazPhiTd(
+#' inverseScHazPhiTd(
 #'   p = 0.5,
 #'   t = 3,
 #'   T_star = T_star,

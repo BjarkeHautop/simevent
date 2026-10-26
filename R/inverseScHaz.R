@@ -21,7 +21,7 @@
 #' nu <- c(1.1, 1.1)
 #' phi <- c(1, 1)
 #' at_risk <- c(1, 1)
-#' simevent:::inverseScHaz(0.5, t = 0, lower = 1e-15, upper = 200, eta, nu, phi, at_risk)
+#' inverseScHaz(0.5, t = 0, lower = 1e-15, upper = 200, eta, nu, phi, at_risk)
 #'
 #' @keywords internal
 #' @noRd

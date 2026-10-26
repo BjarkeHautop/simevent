@@ -36,6 +36,7 @@ test_that("sim_model validates node types, effect endpoints, and requires a proc
     sim_model(a = cov, d = proc, effects = list(sim_effect("d", "a", 1))),
     "not one"
   )
+  # jarl-ignore duplicated_arguments: testing duplicated node names
   expect_error(sim_model(a = cov, a = proc), "unique")
 
   expect_error(

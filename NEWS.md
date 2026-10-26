@@ -16,8 +16,9 @@
 ## New features
 
 - Added `sim_model()`, `sim_covariate()`, `sim_derived()`, `sim_mark()`,
-  `sim_process()`, `sim_effect()`, `sim_events()` and `sim_model_from_fits()`. #
-  simevent 0.1.1
+  `sim_process()`, `sim_effect()`, `sim_events()` and `sim_model_from_fits()`.
+
+# simevent 0.1.1
 
 ## Bug fixes
 

@@ -1,3 +1,19 @@
+# .simEventObj() calls `predict2()` unqualified from within the package
+# namespace, so the generic and method must be visible on the global search
+# path (not just local to the test) for the lookup to succeed.
+local_predict2 <- function(method, env = parent.frame()) {
+  assign(
+    "predict2",
+    function(obj, ...) UseMethod("predict2"),
+    envir = globalenv()
+  )
+  assign("predict2.simevent", method, envir = globalenv())
+  withr::defer(
+    rm(predict2, predict2.simevent, envir = globalenv()),
+    envir = env
+  )
+}
+
 test_that("simEventObj simulates data consistent with the fitted Cox models", {
   set.seed(926489)
   # The observed data
@@ -19,15 +35,8 @@ test_that("simEventObj simulates data consistent with the fitted Cox models", {
   cox_fits <- list("D" = cox1, "L" = cox2)
   class(cox_fits) <- "simevent"
 
-  # Equip with predict2 method. .simEventObj() calls `predict2()` unqualified
-  # from within the package namespace, so the generic and method must be
-  # made visible on the global search path (not just local to this test)
-  # for the lookup to succeed -- hence `<<-` and cleanup via on.exit().
-  predict2 <<- function(obj, ...) {
-    UseMethod("predict2")
-  }
-  on.exit(rm(predict2, predict2.simevent, envir = .GlobalEnv), add = TRUE)
-  predict2.simevent <<- function(obj, sim_data) {
+  # Equip with predict2 method
+  local_predict2(function(obj, sim_data) {
     # Base hazards
     basehazz_list <- lapply(obj, function(model) {
       basehaz(model, centered = FALSE)
@@ -54,7 +63,7 @@ test_that("simEventObj simulates data consistent with the fitted Cox models", {
 
     # Return list
     list(time = basehazz_list[[1]][["time"]], chf = chf)
-  }
+  })
 
   # Simulate new data
   new_data <- .simEventObj(5000, cox_fits, old_vars = old_vars)
@@ -101,9 +110,7 @@ test_that("simEventObj supports custom event_names", {
   cox_fits <- list("D" = cox1)
   class(cox_fits) <- "simevent"
 
-  predict2 <<- function(obj, ...) UseMethod("predict2")
-  on.exit(rm(predict2, predict2.simevent, envir = .GlobalEnv), add = TRUE)
-  predict2.simevent <<- function(obj, sim_data) {
+  local_predict2(function(obj, sim_data) {
     basehazz_list <- lapply(obj, function(model) {
       basehaz(model, centered = FALSE)
     })
@@ -123,7 +130,7 @@ test_that("simEventObj supports custom event_names", {
       chf[,, j] <- chf_list[[j]]
     }
     list(time = basehazz_list[[1]][["time"]], chf = chf)
-  }
+  })
 
   new_data <- .simEventObj(
     100,
@@ -148,9 +155,7 @@ test_that("simEventObj supports useOldVars = TRUE (deterministic covariates)", {
   cox_fits <- list("D" = cox1)
   class(cox_fits) <- "simevent"
 
-  predict2 <<- function(obj, ...) UseMethod("predict2")
-  on.exit(rm(predict2, predict2.simevent, envir = .GlobalEnv), add = TRUE)
-  predict2.simevent <<- function(obj, sim_data) {
+  local_predict2(function(obj, sim_data) {
     basehazz_list <- lapply(obj, function(model) {
       basehaz(model, centered = FALSE)
     })
@@ -170,7 +175,7 @@ test_that("simEventObj supports useOldVars = TRUE (deterministic covariates)", {
       chf[,, j] <- chf_list[[j]]
     }
     list(time = basehazz_list[[1]][["time"]], chf = chf)
-  }
+  })
 
   new_data <- .simEventObj(
     nrow(old_vars),
