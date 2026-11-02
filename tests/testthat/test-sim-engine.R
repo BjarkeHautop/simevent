@@ -69,11 +69,11 @@ test_that("apply_intervention wraps a sim_derived() covariate to take N first", 
 })
 
 test_that("process_hazard_multipliers sums coefs from covariates and event counts by name", {
-  effects <- list(
+  effects <- .sim_flatten_effects(list(
     sim_effect(death ~ L0, 0.5),
     sim_effect(censoring ~ L0, -1),
     sim_effect(death ~ relapse, 0.2)
-  )
+  ))
   covariates <- list(L0 = c(0, 1, 2))
   event_counts <- list(
     relapse = c(0, 1, 3),
@@ -96,7 +96,9 @@ test_that("process_hazard_multipliers sums coefs from covariates and event count
 })
 
 test_that("process_hazard_multipliers evaluates a non-name `from` as an expression", {
-  effects <- list(sim_effect(death ~ age^2, coef = -0.1))
+  effects <- .sim_flatten_effects(list(
+    sim_effect(death ~ age^2, coef = -0.1)
+  ))
   phi <- process_hazard_multipliers(
     effects,
     covariates = list(age = c(2, 3, 10)),
@@ -107,10 +109,10 @@ test_that("process_hazard_multipliers evaluates a non-name `from` as an expressi
 })
 
 test_that("process_hazard_multipliers expressions can threshold/interact with counts", {
-  effects <- list(
+  effects <- .sim_flatten_effects(list(
     sim_effect(death ~ relapse == 3, coef = 2),
     sim_effect(death ~ L0 * relapse, coef = 0.5)
-  )
+  ))
   phi <- process_hazard_multipliers(
     effects,
     covariates = list(L0 = c(1, 2)),
@@ -132,11 +134,11 @@ test_that("process_hazard_multipliers: event_time() counts from either end", {
   )
 
   phi <- process_hazard_multipliers(
-    list(
+    .sim_flatten_effects(list(
       sim_effect(d ~ event_time(a, 2), coef = 1),
       sim_effect(b ~ event_time(a, -1), coef = 1),
       sim_effect(a ~ event_time(a, -2), coef = 1)
-    ),
+    )),
     covariates = list(),
     event_counts = list(a = c(2, 0), b = c(0, 1), d = c(0, 0)),
     process_names = c("a", "b", "d"),
@@ -159,11 +161,11 @@ test_that("process_hazard_multipliers: nodes as functions of time", {
   )
 
   lp <- .sim_linear_predictors(
-    list(
+    .sim_flatten_effects(list(
       sim_effect(d ~ m(1.5), coef = 1),
       sim_effect(b ~ (m(event_time(a, 1)) + x(0)), coef = 1),
       sim_effect(a ~ a(t - 0.5), coef = 1)
-    ),
+    )),
     covariates = list(m = c(12, 23), x = c(100, 200)),
     event_counts = list(a = c(2, 1), b = c(0, 1), d = c(0, 0)),
     process_names = c("a", "b", "d"),

@@ -268,15 +268,14 @@ sim_process <- function(
 
 #' Define an Effect for `sim_model()`
 #'
-#' Adds `coef * from` to the linear predictor of `to`: its log-hazard if `to`
-#' is a [sim_process()], or the `lp` passed to its `draw` if it's a
-#' [sim_mark()].
+#' For each term of `from`, adds `coef * term` to the linear predictor of
+#' `to`: its log-hazard if `to` is a [sim_process()], or the `lp` passed to
+#' its `draw` if it's a [sim_mark()].
 #'
-#' @param formula A formula `to ~ from`. `to` names the affected process or
-#'   mark. `from` is one or more terms separated by `+`, each a covariate name
-#'   (its value), a process name (its number of events so far), or an R
-#'   expression of these; wrap a sum in parentheses to make it one term.
-#'   Expressions may also use:
+#' @param formula `to ~ from`, with `to` the affected process or mark. `from`
+#'   is one or more terms separated by `+`; wrap a sum in parentheses to make
+#'   it one term. A term is an R expression of covariates (their value) and
+#'   processes (their number of events so far), which may also use:
 #'   \describe{
 #'     \item{`t`}{The current time (see [sim_events()]'s `time_step`).}
 #'     \item{[event_time()]}{Time of a process's `k`-th or `k`-th latest
@@ -285,24 +284,16 @@ sim_process <- function(
 #'       `name` at time `s`, after any update at `s`, e.g.
 #'       `bp(event_time(operation, 1))`.}
 #'   }
-#' @param coef Numeric vector. One coefficient per term of `from`.
+#' @param coef Numeric vector, one coefficient per term of `from`.
 #'
-#' @return An object of class `sim_effect`, or for several terms, a
-#'   `sim_effects` list of them, for use in [sim_model()].
+#' @return A `sim_effect`, for [sim_model()]'s `effects`.
 #' @seealso [sim_model()], [event_time()]
 #' @examples
 #' sim_effect(death ~ age, coef = 0.03)
-#' sim_effect(death ~ (age - 60)^2, coef = 0.001)
 #' sim_effect(death ~ age + relapse, coef = c(0.03, 1))
 #' sim_effect(death ~ (age + bmi), coef = 0.02)
-#' sim_effect(death ~ relapse == 3, coef = 1.2)
+#' sim_effect(death ~ (age - 60)^2 + (relapse == 3), coef = c(0.001, 1.2))
 #' sim_effect(death ~ checkup > 0 & t - event_time(checkup, -1) < 1, coef = 0.5)
-#' sim_effect(death ~ operation * (t - event_time(operation, 1)), coef = 0.1)
-#' sim_effect(
-#'   death ~ operation * exp(-(t - event_time(operation, 1))),
-#'   coef = 2
-#' )
-#' sim_effect(death ~ relapse >= 3 & t - event_time(relapse, -3) < 1, coef = 1)
 #' sim_effect(death ~ operation * bp(event_time(operation, 1)), coef = 0.02)
 #' @export
 sim_effect <- function(formula, coef) {
@@ -326,25 +317,44 @@ sim_effect <- function(formula, coef) {
       " coef(s). Wrap a sum in parentheses to make it a single term."
     )
   }
-  effects <- Map(
-    function(expr, coef) {
-      structure(
-        list(
-          to = as.character(formula[[2]]),
-          from = .sim_deparse(expr),
-          expr = expr,
-          coef = coef
-        ),
-        class = "sim_effect"
-      )
-    },
-    terms,
-    coef
+  structure(
+    list(to = as.character(formula[[2]]), terms = terms, coef = coef),
+    class = "sim_effect"
   )
-  if (length(effects) == 1) {
-    return(effects[[1]])
+}
+
+#' @export
+format.sim_effect <- function(x, ...) {
+  terms <- vapply(
+    x$terms,
+    function(term) {
+      text <- .sim_deparse(term)
+      if (.sim_atomic_term(term)) text else paste0("(", text, ")")
+    },
+    character(1)
+  )
+  coefs <- vapply(abs(x$coef), format, character(1))
+  signs <- ifelse(x$coef < 0, " - ", " + ")
+  signs[1] <- if (x$coef[1] < 0) "-" else ""
+  paste(x$to, "~", paste0(signs, coefs, " * ", terms, collapse = ""))
+}
+
+#' @export
+print.sim_effect <- function(x, ...) {
+  cat("<sim_effect> ", format(x), "\n", sep = "")
+  invisible(x)
+}
+
+# Whether `term` reads as one unit after `coef *`: a name, a constant, or a
+# call to a named (non-operator) function or parentheses.
+.sim_atomic_term <- function(term) {
+  if (!is.call(term)) {
+    return(TRUE)
   }
-  structure(unname(effects), class = "sim_effects")
+  head <- term[[1]]
+  is.name(head) &&
+    (identical(head, as.name("(")) ||
+      make.names(as.character(head)) == as.character(head))
 }
 
 # The terms of `expr` separated by top-level `+`, as a list of expressions.
@@ -358,13 +368,31 @@ sim_effect <- function(formula, coef) {
   list(expr)
 }
 
-# `effects` (sim_effect()s and sim_effects lists) as a flat list of
-# sim_effect()s.
+# `effects` (sim_effect()s, or per-term records already expanded by this)
+# as a flat list of per-term records: to, from (the term as text), expr (the
+# term) and coef.
 .sim_flatten_effects <- function(effects) {
-  checkmate::assert_list(effects, types = c("sim_effect", "sim_effects"))
+  checkmate::assert_list(effects, types = c("sim_effect", "sim_term"))
   unlist(
     lapply(effects, function(eff) {
-      if (inherits(eff, "sim_effects")) unclass(eff) else list(eff)
+      if (inherits(eff, "sim_term")) {
+        return(list(eff))
+      }
+      Map(
+        function(expr, coef) {
+          structure(
+            list(
+              to = eff$to,
+              from = .sim_deparse(expr),
+              expr = expr,
+              coef = coef
+            ),
+            class = "sim_term"
+          )
+        },
+        eff$terms,
+        eff$coef
+      )
     }),
     recursive = FALSE
   )

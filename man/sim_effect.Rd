@@ -7,11 +7,10 @@
 sim_effect(formula, coef)
 }
 \arguments{
-\item{formula}{A formula \code{to ~ from}. \code{to} names the affected process or
-mark. \code{from} is one or more terms separated by \code{+}, each a covariate name
-(its value), a process name (its number of events so far), or an R
-expression of these; wrap a sum in parentheses to make it one term.
-Expressions may also use:
+\item{formula}{\code{to ~ from}, with \code{to} the affected process or mark. \code{from}
+is one or more terms separated by \code{+}; wrap a sum in parentheses to make
+it one term. A term is an R expression of covariates (their value) and
+processes (their number of events so far), which may also use:
 \describe{
 \item{\code{t}}{The current time (see \code{\link[=sim_events]{sim_events()}}'s \code{time_step}).}
 \item{\code{\link[=event_time]{event_time()}}}{Time of a process's \code{k}-th or \code{k}-th latest
@@ -21,30 +20,22 @@ event.}
 \code{bp(event_time(operation, 1))}.}
 }}
 
-\item{coef}{Numeric vector. One coefficient per term of \code{from}.}
+\item{coef}{Numeric vector, one coefficient per term of \code{from}.}
 }
 \value{
-An object of class \code{sim_effect}, or for several terms, a
-\code{sim_effects} list of them, for use in \code{\link[=sim_model]{sim_model()}}.
+A \code{sim_effect}, for \code{\link[=sim_model]{sim_model()}}'s \code{effects}.
 }
 \description{
-Adds \code{coef * from} to the linear predictor of \code{to}: its log-hazard if \code{to}
-is a \code{\link[=sim_process]{sim_process()}}, or the \code{lp} passed to its \code{draw} if it's a
-\code{\link[=sim_mark]{sim_mark()}}.
+For each term of \code{from}, adds \code{coef * term} to the linear predictor of
+\code{to}: its log-hazard if \code{to} is a \code{\link[=sim_process]{sim_process()}}, or the \code{lp} passed to
+its \code{draw} if it's a \code{\link[=sim_mark]{sim_mark()}}.
 }
 \examples{
 sim_effect(death ~ age, coef = 0.03)
-sim_effect(death ~ (age - 60)^2, coef = 0.001)
 sim_effect(death ~ age + relapse, coef = c(0.03, 1))
 sim_effect(death ~ (age + bmi), coef = 0.02)
-sim_effect(death ~ relapse == 3, coef = 1.2)
+sim_effect(death ~ (age - 60)^2 + (relapse == 3), coef = c(0.001, 1.2))
 sim_effect(death ~ checkup > 0 & t - event_time(checkup, -1) < 1, coef = 0.5)
-sim_effect(death ~ operation * (t - event_time(operation, 1)), coef = 0.1)
-sim_effect(
-  death ~ operation * exp(-(t - event_time(operation, 1))),
-  coef = 2
-)
-sim_effect(death ~ relapse >= 3 & t - event_time(relapse, -3) < 1, coef = 1)
 sim_effect(death ~ operation * bp(event_time(operation, 1)), coef = 0.02)
 }
 \seealso{

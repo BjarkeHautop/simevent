@@ -1052,7 +1052,9 @@ test_that("sim_events: event_time(proc, -k) is the k-th latest event", {
   data <- sim_events(model, n = 50, max_cens = 5, max_events = 100, seed = 1)
 
   env <- .sim_effect_env(
-    c(model$effects, list(sim_effect(other ~ visit(t), 0))),
+    .sim_flatten_effects(
+      c(model$effects, list(sim_effect(other ~ visit(t), 0)))
+    ),
     covariates = list(nth = 0),
     event_counts = list(visit = 0, other = 0, death = 0),
     process_names = c("visit", "other", "death"),
@@ -1122,20 +1124,19 @@ test_that("event_time() errors outside a sim_effect() formula", {
   expect_error(event_time(visit, 1), "only works inside a sim_effect")
 })
 
-test_that("sim_effect() splits top-level + into one effect per term", {
-  effects <- sim_effect(death ~ age + relapse + (bmi + 1), coef = c(1, 2, 3))
-  expect_s3_class(effects, "sim_effects")
+test_that("sim_effect() splits top-level + into one term per coef", {
+  effect <- sim_effect(death ~ age + relapse + (bmi + 1), coef = c(1, 2, 3))
+  expect_s3_class(effect, "sim_effect")
+  expect_equal(effect$to, "death")
+  expect_equal(effect$terms, list(quote(age), quote(relapse), quote((bmi + 1))))
+  expect_equal(effect$coef, c(1, 2, 3))
   expect_equal(
-    vapply(effects, `[[`, "", "from"),
+    vapply(.sim_flatten_effects(list(effect)), `[[`, "", "from"),
     c("age", "relapse", "(bmi + 1)")
   )
-  expect_equal(vapply(effects, `[[`, 0, "coef"), c(1, 2, 3))
-  expect_equal(unique(vapply(effects, `[[`, "", "to")), "death")
 
-  single <- sim_effect(death ~ (age + relapse), coef = 1)
-  expect_s3_class(single, "sim_effect")
-  expect_equal(single$from, "(age + relapse)")
-  expect_equal(sim_effect(death ~ +age, coef = 1)$from, "+age")
+  expect_length(sim_effect(death ~ (age + relapse), coef = 1)$terms, 1)
+  expect_equal(sim_effect(death ~ +age, coef = 1)$terms, list(quote(+age)))
 
   expect_error(
     sim_effect(death ~ age + relapse, coef = 1),
@@ -1176,4 +1177,20 @@ test_that("multi-term sim_effect()s act as their separate terms", {
 
   dropped <- update(model, drop_effects = death ~ age + bmi)
   expect_equal(summary(dropped)$effects$from, c("relapse", "age"))
+})
+
+test_that("sim_effect() prints as one line", {
+  expect_output(
+    print(sim_effect(death ~ age + (relapse == 3) + log(bmi), c(0.5, 1, 2))),
+    "<sim_effect> death ~ 0.5 * age + 1 * (relapse == 3) + 2 * log(bmi)",
+    fixed = TRUE
+  )
+  expect_equal(
+    format(sim_effect(death ~ t - event_time(visit, -1) < 1, coef = 2)),
+    "death ~ 2 * (t - event_time(visit, -1) < 1)"
+  )
+  expect_equal(
+    format(sim_effect(death ~ age + relapse, coef = c(-0.5, -1))),
+    "death ~ -0.5 * age - 1 * relapse"
+  )
 })
