@@ -52,11 +52,11 @@ model <- sim_model(
   treatment = sim_process("transient", eta = 0.05, nu = 1, limit = 1),
   stroke = sim_process("terminal", eta = 0.01, nu = 1.2),
   effects = list(
-    sim_effect("bp - 130", "bp", coef = 0.8),
-    sim_effect("treatment", "bp", coef = -2),
-    sim_effect("bp - 130", "treatment", coef = 0.08),
-    sim_effect("bp - 130", "stroke", coef = 0.03),
-    sim_effect("treatment", "stroke", coef = -0.2)
+    sim_effect(bp ~ bp - 130, coef = 0.8),
+    sim_effect(bp ~ treatment, coef = -2),
+    sim_effect(treatment ~ bp - 130, coef = 0.08),
+    sim_effect(stroke ~ bp - 130, coef = 0.03),
+    sim_effect(stroke ~ treatment, coef = -0.2)
   )
 )
 summary(model)

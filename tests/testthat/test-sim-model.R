@@ -11,8 +11,10 @@ test_that("sim_covariate/sim_process/sim_effect validate their inputs", {
   expect_error(sim_process("terminal", eta = -1, nu = 1.1), ">= 0")
   expect_s3_class(sim_process("terminal", eta = 0.1, nu = 1.1), "sim_process")
 
-  expect_error(sim_effect(1, "b", 1), "string")
-  expect_s3_class(sim_effect("a", "b", 1), "sim_effect")
+  expect_error(sim_effect("a", 1), "formula")
+  expect_error(sim_effect(~a, 1), "`to ~ from`")
+  expect_error(sim_effect(log(b) ~ a, 1), "`to ~ from`")
+  expect_s3_class(sim_effect(b ~ a, 1), "sim_effect")
 
   expect_error(sim_derived(function(N, region) region), "should not take 'N'")
   expect_error(sim_derived(function() 1), "at least one other covariate")
@@ -29,11 +31,11 @@ test_that("sim_model validates node types, effect endpoints, and requires a proc
   expect_error(sim_model(a = 1, d = proc), "sim_covariate\\(\\),")
   expect_error(sim_model(a = cov), "at least one sim_process")
   expect_error(
-    sim_model(a = cov, d = proc, effects = list(sim_effect("a", "nope", 1))),
+    sim_model(a = cov, d = proc, effects = list(sim_effect(nope ~ a, 1))),
     "not one"
   )
   expect_error(
-    sim_model(a = cov, d = proc, effects = list(sim_effect("d", "a", 1))),
+    sim_model(a = cov, d = proc, effects = list(sim_effect(a ~ d, 1))),
     "not one"
   )
   # jarl-ignore duplicated_arguments: testing duplicated node names
@@ -43,22 +45,18 @@ test_that("sim_model validates node types, effect endpoints, and requires a proc
     sim_model(
       a = cov,
       d = proc,
-      effects = list(sim_effect("bogus + 1", "d", 1))
+      effects = list(sim_effect(d ~ bogus + 1, 1))
     ),
     "not found in model: bogus"
-  )
-  expect_error(
-    sim_model(a = cov, d = proc, effects = list(sim_effect("a +* 1", "d", 1))),
-    "neither a node name nor a parseable"
   )
   g <- sim_model(
     a = cov,
     d = proc,
-    effects = list(sim_effect("a^2", "d", 1), sim_effect("t >= 0", "d", 0.1))
+    effects = list(sim_effect(d ~ a^2, 1), sim_effect(d ~ t >= 0, 0.1))
   )
   expect_s3_class(g, "sim_model")
 
-  model <- sim_model(a = cov, d = proc, effects = list(sim_effect("a", "d", 1)))
+  model <- sim_model(a = cov, d = proc, effects = list(sim_effect(d ~ a, 1)))
   expect_s3_class(model, "sim_model")
   expect_named(model$covariates, "a")
   expect_named(model$processes, "d")
@@ -83,7 +81,7 @@ test_that("sim_model validates sim_derived() dependency ordering", {
     region = region,
     region2 = region2,
     d = proc,
-    effects = list(sim_effect("region2", "d", 1))
+    effects = list(sim_effect(d ~ region2, 1))
   )
   expect_s3_class(model, "sim_model")
   expect_named(model$covariates, c("region", "region2"))
@@ -101,8 +99,8 @@ test_that("sim_events recovers categorical-level effects via sim_derived", {
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     effects = list(
-      sim_effect("region2", "death", coef = 1.2),
-      sim_effect("region3", "death", coef = -0.8)
+      sim_effect(death ~ region2, coef = 1.2),
+      sim_effect(death ~ region3, coef = -0.8)
     )
   )
   data <- sim_events(model, n = 8000)
@@ -126,7 +124,7 @@ test_that("sim_events's intervene fixes a sim_derived() covariate too", {
     region = sim_covariate(function(N) sample(1:3, N, replace = TRUE)),
     region2 = sim_derived(function(region) as.numeric(region == 2)),
     d = sim_process("terminal", eta = 0.1, nu = 1.1),
-    effects = list(sim_effect("region2", "d", 1))
+    effects = list(sim_effect(d ~ region2, 1))
   )
   data <- sim_events(model, n = 50, intervene = list(region2 = 1))
 
@@ -152,8 +150,8 @@ test_that("sim_events recovers effect coefficients", {
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     effects = list(
-      sim_effect("L0", "death", 1.5),
-      sim_effect("L0", "censoring", -0.5)
+      sim_effect(death ~ L0, 1.5),
+      sim_effect(censoring ~ L0, -0.5)
     )
   )
   data <- sim_events(model, n = 4000)
@@ -174,9 +172,9 @@ test_that("sim_events recovers effects from and into a transient process", {
     relapse = sim_process("transient", eta = 0.3, nu = 1, limit = 3),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
-      sim_effect("L0", "death", 0.5),
-      sim_effect("relapse", "death", 0.7),
-      sim_effect("L0", "relapse", -0.5)
+      sim_effect(death ~ L0, 0.5),
+      sim_effect(death ~ relapse, 0.7),
+      sim_effect(relapse ~ L0, -0.5)
     )
   )
   data <- sim_events(model, n = 3000, seed = 1)
@@ -200,7 +198,7 @@ test_that("sim_events recovers an effect that changes with t", {
   model <- sim_model(
     L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
     death = sim_process("terminal", eta = 0.2, nu = 1),
-    effects = list(sim_effect("L0 * (t < 2)", "death", coef = 1))
+    effects = list(sim_effect(death ~ L0 * (t < 2), coef = 1))
   )
   data <- sim_events(model, n = 3000, seed = 1)
 
@@ -219,8 +217,7 @@ test_that("sim_events recovers an effect of time since a k-th event", {
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
       sim_effect(
-        "relapse >= 2 & t - event_time(relapse, 2) < 1",
-        "death",
+        death ~ relapse >= 2 & t - event_time(relapse, 2) < 1,
         coef = 1.5
       )
     )
@@ -245,7 +242,7 @@ test_that("sim_events recovers an effect of time since the latest event", {
     visit = sim_process("transient", eta = 0.5, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
-      sim_effect("visit > 0 & t - event_time(visit, -1) < 0.5", "death", 1)
+      sim_effect(death ~ visit > 0 & t - event_time(visit, -1) < 0.5, 1)
     )
   )
   data <- sim_events(model, n = 3000, seed = 1)
@@ -272,7 +269,7 @@ test_that("sim_events: a threshold sim_effect() fires specifically on the k-th j
     censoring = sim_process("censoring", eta = 0.01, nu = 1),
     relapse = sim_process("transient", eta = 0.3, nu = 1, limit = 5),
     death = sim_process("terminal", eta = 0.01, nu = 1),
-    effects = list(sim_effect("relapse == 3", "death", coef = 8))
+    effects = list(sim_effect(death ~ relapse == 3, coef = 8))
   )
   data <- sim_events(model, n = 2000, max_events = 40)
 
@@ -290,7 +287,7 @@ test_that("sim_events reports named transient-process event counts", {
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     relapse = sim_process("transient", eta = 0.2, nu = 1),
-    effects = list(sim_effect("relapse", "death", 0.8))
+    effects = list(sim_effect(death ~ relapse, 0.8))
   )
   data <- sim_events(model, n = 500)
 
@@ -485,8 +482,8 @@ test_that("sim_model_from_fits wires a cross-process effect, not a bogus covaria
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     relapse = sim_process("transient", eta = 0.3, nu = 1),
     effects = list(
-      sim_effect("L0", "death", 0.5),
-      sim_effect("relapse", "death", 0.9)
+      sim_effect(death ~ L0, 0.5),
+      sim_effect(death ~ relapse, 0.9)
     )
   )
   observed_data <- sim_events(observed_model, n = 500)
@@ -530,7 +527,7 @@ test_that("sim_model_from_fits resamples observed covariate rows jointly", {
     A0 = sim_covariate(function(N, L0) rbinom(N, 1, plogis(-3 + 6 * L0))),
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
-    effects = list(sim_effect("L0", "death", 1))
+    effects = list(sim_effect(death ~ L0, 1))
   )
   observed_data <- sim_events(observed_model, n = 1000)
   fits <- list(
@@ -562,7 +559,7 @@ test_that("sim_model_from_fits uses one row per id", {
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     relapse = sim_process("transient", eta = 0.3, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
-    effects = list(sim_effect("L0", "relapse", 1.5))
+    effects = list(sim_effect(relapse ~ L0, 1.5))
   )
   observed_data <- interval_format_data(
     sim_events(observed_model, n = 2000, max_events = 200),
@@ -644,7 +641,7 @@ test_that("sim_model rejects reserved names, missing terminal, and duplicate eff
     sim_model(
       a = cov,
       d = term,
-      effects = list(sim_effect("a", "d", 1), sim_effect("a", "d", 2))
+      effects = list(sim_effect(d ~ a, 1), sim_effect(d ~ a, 2))
     ),
     "duplicate sim_effect"
   )
@@ -656,20 +653,20 @@ test_that("sim_model rejects effects from censoring/terminal processes", {
   trans <- sim_process("transient", eta = 0.1, nu = 1.1)
 
   expect_error(
-    sim_model(d = term, r = trans, effects = list(sim_effect("d", "r", 1))),
+    sim_model(d = term, r = trans, effects = list(sim_effect(r ~ d, 1))),
     "cannot use censoring/terminal process\\(es\\) d"
   )
   expect_error(
     sim_model(
       d = term,
       c = cens,
-      effects = list(sim_effect("c == 1", "d", 1))
+      effects = list(sim_effect(d ~ c == 1, 1))
     ),
     "cannot use censoring/terminal process\\(es\\) c"
   )
   # transient -> itself is allowed
   expect_no_error(
-    sim_model(d = term, r = trans, effects = list(sim_effect("r", "r", 0.1)))
+    sim_model(d = term, r = trans, effects = list(sim_effect(r ~ r, 0.1)))
   )
 })
 
@@ -703,7 +700,7 @@ test_that("sim_events is reproducible with seed and leaves the global RNG alone"
     a = sim_covariate(function(N) rnorm(N)),
     c = sim_process("censoring", eta = 0.1, nu = 1.1),
     d = sim_process("terminal", eta = 0.1, nu = 1.1),
-    effects = list(sim_effect("a", "d", 0.5))
+    effects = list(sim_effect(d ~ a, 0.5))
   )
 
   x <- sim_events(model, n = 50, seed = 1)
@@ -769,7 +766,7 @@ test_that("sim_events: an effect using t switches off between events", {
   model <- sim_model(
     L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
     death = sim_process("terminal", eta = 0.2, nu = 1),
-    effects = list(sim_effect("L0 * (t < 2)", "death", coef = 1))
+    effects = list(sim_effect(death ~ L0 * (t < 2), coef = 1))
   )
   data <- sim_events(model, n = 6000, seed = 11)
   data_split <- interval_format_data(data, time_var = TRUE, t_prime = 2)
@@ -789,7 +786,7 @@ test_that("sim_events: a smooth effect of t matches the analytic survival", {
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1.5),
     death = sim_process("terminal", eta = 0.1, nu = 1),
-    effects = list(sim_effect("t", "death", coef = 0.3))
+    effects = list(sim_effect(death ~ t, coef = 0.3))
   )
   data <- sim_events(model, n = 5000, seed = 12)
   tt <- c(1, 3, 5)
@@ -811,7 +808,7 @@ test_that("sim_events: a smooth effect of t matches the analytic survival", {
 test_that("sim_events: effects using t respect max_cens", {
   model <- sim_model(
     death = sim_process("terminal", eta = 0.01, nu = 1),
-    effects = list(sim_effect("t > 100", "death", coef = 1))
+    effects = list(sim_effect(death ~ t > 100, coef = 1))
   )
   data <- sim_events(model, n = 200, max_cens = 1.234, seed = 13)
 
@@ -827,10 +824,10 @@ test_that("sim_events: effects using t converge as time_step shrinks", {
   n <- 2000
   eta <- 0.5
   v <- -log(withr::with_seed(14, stats::runif(n)))
-  max_error <- function(from, coef, exact, time_step) {
+  max_error <- function(formula, coef, exact, time_step) {
     model <- sim_model(
       death = sim_process("terminal", eta = eta, nu = 1),
-      effects = list(sim_effect(from, "death", coef = coef))
+      effects = list(sim_effect(formula, coef = coef))
     )
     data <- sim_events(model, n = n, time_step = time_step, seed = 14)
     max(abs(data$time[order(data$id)] - exact(v)))
@@ -841,7 +838,7 @@ test_that("sim_events: effects using t converge as time_step shrinks", {
   smooth_exact <- function(v) log(1 + b * v / eta) / b
   smooth <- vapply(
     c(0.1, 0.01),
-    function(h) max_error("t", b, smooth_exact, h),
+    function(h) max_error(death ~ t, b, smooth_exact, h),
     numeric(1)
   )
   expect_lt(smooth[2], 1e-4)
@@ -857,7 +854,7 @@ test_that("sim_events: effects using t converge as time_step shrinks", {
   }
   jump <- vapply(
     c(0.1, 0.01),
-    function(h) max_error("t > 1.234", log(k), jump_exact, h),
+    function(h) max_error(death ~ t > 1.234, log(k), jump_exact, h),
     numeric(1)
   )
   expect_lt(jump[1], 0.1 / 2)
@@ -906,7 +903,7 @@ test_that("a cumhaz process works with Weibull processes and time-varying effect
     L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     death = sim_process("terminal", cumhaz = cumhaz),
-    effects = list(sim_effect("L0 * (t < 2)", "death", 1))
+    effects = list(sim_effect(death ~ L0 * (t < 2), 1))
   )
   data <- sim_events(model, n = 10000, seed = 1)
   data_split <- interval_format_data(data, time_var = TRUE, t_prime = 2)
@@ -950,7 +947,7 @@ test_that("sim_model_from_fits reproduces a non-Weibull baseline hazard", {
       "terminal",
       cumhaz = data.frame(time = c(0.5, 3, 6), hazard = c(0.5, 0.75, 2))
     ),
-    effects = list(sim_effect("L0", "death", 0.7))
+    effects = list(sim_effect(death ~ L0, 0.7))
   )
   observed <- sim_events(model, n = 5000, seed = 1)
   fits <- list(
@@ -976,45 +973,51 @@ test_that("sim_model validates event_time() calls", {
   cens <- sim_process("censoring", eta = 0.1, nu = 1)
   op <- sim_process("transient", eta = 0.1, nu = 1, limit = 1)
   death <- sim_process("terminal", eta = 0.1, nu = 1)
-  model_with <- function(from, to = "death") {
+  model_with <- function(formula) {
     sim_model(
       age = sim_covariate(function(N) rnorm(N)),
       censoring = cens,
       operation = op,
       death = death,
-      effects = list(sim_effect(from, to, 1))
+      effects = list(sim_effect(formula, 1))
     )
   }
 
-  expect_s3_class(model_with("event_time(operation, 1) > 0"), "sim_model")
-  expect_s3_class(model_with("event_time(operation, -1) > 0"), "sim_model")
+  expect_s3_class(model_with(death ~ event_time(operation, 1) > 0), "sim_model")
   expect_s3_class(
-    model_with("event_time(k = 1, proc = operation)"),
+    model_with(death ~ event_time(operation, -1) > 0),
+    "sim_model"
+  )
+  expect_s3_class(
+    model_with(death ~ event_time(k = 1, proc = operation)),
     "sim_model"
   )
 
   expect_error(
-    model_with("event_time(operation, 2) > 0"),
+    model_with(death ~ event_time(operation, 2) > 0),
     "uses event_time\\(operation, 2\\), beyond the process's limit"
   )
-  expect_error(model_with("event_time(operation, -2)"), "beyond")
+  expect_error(model_with(death ~ event_time(operation, -2)), "beyond")
   expect_error(
-    model_with("event_time(death, 1)", "operation"),
+    model_with(operation ~ event_time(death, 1)),
     "censoring/terminal"
   )
   expect_error(
-    model_with("event_time(surgery, 1)"),
+    model_with(death ~ event_time(surgery, 1)),
     "not found in model: surgery"
   )
-  expect_error(model_with("event_time(age, 1)"), "non-process\\(es\\): age")
-  for (bad in c(
-    "event_time(operation, 0)",
-    "event_time(operation, 1.5)",
-    "event_time(operation, age)",
-    "event_time(operation)",
-    "event_time('operation', 1)"
+  expect_error(
+    model_with(death ~ event_time(age, 1)),
+    "non-process\\(es\\): age"
+  )
+  for (bad in list(
+    death ~ event_time(operation, 0),
+    death ~ event_time(operation, 1.5),
+    death ~ event_time(operation, age),
+    death ~ event_time(operation),
+    death ~ event_time("operation", 1)
   )) {
-    expect_error(model_with(bad), "must call event_time", info = bad)
+    expect_error(model_with(bad), "must call event_time", info = format(bad))
   }
   expect_error(
     sim_model(
@@ -1039,10 +1042,9 @@ test_that("sim_events: event_time(proc, -k) is the k-th latest event", {
     other = sim_process("transient", eta = 1, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
-      sim_effect("visit", "nth", 1),
+      sim_effect(nth ~ visit, 1),
       sim_effect(
-        "event_time(visit, -3) + 1000 * nth(event_time(visit, -3))",
-        "other",
+        other ~ event_time(visit, -3) + 1000 * nth(event_time(visit, -3)),
         0
       )
     )
@@ -1050,7 +1052,7 @@ test_that("sim_events: event_time(proc, -k) is the k-th latest event", {
   data <- sim_events(model, n = 50, max_cens = 5, max_events = 100, seed = 1)
 
   env <- .sim_effect_env(
-    c(model$effects, list(sim_effect("visit(t)", "other", 0))),
+    c(model$effects, list(sim_effect(other ~ visit(t), 0))),
     covariates = list(nth = 0),
     event_counts = list(visit = 0, other = 0, death = 0),
     process_names = c("visit", "other", "death"),
@@ -1084,7 +1086,7 @@ test_that("sim_events: a mark's value at an event time", {
     visit = sim_process("transient", eta = 1, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
-      sim_effect("operation * bp(event_time(operation, 1))", "death", 1)
+      sim_effect(death ~ operation * bp(event_time(operation, 1)), 1)
     )
   )
   data <- sim_events(model, n = 3000, max_cens = 10, seed = 1)
@@ -1101,11 +1103,7 @@ test_that("sim_events: an effect on event_time() applies only after the event", 
   model <- sim_model(
     operation = sim_process("transient", eta = 0.5, nu = 1, limit = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1),
-    effects = list(sim_effect(
-      "event_time(operation, 1) > 0",
-      "death",
-      coef = 3
-    ))
+    effects = list(sim_effect(death ~ event_time(operation, 1) > 0, coef = 3))
   )
   data <- sim_events(model, n = 2000, seed = 1)
   op_time <- data[data$event == "operation", c("id", "time")]
@@ -1118,4 +1116,8 @@ test_that("sim_events: an effect on event_time() applies only after the event", 
     tolerance = 0.1
   )
   expect_equal(nrow(after) / 2000, 0.5 / 0.55, tolerance = 0.05)
+})
+
+test_that("event_time() errors outside a sim_effect() formula", {
+  expect_error(event_time(visit, 1), "only works inside a sim_effect")
 })

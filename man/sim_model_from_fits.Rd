@@ -54,11 +54,11 @@ observed_model <- sim_model(
   cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
   cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("L0", "censoring", 0.5),
-    sim_effect("A0", "censoring", -1),
-    sim_effect("L0", "cause1", -0.5),
-    sim_effect("A0", "cause1", 0.5),
-    sim_effect("A0", "cause2", 0.5)
+    sim_effect(censoring ~ L0, coef = 0.5),
+    sim_effect(censoring ~ A0, coef = -1),
+    sim_effect(cause1 ~ L0, coef = -0.5),
+    sim_effect(cause1 ~ A0, coef = 0.5),
+    sim_effect(cause2 ~ A0, coef = 0.5)
   )
 )
 observed_data <- sim_events(observed_model, n = 1000)

@@ -26,8 +26,8 @@ model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("age", "death", coef = 0.03),
-    sim_effect("(age - 60)^2", "death", coef = 0.001)
+    sim_effect(death ~ age, coef = 0.03),
+    sim_effect(death ~ (age - 60)^2, coef = 0.001)
   )
 )
 model

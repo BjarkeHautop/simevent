@@ -44,7 +44,7 @@ model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   relapse = sim_process("transient", eta = 0.2, nu = 1),
-  effects = list(sim_effect("relapse", "death", 0.5))
+  effects = list(sim_effect(death ~ relapse, coef = 0.5))
 )
 data <- sim_events(model, n = 500)
 data_int <- interval_format_data(data, proc_cols = "relapse")
@@ -62,7 +62,7 @@ survival::coxph(
 model_tv <- sim_model(
   L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
   death = sim_process("terminal", eta = 0.2, nu = 1),
-  effects = list(sim_effect("L0 * (t < 2)", "death", coef = 1))
+  effects = list(sim_effect(death ~ L0 * (t < 2), coef = 1))
 )
 data_tv <- sim_events(model_tv, n = 2000)
 data_split <- interval_format_data(data_tv, time_var = TRUE, t_prime = 2)

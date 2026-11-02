@@ -5,9 +5,9 @@ model <- sim_model(
   relapse = sim_process("transient", eta = 0.2, nu = 1, limit = 2),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("age", "death", coef = 0.5),
-    sim_effect("relapse == 2", "death", coef = 1),
-    sim_effect("age * relapse", "relapse", coef = 0.1)
+    sim_effect(death ~ age, coef = 0.5),
+    sim_effect(death ~ relapse == 2, coef = 1),
+    sim_effect(relapse ~ age * relapse, coef = 0.1)
   )
 )
 
@@ -46,12 +46,12 @@ test_that("update replaces, adds and removes nodes", {
   expect_equal(summary(updated)$effects, summary(model)$effects)
 })
 
-test_that("update replaces effects by from -> to in place, and adds new ones", {
+test_that("update replaces effects by formula in place, and adds new ones", {
   updated <- update(
     model,
     effects = list(
-      sim_effect("relapse == 2", "death", coef = 3),
-      sim_effect("age_sq", "death", coef = 0.1)
+      sim_effect(death ~ relapse == 2, coef = 3),
+      sim_effect(death ~ age_sq, coef = 0.1)
     )
   )
   eff <- summary(updated)$effects
@@ -62,18 +62,21 @@ test_that("update replaces effects by from -> to in place, and adds new ones", {
 test_that("update drops effects named in drop_effects", {
   updated <- update(
     model,
-    drop_effects = c("age -> death", "relapse == 2 -> death")
+    drop_effects = list(death ~ age, death ~ relapse == 2)
   )
   expect_equal(summary(updated)$effects$from, "age * relapse")
   expect_error(
-    update(model, drop_effects = "age -> relapse"),
-    "not in the model.*age -> death"
+    update(model, drop_effects = relapse ~ age),
+    "not in the model.*death ~ age"
   )
 })
 
 test_that("update errors when a removed node is still used by an effect", {
-  expect_error(update(model, age = NULL), "age -> death; age \\* relapse")
-  expect_error(update(model, relapse = NULL), "relapse == 2 -> death")
+  expect_error(
+    update(model, age = NULL),
+    "death ~ age; relapse ~ age \\* relapse"
+  )
+  expect_error(update(model, relapse = NULL), "death ~ relapse == 2")
   expect_error(update(model, bogus = NULL), "not in the model: bogus")
 
   t_model <- sim_model(
@@ -86,8 +89,8 @@ test_that("update errors when a removed node is still used by an effect", {
     visit = sim_process("transient", eta = 0.2, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
-      sim_effect("t - event_time(relapse, 1) < 1", "death", coef = 1),
-      sim_effect("bp(event_time(visit, -1))", "death", coef = 1)
+      sim_effect(death ~ t - event_time(relapse, 1) < 1, coef = 1),
+      sim_effect(death ~ bp(event_time(visit, -1)), coef = 1)
     )
   )
   expect_error(update(t_model, relapse = NULL), "event_time\\(relapse, 1\\)")
@@ -99,14 +102,14 @@ test_that("update errors when a removed node is still used by an effect", {
     model,
     age = NULL,
     age_sq = NULL,
-    drop_effects = c("age -> death", "age * relapse -> relapse")
+    drop_effects = list(death ~ age, relapse ~ age * relapse)
   )
   expect_equal(names(updated$covariates), character(0))
 })
 
 test_that("update reruns sim_model()'s validation", {
   expect_error(
-    update(model, effects = list(sim_effect("age", "bogus", coef = 1))),
+    update(model, effects = list(sim_effect(bogus ~ age, coef = 1))),
     "'to' must name"
   )
   expect_error(
@@ -122,7 +125,7 @@ test_that("update keeps a sim_model_from_fits() model simulable", {
       L0 = sim_covariate(function(N) runif(N)),
       censoring = sim_process("censoring", eta = 0.1, nu = 1),
       death = sim_process("terminal", eta = 0.1, nu = 1),
-      effects = list(sim_effect("L0", "death", 1))
+      effects = list(sim_effect(death ~ L0, 1))
     ),
     n = 300,
     seed = 1
@@ -142,7 +145,7 @@ test_that("update keeps a sim_model_from_fits() model simulable", {
     observed,
     c(censoring = "censoring", death = "terminal")
   )
-  updated <- update(fitted, effects = list(sim_effect("L0", "death", 2)))
+  updated <- update(fitted, effects = list(sim_effect(death ~ L0, 2)))
   expect_equal(summary(updated)$effects$coef, 2)
   expect_s3_class(sim_events(updated, n = 20, seed = 1), "data.table")
 })

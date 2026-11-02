@@ -49,8 +49,8 @@ model <- sim_model(
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   disease = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
   effects = list(
-    sim_effect("A0", "death", coef = 0.5),
-    sim_effect("disease", "death", coef = 1)
+    sim_effect(death ~ A0, coef = 0.5),
+    sim_effect(death ~ disease, coef = 1)
   )
 )
 

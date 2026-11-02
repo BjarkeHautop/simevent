@@ -21,6 +21,7 @@ reference:
   - sim_mark
   - sim_process
   - sim_effect
+  - event_time
   - sim_events
   - sim_model_from_fits
   - summary.sim_model

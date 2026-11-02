@@ -16,8 +16,8 @@
 #'   relapse = sim_process("transient", eta = 0.2, nu = 1),
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
 #'   effects = list(
-#'     sim_effect("age", "death", coef = 0.03),
-#'     sim_effect("relapse", "death", coef = 1)
+#'     sim_effect(death ~ age, coef = 0.03),
+#'     sim_effect(death ~ relapse, coef = 1)
 #'   )
 #' )
 #' model
@@ -128,11 +128,11 @@ print.summary.sim_model <- function(x, ...) {
 #'   [sim_process()] objects. A name already in the model replaces that node
 #'   in place; a new name is added after the existing nodes; `NULL` removes
 #'   the node.
-#' @param effects List of [sim_effect()]s. One with the same `from` and `to`
-#'   as an existing effect replaces it; any other is added.
-#' @param drop_effects Character vector of effects to remove, as
-#'   `"<from> -> <to>"` (as listed by [summary.sim_model()]). Effects using a
-#'   removed node must be dropped here.
+#' @param effects List of [sim_effect()]s. One with the same formula as an
+#'   existing effect replaces it; any other is added.
+#' @param drop_effects Formula, or list of formulas, of effects to remove,
+#'   e.g. `death ~ treated`. Effects using a removed node must be dropped
+#'   here.
 #'
 #' @return A [sim_model()].
 #' @seealso [sim_model()], [summary.sim_model()]
@@ -143,8 +143,8 @@ print.summary.sim_model <- function(x, ...) {
 #'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
 #'   effects = list(
-#'     sim_effect("age", "death", coef = 0.03),
-#'     sim_effect("treated", "death", coef = -0.5)
+#'     sim_effect(death ~ age, coef = 0.03),
+#'     sim_effect(death ~ treated, coef = -0.5)
 #'   )
 #' )
 #'
@@ -153,20 +153,20 @@ print.summary.sim_model <- function(x, ...) {
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.5),
 #'   frailty = sim_covariate(function(N) rgamma(N, shape = 2, rate = 2)),
 #'   treated = NULL,
-#'   effects = list(sim_effect("log(frailty)", "death", coef = 1)),
-#'   drop_effects = "treated -> death"
+#'   effects = list(sim_effect(death ~ log(frailty), coef = 1)),
+#'   drop_effects = death ~ treated
 #' )
 #'
 #' # A grid of treatment effects:
 #' models <- lapply(c(-1, -0.5, 0), function(b) {
-#'   update(model, effects = list(sim_effect("treated", "death", coef = b)))
+#'   update(model, effects = list(sim_effect(death ~ treated, coef = b)))
 #' })
 #' @export
 update.sim_model <- function(
   object,
   ...,
   effects = list(),
-  drop_effects = character(0)
+  drop_effects = list()
 ) {
   checkmate::assert_class(object, "sim_model")
   changes <- list(...)
@@ -174,7 +174,11 @@ update.sim_model <- function(
     checkmate::assert_list(changes, names = "unique")
   }
   checkmate::assert_list(effects, types = "sim_effect")
-  checkmate::assert_character(drop_effects, any.missing = FALSE)
+  if (inherits(drop_effects, "formula")) {
+    drop_effects <- list(drop_effects)
+  }
+  checkmate::assert_list(drop_effects, types = "formula")
+  drop_effects <- .sim_effect_keys(lapply(drop_effects, sim_effect, coef = 0))
 
   nodes <- c(object$covariates, object$processes)
   removed <- names(changes)[vapply(changes, is.null, logical(1))]
@@ -228,11 +232,11 @@ update.sim_model <- function(
   )
 }
 
-# "<from> -> <to>" for each of a list of sim_effect()s.
+# "<to> ~ <from>" for each of a list of sim_effect()s.
 .sim_effect_keys <- function(effects) {
   vapply(
     effects,
-    function(eff) paste(eff$from, eff$to, sep = " -> "),
+    function(eff) paste(eff$to, "~", eff$from),
     character(1)
   )
 }
@@ -240,5 +244,5 @@ update.sim_model <- function(
 # Node names a sim_effect() uses: its `to`, and its `from` (a node name, or
 # the nodes its expression refers to).
 .sim_effect_refs <- function(eff, node_names) {
-  c(eff$to, .sim_expr_refs(str2lang(eff$from), node_names))
+  c(eff$to, .sim_expr_refs(eff$expr, node_names))
 }

@@ -119,7 +119,7 @@ sim.generic <- function(
   })
 
   effect_nodes <- lapply(effects, function(effect) {
-    sim_effect(effect[[1]], effect[[2]], as.numeric(effect[[3]]))
+    .sim_effect_text(effect[[1]], effect[[2]], as.numeric(effect[[3]]))
   })
 
   model <- do.call(

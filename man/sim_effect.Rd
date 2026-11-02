@@ -4,48 +4,44 @@
 \alias{sim_effect}
 \title{Define an Effect for \code{sim_model()}}
 \usage{
-sim_effect(from, to, coef)
+sim_effect(formula, coef)
 }
 \arguments{
-\item{from}{Character. A covariate name (its value), a process name (its
-number of events so far), or an R expression of these. Expressions may
-also use:
+\item{formula}{A formula \code{to ~ from}. \code{to} names the affected process or
+mark. \code{from} is a covariate name (its value), a process name (its number
+of events so far), or an R expression of these, which may also use:
 \describe{
 \item{\code{t}}{The current time (see \code{\link[=sim_events]{sim_events()}}'s \code{time_step}).}
-\item{\code{event_time(proc, k)}}{Time of \code{proc}'s \code{k}-th event, counting
-back from the latest if \code{k} is negative (\code{-1} is the latest), or \code{0}
-if there are fewer than \code{abs(k)} events so far. \code{k} must be a whole
-number written out, e.g. \code{event_time(operation, 1)}. Multiply by the
-event count, as in \code{operation * f(t - event_time(operation, 1))}, so
-the effect only applies once the event has happened.}
+\item{\code{\link[=event_time]{event_time()}}}{Time of a process's \code{k}-th or \code{k}-th latest
+event.}
 \item{\verb{<name>(s)}}{The value of covariate, mark or process count
 \code{name} at time \code{s}, after any update at \code{s}, e.g.
 \code{bp(event_time(operation, 1))}.}
 }}
 
-\item{to}{Character. Name of the affected process or mark.}
-
-\item{coef}{Numeric. Cox-type coefficient, or for a mark, linear
-coefficient.}
+\item{coef}{Numeric. The coefficient on \code{from}.}
 }
 \value{
 An object of class \code{sim_effect}, for use in \code{\link[=sim_model]{sim_model()}}.
 }
 \description{
-Multiplies the hazard of process \code{to} by \code{exp(coef * from)}, or, if \code{to}
-is a \code{\link[=sim_mark]{sim_mark()}}, adds \code{coef * from} to the linear predictor \code{lp} its
-new values are drawn from.
+Adds \code{coef * from} to the linear predictor of \code{to}: its log-hazard if \code{to}
+is a \code{\link[=sim_process]{sim_process()}}, or the \code{lp} passed to its \code{draw} if it's a
+\code{\link[=sim_mark]{sim_mark()}}.
 }
 \examples{
-sim_effect("age", "death", coef = 0.03)
-sim_effect("(age - 60)^2", "death", coef = 0.001)
-sim_effect("relapse == 3", "death", coef = 1.2)
-sim_effect("checkup > 0 & t - event_time(checkup, -1) < 1", "death", 0.5)
-sim_effect("operation * (t - event_time(operation, 1))", "death", 0.1)
-sim_effect("operation * exp(-(t - event_time(operation, 1)))", "death", 2)
-sim_effect("relapse >= 3 & t - event_time(relapse, -3) < 1", "death", 1)
-sim_effect("operation * bp(event_time(operation, 1))", "death", 0.02)
+sim_effect(death ~ age, coef = 0.03)
+sim_effect(death ~ (age - 60)^2, coef = 0.001)
+sim_effect(death ~ relapse == 3, coef = 1.2)
+sim_effect(death ~ checkup > 0 & t - event_time(checkup, -1) < 1, coef = 0.5)
+sim_effect(death ~ operation * (t - event_time(operation, 1)), coef = 0.1)
+sim_effect(
+  death ~ operation * exp(-(t - event_time(operation, 1))),
+  coef = 2
+)
+sim_effect(death ~ relapse >= 3 & t - event_time(relapse, -3) < 1, coef = 1)
+sim_effect(death ~ operation * bp(event_time(operation, 1)), coef = 0.02)
 }
 \seealso{
-\code{\link[=sim_model]{sim_model()}}
+\code{\link[=sim_model]{sim_model()}}, \code{\link[=event_time]{event_time()}}
 }

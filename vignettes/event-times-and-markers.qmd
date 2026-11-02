@@ -81,8 +81,7 @@ operation_model <- sim_model(
   death = sim_process("terminal", eta = 0.02, nu = 1),
   effects = list(
     sim_effect(
-      "operation * exp(-2 * (t - event_time(operation, 1)))",
-      "death",
+      death ~ operation * exp(-2 * (t - event_time(operation, 1))),
       coef = 3
     )
   )
@@ -214,11 +213,11 @@ bp_model <- sim_model(
   censoring = sim_process("censoring", eta = 0.05, nu = 1),
   stroke = sim_process("terminal", eta = 0.02, nu = 1.2),
   effects = list(
-    sim_effect("bp - 130", "bp", coef = 0.8),
-    sim_effect("treatment", "bp", coef = -2),
-    sim_effect("bp - 130", "treatment", coef = 0.08),
-    sim_effect("bp - 130", "stroke", coef = 0.04),
-    sim_effect("treatment", "stroke", coef = -0.5)
+    sim_effect(bp ~ bp - 130, coef = 0.8),
+    sim_effect(bp ~ treatment, coef = -2),
+    sim_effect(treatment ~ bp - 130, coef = 0.08),
+    sim_effect(stroke ~ bp - 130, coef = 0.04),
+    sim_effect(stroke ~ treatment, coef = -0.5)
   )
 )
 summary(bp_model)

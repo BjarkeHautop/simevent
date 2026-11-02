@@ -62,7 +62,7 @@ A `sim_model()` call has three kinds of possible inputs:
 - `sim_process()`: a `"censoring"`, `"terminal"`, or `"transient"` (fires at
   most `limit` times, default `Inf`) process, with Weibull `eta`/`nu` parameters
   or a given cumulative baseline hazard curve (`cumhaz`).
-- `sim_effect()`: a `from -> to` edge with a Cox-type `coef`, where `from` is a
+- `sim_effect()`: a `to ~ from` edge with a Cox-type `coef`, where `from` is a
   covariate or process name and `to` is a process name.
 
 ```{r}
@@ -72,7 +72,7 @@ model <- sim_model(
   L0 = sim_covariate(function(N) rbinom(N, 1, 0.4)),
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
-  effects = list(sim_effect("L0", "death", coef = 1.5))
+  effects = list(sim_effect(death ~ L0, coef = 1.5))
 )
 model
 
@@ -97,12 +97,12 @@ head(data_intervened)
 
 ## Non-Linear and History-Dependent Effects
 
-`sim_effect()`'s `from` doesn't have to name a single covariate or process. Any
-other string is parsed and evaluated as an R expression, against every
-covariate/process value plus the current time `t`, the event times
-`event_time(proc, k)` (time of `proc`'s `k`-th event, or `k`-th latest if `k` is
-negative, `0` if it hasn't happened yet) and node values at earlier times, such
-as `bp(event_time(visit, -1))`. Covers thresholds, interactions, and nonlinear
+The right-hand side of a `sim_effect()` formula doesn't have to name a single
+covariate or process. It can be any R expression of the covariate/process values
+plus the current time `t`, the event times `event_time(proc, k)` (time of
+`proc`'s `k`-th event, or `k`-th latest if `k` is negative, `0` if it hasn't
+happened yet) and node values at earlier times, such as
+`bp(event_time(visit, -1))`. Covers thresholds, interactions, and nonlinear
 transforms inline, and effects depending on a process's full occurrence history,
 not just its current count, without a separate `sim_derived()` covariate.
 
@@ -117,7 +117,7 @@ relapse_model <- sim_model(
   relapse = sim_process("transient", eta = 0.3, nu = 1, limit = 5),
   death = sim_process("terminal", eta = 0.01, nu = 1),
   effects = list(
-    sim_effect("relapse == 3", "death", coef = 8)
+    sim_effect(death ~ relapse == 3, coef = 8)
   )
 )
 
@@ -147,8 +147,7 @@ operation_model <- sim_model(
   death = sim_process("terminal", eta = 0.02, nu = 1),
   effects = list(
     sim_effect(
-      "operation * exp(-(t - event_time(operation, 1)))",
-      "death",
+      death ~ operation * exp(-(t - event_time(operation, 1))),
       coef = 3
     )
   )
@@ -175,8 +174,7 @@ checkup_model <- sim_model(
   death = sim_process("terminal", eta = 0.05, nu = 1.1),
   effects = list(
     sim_effect(
-      "checkup > 0 & t - event_time(checkup, -1) < 1",
-      "death",
+      death ~ checkup > 0 & t - event_time(checkup, -1) < 1,
       coef = -2
     )
   )
@@ -233,11 +231,11 @@ model <- sim_model(
   cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
   cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("L0", "censoring", 0.5),
-    sim_effect("A0", "censoring", -1),
-    sim_effect("L0", "cause1", -0.5),
-    sim_effect("A0", "cause1", 0.5),
-    sim_effect("A0", "cause2", 0.5)
+    sim_effect(censoring ~ L0, 0.5),
+    sim_effect(censoring ~ A0, -1),
+    sim_effect(cause1 ~ L0, -0.5),
+    sim_effect(cause1 ~ A0, 0.5),
+    sim_effect(cause2 ~ A0, 0.5)
   )
 )
 model_data <- sim_events(model, n = 200)
@@ -276,9 +274,9 @@ model <- sim_model(
   death = sim_process("terminal", eta = 0.3, nu = 1.3),
   L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
   effects = list(
-    sim_effect("L0", "L", 1),
-    sim_effect("A0", "L", -1.1),
-    sim_effect("L", "death", 1)
+    sim_effect(L ~ L0, 1),
+    sim_effect(L ~ A0, -1.1),
+    sim_effect(death ~ L, 1)
   )
 )
 model_data <- sim_events(model, n = 5000)
@@ -320,13 +318,13 @@ model <- sim_model(
   A = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
   L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
   effects = list(
-    sim_effect("L0", "death", 1),
-    sim_effect("L0", "A", 1),
-    sim_effect("L0", "L", 1),
-    sim_effect("A", "death", -1),
-    sim_effect("A", "L", -0.5),
-    sim_effect("L", "death", 1),
-    sim_effect("L", "A", 1)
+    sim_effect(death ~ L0, 1),
+    sim_effect(A ~ L0, 1),
+    sim_effect(L ~ L0, 1),
+    sim_effect(death ~ A, -1),
+    sim_effect(L ~ A, -0.5),
+    sim_effect(death ~ L, 1),
+    sim_effect(A ~ L, 1)
   )
 )
 model_data <- sim_events(model, n = 5000)
@@ -401,9 +399,9 @@ disease_model <- sim_model(
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
   effects = list(
-    sim_effect("L0", "death", 1),
-    sim_effect("L0", "L", 1),
-    sim_effect("L", "death", 1)
+    sim_effect(death ~ L0, 1),
+    sim_effect(L ~ L0, 1),
+    sim_effect(death ~ L, 1)
   )
 )
 ```
@@ -438,7 +436,7 @@ cbind(
 ```
 
 Halving the disease hazard lowers the risk of disease, and, since disease raises
-the death hazard (`sim_effect("L", "death", 1)`), the risk of death too.
+the death hazard (`sim_effect(death ~ L, 1)`), the risk of death too.
 
 `alphaSim()`/`intEffectAlpha()`'s `years_lost = TRUE` corresponds to
 `type = "time_lost"`, and their `a0` argument (summarise only individuals with
@@ -500,9 +498,9 @@ disease_effect_on_death <- function(coef, n = 3000, tau = 5, seed = 1) {
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
     effects = list(
-      sim_effect("L0", "death", 1),
-      sim_effect("L0", "L", 1),
-      sim_effect("L", "death", coef)
+      sim_effect(death ~ L0, 1),
+      sim_effect(L ~ L0, 1),
+      sim_effect(death ~ L, coef)
     )
   )
 
@@ -573,11 +571,11 @@ observed_model <- sim_model(
   cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
   cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("L0", "censoring", 0.5),
-    sim_effect("A0", "censoring", -1),
-    sim_effect("L0", "cause1", -0.5),
-    sim_effect("A0", "cause1", 0.5),
-    sim_effect("A0", "cause2", 0.5)
+    sim_effect(censoring ~ L0, 0.5),
+    sim_effect(censoring ~ A0, -1),
+    sim_effect(cause1 ~ L0, -0.5),
+    sim_effect(cause1 ~ A0, 0.5),
+    sim_effect(cause2 ~ A0, 0.5)
   )
 )
 observed_data <- sim_events(observed_model, n = 1000)

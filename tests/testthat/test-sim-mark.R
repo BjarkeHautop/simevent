@@ -57,8 +57,8 @@ test_that("sim_model validates a mark's init, update and effects", {
       age = sim_covariate(function(N) rnorm(N)),
       death = death,
       effects = list(
-        sim_effect("m", "m", coef = 0.5),
-        sim_effect("t + visit + age", "m", coef = 1)
+        sim_effect(m ~ m, coef = 0.5),
+        sim_effect(m ~ t + visit + age, coef = 1)
       )
     ),
     "sim_model"
@@ -69,7 +69,7 @@ test_that("sim_model validates a mark's init, update and effects", {
       x = sim_covariate(function(N) rnorm(N)),
       visit = visit,
       death = death,
-      effects = list(sim_effect("m", "x", coef = 1))
+      effects = list(sim_effect(x ~ m, coef = 1))
     ),
     "sim_process\\(\\) or sim_mark\\(\\)"
   )
@@ -78,7 +78,7 @@ test_that("sim_model validates a mark's init, update and effects", {
       m = mark(),
       visit = visit,
       death = death,
-      effects = list(sim_effect("death", "m", coef = 1))
+      effects = list(sim_effect(m ~ death, coef = 1))
     ),
     "censoring/terminal"
   )
@@ -94,7 +94,7 @@ test_that("a mark is redrawn only at its update events, from current values", {
     visit = sim_process("transient", eta = 1, nu = 1),
     other = sim_process("transient", eta = 1, nu = 1),
     death = sim_process("terminal", eta = 0.2, nu = 1),
-    effects = list(sim_effect("bp", "bp", coef = 1))
+    effects = list(sim_effect(bp ~ bp, coef = 1))
   )
   data <- sim_events(model, n = 200, max_cens = 5, seed = 1)
   expect_gt(sum(data$event == "other"), 0)
@@ -112,9 +112,9 @@ test_that("a mark's lp sees t, counts and event times including the triggering e
     other = sim_process("transient", eta = 1, nu = 1),
     death = sim_process("terminal", eta = 0.2, nu = 1),
     effects = list(
-      sim_effect("t", "tm", coef = 1),
-      sim_effect("visit", "tm", coef = 100),
-      sim_effect("event_time(visit, -1) == t", "tm", coef = 1000)
+      sim_effect(tm ~ t, coef = 1),
+      sim_effect(tm ~ visit, coef = 100),
+      sim_effect(tm ~ event_time(visit, -1) == t, coef = 1000)
     )
   )
   data <- sim_events(model, n = 200, max_cens = 5, seed = 1)
@@ -154,7 +154,7 @@ test_that("effects into a mark don't change any hazard", {
   without <- do.call(sim_model, base)
   with <- do.call(
     sim_model,
-    c(base, list(effects = list(sim_effect("t", "m", coef = 1))))
+    c(base, list(effects = list(sim_effect(m ~ t, coef = 1))))
   )
   expect_equal(
     sim_events(with, n = 100, max_cens = 5, seed = 1),
@@ -171,7 +171,7 @@ test_that("intervening on a mark fixes it for all time", {
     ),
     visit = sim_process("transient", eta = 1, nu = 1),
     death = sim_process("terminal", eta = 0.2, nu = 1),
-    effects = list(sim_effect("bp", "bp", coef = 1))
+    effects = list(sim_effect(bp ~ bp, coef = 1))
   )
   data <- sim_events(model, n = 100, intervene = list(bp = 3), seed = 1)
   expect_true(all(data$bp == 3))
@@ -243,7 +243,7 @@ test_that("hazards use the mark's current value", {
     ),
     visit = sim_process("transient", eta = 2, nu = 1),
     death = sim_process("terminal", eta = 0.2, nu = 1),
-    effects = list(sim_effect("bp", "death", coef = 0.7))
+    effects = list(sim_effect(death ~ bp, coef = 0.7))
   )
   data <- sim_events(model, n = 3000, max_cens = 5, seed = 1)
 
@@ -265,9 +265,9 @@ test_that("effects into a mark are recovered by regressing its new values", {
     ),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
-      sim_effect("L0", "bp", 0.5),
-      sim_effect("bp", "bp", 0.6),
-      sim_effect("t", "bp", 0.1)
+      sim_effect(bp ~ L0, 0.5),
+      sim_effect(bp ~ bp, 0.6),
+      sim_effect(bp ~ t, 0.1)
     )
   )
   data <- sim_events(model, n = 1000, max_cens = 5, seed = 1)
@@ -290,10 +290,10 @@ test_that("summary() labels marks and unrolls effects into them", {
     visit = sim_process("transient", eta = 1, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
-      sim_effect("bp", "bp", coef = 0.8),
-      sim_effect("(bp - 130)^2 + event_time(visit, 1)", "bp", coef = 0.1),
-      sim_effect("visit", "bp", coef = 1),
-      sim_effect("bp", "death", coef = 0.1)
+      sim_effect(bp ~ bp, coef = 0.8),
+      sim_effect(bp ~ (bp - 130)^2 + event_time(visit, 1), coef = 0.1),
+      sim_effect(bp ~ visit, coef = 1),
+      sim_effect(death ~ bp, coef = 0.1)
     )
   )
   s <- summary(model)

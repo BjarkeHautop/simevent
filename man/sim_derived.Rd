@@ -26,7 +26,7 @@ model <- sim_model(
   bmi = sim_derived(function(weight, height) weight / height^2),
   statin = sim_covariate(function(N, bmi) rbinom(N, 1, plogis(-5 + 0.15 * bmi))),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
-  effects = list(sim_effect("statin", "death", coef = -0.3))
+  effects = list(sim_effect(death ~ statin, coef = -0.3))
 )
 head(sim_events(model, n = 5))
 }

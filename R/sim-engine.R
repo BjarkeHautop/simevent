@@ -121,11 +121,7 @@ apply_intervention <- function(model, intervene) {
     )
   }
   called <- unique(unlist(lapply(effects, function(eff) {
-    expr <- eff$parsed_from
-    if (is.null(expr)) {
-      expr <- tryCatch(str2lang(eff$from), error = function(e) NULL)
-    }
-    .sim_called(expr)
+    .sim_called(eff$expr)
   })))
   for (nm in intersect(called, c(names(covariates), process_names))) {
     funs[[nm]] <- local({
@@ -217,11 +213,7 @@ process_hazard_multipliers <- function(
           rep_times
         )
       }
-      expr <- eff$parsed_from
-      if (is.null(expr)) {
-        expr <- str2lang(eff$from)
-      }
-      value <- eval(expr, envir = env)
+      value <- eval(eff$expr, envir = env)
     }
     lp[, eff$to] <- lp[, eff$to] + eff$coef * value
   }
@@ -359,7 +351,7 @@ sample_next_event_times <- function(
   any(vapply(
     effects,
     function(eff) {
-      !is.null(eff$parsed_from) && "t" %in% all.vars(eff$parsed_from)
+      "t" %in% all.vars(eff$expr)
     },
     logical(1)
   ))
@@ -669,7 +661,7 @@ run_sim <- function(
   # event_time() and nodes as functions of time. Only the marks called as
   # functions of time need their values logged.
   called <- unique(unlist(lapply(model$effects, function(eff) {
-    if (is.null(eff$parsed_from)) NULL else .sim_called(eff$parsed_from)
+    .sim_called(eff$expr)
   })))
   timed_marks <- intersect(called, names(marks))
   history <- .sim_history(

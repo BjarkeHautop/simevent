@@ -51,7 +51,7 @@ sim_covariate <- function(generator) {
 #'   bmi = sim_derived(function(weight, height) weight / height^2),
 #'   statin = sim_covariate(function(N, bmi) rbinom(N, 1, plogis(-5 + 0.15 * bmi))),
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
-#'   effects = list(sim_effect("statin", "death", coef = -0.3))
+#'   effects = list(sim_effect(death ~ statin, coef = -0.3))
 #' )
 #' head(sim_events(model, n = 5))
 #' @export
@@ -122,11 +122,11 @@ sim_derived <- function(fn) {
 #'   treatment = sim_process("transient", eta = 0.05, nu = 1, limit = 1),
 #'   stroke = sim_process("terminal", eta = 0.01, nu = 1.2),
 #'   effects = list(
-#'     sim_effect("bp - 130", "bp", coef = 0.8),
-#'     sim_effect("treatment", "bp", coef = -2),
-#'     sim_effect("bp - 130", "treatment", coef = 0.08),
-#'     sim_effect("bp - 130", "stroke", coef = 0.03),
-#'     sim_effect("treatment", "stroke", coef = -0.2)
+#'     sim_effect(bp ~ bp - 130, coef = 0.8),
+#'     sim_effect(bp ~ treatment, coef = -2),
+#'     sim_effect(treatment ~ bp - 130, coef = 0.08),
+#'     sim_effect(stroke ~ bp - 130, coef = 0.03),
+#'     sim_effect(stroke ~ treatment, coef = -0.2)
 #'   )
 #' )
 #' summary(model)
@@ -268,46 +268,94 @@ sim_process <- function(
 
 #' Define an Effect for `sim_model()`
 #'
-#' Multiplies the hazard of process `to` by `exp(coef * from)`, or, if `to`
-#' is a [sim_mark()], adds `coef * from` to the linear predictor `lp` its
-#' new values are drawn from.
+#' Adds `coef * from` to the linear predictor of `to`: its log-hazard if `to`
+#' is a [sim_process()], or the `lp` passed to its `draw` if it's a
+#' [sim_mark()].
 #'
-#' @param from Character. A covariate name (its value), a process name (its
-#'   number of events so far), or an R expression of these. Expressions may
-#'   also use:
+#' @param formula A formula `to ~ from`. `to` names the affected process or
+#'   mark. `from` is a covariate name (its value), a process name (its number
+#'   of events so far), or an R expression of these, which may also use:
 #'   \describe{
 #'     \item{`t`}{The current time (see [sim_events()]'s `time_step`).}
-#'     \item{`event_time(proc, k)`}{Time of `proc`'s `k`-th event, counting
-#'       back from the latest if `k` is negative (`-1` is the latest), or `0`
-#'       if there are fewer than `abs(k)` events so far. `k` must be a whole
-#'       number written out, e.g. `event_time(operation, 1)`. Multiply by the
-#'       event count, as in `operation * f(t - event_time(operation, 1))`, so
-#'       the effect only applies once the event has happened.}
+#'     \item{[event_time()]}{Time of a process's `k`-th or `k`-th latest
+#'       event.}
 #'     \item{`<name>(s)`}{The value of covariate, mark or process count
 #'       `name` at time `s`, after any update at `s`, e.g.
 #'       `bp(event_time(operation, 1))`.}
 #'   }
-#' @param to Character. Name of the affected process or mark.
-#' @param coef Numeric. Cox-type coefficient, or for a mark, linear
-#'   coefficient.
+#' @param coef Numeric. The coefficient on `from`.
 #'
 #' @return An object of class `sim_effect`, for use in [sim_model()].
-#' @seealso [sim_model()]
+#' @seealso [sim_model()], [event_time()]
 #' @examples
-#' sim_effect("age", "death", coef = 0.03)
-#' sim_effect("(age - 60)^2", "death", coef = 0.001)
-#' sim_effect("relapse == 3", "death", coef = 1.2)
-#' sim_effect("checkup > 0 & t - event_time(checkup, -1) < 1", "death", 0.5)
-#' sim_effect("operation * (t - event_time(operation, 1))", "death", 0.1)
-#' sim_effect("operation * exp(-(t - event_time(operation, 1)))", "death", 2)
-#' sim_effect("relapse >= 3 & t - event_time(relapse, -3) < 1", "death", 1)
-#' sim_effect("operation * bp(event_time(operation, 1))", "death", 0.02)
+#' sim_effect(death ~ age, coef = 0.03)
+#' sim_effect(death ~ (age - 60)^2, coef = 0.001)
+#' sim_effect(death ~ relapse == 3, coef = 1.2)
+#' sim_effect(death ~ checkup > 0 & t - event_time(checkup, -1) < 1, coef = 0.5)
+#' sim_effect(death ~ operation * (t - event_time(operation, 1)), coef = 0.1)
+#' sim_effect(
+#'   death ~ operation * exp(-(t - event_time(operation, 1))),
+#'   coef = 2
+#' )
+#' sim_effect(death ~ relapse >= 3 & t - event_time(relapse, -3) < 1, coef = 1)
+#' sim_effect(death ~ operation * bp(event_time(operation, 1)), coef = 0.02)
 #' @export
-sim_effect <- function(from, to, coef) {
-  checkmate::assert_string(from)
-  checkmate::assert_string(to)
+sim_effect <- function(formula, coef) {
+  checkmate::assert_formula(formula)
+  if (length(formula) != 3 || !is.name(formula[[2]])) {
+    stop(
+      "sim_effect()'s formula must be `to ~ from`, with `to` the name of a ",
+      "process or mark."
+    )
+  }
   checkmate::assert_number(coef, finite = TRUE)
-  structure(list(from = from, to = to, coef = coef), class = "sim_effect")
+  structure(
+    list(
+      to = as.character(formula[[2]]),
+      from = .sim_deparse(formula[[3]]),
+      expr = formula[[3]],
+      coef = coef
+    ),
+    class = "sim_effect"
+  )
+}
+
+#' Time of an Earlier Event
+#'
+#' For use only inside a [sim_effect()] formula.
+#'
+#' @param proc Name of a process in the model, unquoted.
+#' @param k Whole number other than `0`: the `k`-th event, or if negative,
+#'   the `abs(k)`-th latest (`-1` is the latest).
+#'
+#' @return The event's time, or `0` if there are fewer than `abs(k)` events
+#'   so far. Multiply by the event count, as in
+#'   `operation * f(t - event_time(operation, 1))`, so the effect only applies
+#'   once the event has happened.
+#' @seealso [sim_effect()]
+#' @examples
+#' sim_effect(
+#'   death ~ operation * exp(-(t - event_time(operation, 1))),
+#'   coef = 2
+#' )
+#' sim_effect(death ~ visit > 0 & t - event_time(visit, -1) < 1, coef = 0.5)
+#' sim_effect(death ~ visit >= 3 & t - event_time(visit, -3) < 1, coef = 1)
+#' @export
+event_time <- function(proc, k) {
+  stop("event_time() only works inside a sim_effect() formula.")
+}
+
+# A sim_effect() from `from` (R code, as text) into `to`.
+.sim_effect_text <- function(from, to, coef) {
+  sim_effect(
+    stats::as.formula(call("~", as.name(to), str2lang(from))),
+    coef
+  )
+}
+
+# `expr` as a single line of R code.
+.sim_deparse <- function(expr) {
+  paste(deparse(expr, width.cutoff = 500L), collapse = " ")
 }
 
 #' Build a Simulation Model for `sim_events()`
@@ -329,8 +377,8 @@ sim_effect <- function(from, to, coef) {
 #'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
 #'   effects = list(
-#'     sim_effect("age", "death", coef = 0.03),
-#'     sim_effect("(age - 60)^2", "death", coef = 0.001)
+#'     sim_effect(death ~ age, coef = 0.03),
+#'     sim_effect(death ~ (age - 60)^2, coef = 0.001)
 #'   )
 #' )
 #' model
@@ -461,25 +509,15 @@ sim_model <- function(..., effects = list()) {
   for (i in seq_along(effects)) {
     eff <- effects[[i]]
     if (!(eff$from %in% names(nodes))) {
-      # Not a bare node name: must be a valid R expression whose free
-      # variables are all node names or `t`; event_time() takes a process
-      # name as an unevaluated argument, which all.vars() still picks up as
-      # a reference to validate here.
-      parsed <- tryCatch(
-        str2lang(eff$from),
-        error = function(e) {
-          stop(
-            "sim_effect() 'from' is neither a node name nor a parseable R ",
-            "expression: '",
-            eff$from,
-            "'"
-          )
-        }
-      )
+      # Not a bare node name: an R expression whose free variables must all
+      # be node names or `t`; event_time() takes a process name as an
+      # unevaluated argument, which all.vars() still picks up as a reference
+      # to validate here.
+      parsed <- eff$expr
       unknown <- setdiff(all.vars(parsed), c(names(nodes), "t"))
       if (length(unknown) > 0) {
         stop(
-          "sim_effect() 'from' expression '",
+          "sim_effect() expression '",
           eff$from,
           "' references name(s) not found in model: ",
           paste(unknown, collapse = ", ")
@@ -489,7 +527,7 @@ sim_model <- function(..., effects = list()) {
       not_process <- setdiff(history$proc, process_names)
       if (length(not_process) > 0) {
         stop(
-          "sim_effect() 'from' expression '",
+          "sim_effect() expression '",
           eff$from,
           "' uses event_time() of non-process(es): ",
           paste(not_process, collapse = ", ")
@@ -503,15 +541,13 @@ sim_model <- function(..., effects = list()) {
       unreachable <- history$text[abs(history$k) > limit]
       if (length(unreachable) > 0) {
         stop(
-          "sim_effect() 'from' expression '",
+          "sim_effect() expression '",
           eff$from,
           "' uses ",
           paste(unreachable, collapse = ", "),
           ", beyond the process's limit, so always 0."
         )
       }
-      eff$parsed_from <- parsed
-      effects[[i]] <- eff
     }
     if (!(eff$to %in% c(process_names, mark_names))) {
       stop(
@@ -524,12 +560,12 @@ sim_model <- function(..., effects = list()) {
     sources <- if (eff$from %in% names(nodes)) {
       eff$from
     } else {
-      .sim_expr_refs(eff$parsed_from, names(nodes))
+      .sim_expr_refs(eff$expr, names(nodes))
     }
     bad_source <- intersect(sources, ended)
     if (length(bad_source) > 0) {
       stop(
-        "sim_effect() 'from' cannot use censoring/terminal process(es) ",
+        "sim_effect() expressions cannot use censoring/terminal process(es) ",
         paste(bad_source, collapse = ", "),
         ": they end follow-up, so never precede another event."
       )
@@ -588,7 +624,7 @@ sim_model <- function(..., effects = list()) {
         k == 0
     ) {
       stop(
-        "sim_effect() 'from' expression '",
+        "sim_effect() expression '",
         from,
         "' must call event_time() as event_time(<process>, <k>), with k a ",
         "whole number other than 0 written out, e.g. event_time(visit, -1)."
@@ -705,10 +741,10 @@ print.sim_model <- function(x, ...) {
 #'   checkup = sim_process("transient", eta = 0.2, nu = 1),
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
 #'   effects = list(
-#'     sim_effect("age", "death", coef = 0.03),
-#'     sim_effect("treated", "death", coef = -0.5),
-#'     sim_effect("illness", "death", coef = 1.2),
-#'     sim_effect("checkup", "death", coef = 0.8)
+#'     sim_effect(death ~ age, coef = 0.03),
+#'     sim_effect(death ~ treated, coef = -0.5),
+#'     sim_effect(death ~ illness, coef = 1.2),
+#'     sim_effect(death ~ checkup, coef = 0.8)
 #'   )
 #' )
 #' data <- sim_events(model, n = 100)
@@ -910,11 +946,11 @@ sim_events <- function(
 #'   cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
 #'   cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),
 #'   effects = list(
-#'     sim_effect("L0", "censoring", 0.5),
-#'     sim_effect("A0", "censoring", -1),
-#'     sim_effect("L0", "cause1", -0.5),
-#'     sim_effect("A0", "cause1", 0.5),
-#'     sim_effect("A0", "cause2", 0.5)
+#'     sim_effect(censoring ~ L0, coef = 0.5),
+#'     sim_effect(censoring ~ A0, coef = -1),
+#'     sim_effect(cause1 ~ L0, coef = -0.5),
+#'     sim_effect(cause1 ~ A0, coef = 0.5),
+#'     sim_effect(cause2 ~ A0, coef = 0.5)
 #'   )
 #' )
 #' observed_data <- sim_events(observed_model, n = 1000)
@@ -1028,7 +1064,11 @@ sim_model_from_fits <- function(fits, data, types, limits = list()) {
     cf <- cf[!is.na(cf)]
     for (v in names(cf)) {
       from <- .sim_effect_from_coef(v, node_names)
-      effects[[length(effects) + 1]] <- sim_effect(from, proc, unname(cf[[v]]))
+      effects[[length(effects) + 1]] <- .sim_effect_text(
+        from,
+        proc,
+        unname(cf[[v]])
+      )
     }
   }
 

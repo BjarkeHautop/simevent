@@ -70,10 +70,10 @@ model <- sim_model(
   checkup = sim_process("transient", eta = 0.2, nu = 1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("age", "death", coef = 0.03),
-    sim_effect("treated", "death", coef = -0.5),
-    sim_effect("illness", "death", coef = 1.2),
-    sim_effect("checkup", "death", coef = 0.8)
+    sim_effect(death ~ age, coef = 0.03),
+    sim_effect(death ~ treated, coef = -0.5),
+    sim_effect(death ~ illness, coef = 1.2),
+    sim_effect(death ~ checkup, coef = 0.8)
   )
 )
 data <- sim_events(model, n = 100)

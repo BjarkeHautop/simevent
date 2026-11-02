@@ -49,7 +49,7 @@ test_that("event_risk summarises several processes and within by-groups", {
     A0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     disease = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
-    effects = list(sim_effect("A0", "death", coef = 1))
+    effects = list(sim_effect(death ~ A0, coef = 1))
   )
   data <- sim_events(model, n = 4000)
 

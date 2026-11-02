@@ -4,7 +4,7 @@
 \alias{update.sim_model}
 \title{Update a \code{sim_model()}}
 \usage{
-\method{update}{sim_model}(object, ..., effects = list(), drop_effects = character(0))
+\method{update}{sim_model}(object, ..., effects = list(), drop_effects = list())
 }
 \arguments{
 \item{object}{A \code{\link[=sim_model]{sim_model()}}.}
@@ -14,12 +14,12 @@
 in place; a new name is added after the existing nodes; \code{NULL} removes
 the node.}
 
-\item{effects}{List of \code{\link[=sim_effect]{sim_effect()}}s. One with the same \code{from} and \code{to}
-as an existing effect replaces it; any other is added.}
+\item{effects}{List of \code{\link[=sim_effect]{sim_effect()}}s. One with the same formula as an
+existing effect replaces it; any other is added.}
 
-\item{drop_effects}{Character vector of effects to remove, as
-\code{"<from> -> <to>"} (as listed by \code{\link[=summary.sim_model]{summary.sim_model()}}). Effects using a
-removed node must be dropped here.}
+\item{drop_effects}{Formula, or list of formulas, of effects to remove,
+e.g. \code{death ~ treated}. Effects using a removed node must be dropped
+here.}
 }
 \value{
 A \code{\link[=sim_model]{sim_model()}}.
@@ -38,8 +38,8 @@ model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("age", "death", coef = 0.03),
-    sim_effect("treated", "death", coef = -0.5)
+    sim_effect(death ~ age, coef = 0.03),
+    sim_effect(death ~ treated, coef = -0.5)
   )
 )
 
@@ -48,13 +48,13 @@ update(
   death = sim_process("terminal", eta = 0.1, nu = 1.5),
   frailty = sim_covariate(function(N) rgamma(N, shape = 2, rate = 2)),
   treated = NULL,
-  effects = list(sim_effect("log(frailty)", "death", coef = 1)),
-  drop_effects = "treated -> death"
+  effects = list(sim_effect(death ~ log(frailty), coef = 1)),
+  drop_effects = death ~ treated
 )
 
 # A grid of treatment effects:
 models <- lapply(c(-1, -0.5, 0), function(b) {
-  update(model, effects = list(sim_effect("treated", "death", coef = b)))
+  update(model, effects = list(sim_effect(death ~ treated, coef = b)))
 })
 }
 \seealso{

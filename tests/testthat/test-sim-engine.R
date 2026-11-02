@@ -60,7 +60,7 @@ test_that("apply_intervention wraps a sim_derived() covariate to take N first", 
     region = sim_covariate(function(N) rep(2, N)),
     region2 = sim_derived(function(region) as.numeric(region == 2)),
     d = sim_process("terminal", eta = 0.1, nu = 1.1),
-    effects = list(sim_effect("region2", "d", 1))
+    effects = list(sim_effect(d ~ region2, 1))
   )
 
   out <- apply_intervention(model, list())
@@ -70,9 +70,9 @@ test_that("apply_intervention wraps a sim_derived() covariate to take N first", 
 
 test_that("process_hazard_multipliers sums coefs from covariates and event counts by name", {
   effects <- list(
-    sim_effect("L0", "death", 0.5),
-    sim_effect("L0", "censoring", -1),
-    sim_effect("relapse", "death", 0.2)
+    sim_effect(death ~ L0, 0.5),
+    sim_effect(censoring ~ L0, -1),
+    sim_effect(death ~ relapse, 0.2)
   )
   covariates <- list(L0 = c(0, 1, 2))
   event_counts <- list(
@@ -96,7 +96,7 @@ test_that("process_hazard_multipliers sums coefs from covariates and event count
 })
 
 test_that("process_hazard_multipliers evaluates a non-name `from` as an expression", {
-  effects <- list(sim_effect("age^2", "death", coef = -0.1))
+  effects <- list(sim_effect(death ~ age^2, coef = -0.1))
   phi <- process_hazard_multipliers(
     effects,
     covariates = list(age = c(2, 3, 10)),
@@ -108,8 +108,8 @@ test_that("process_hazard_multipliers evaluates a non-name `from` as an expressi
 
 test_that("process_hazard_multipliers expressions can threshold/interact with counts", {
   effects <- list(
-    sim_effect("relapse == 3", "death", coef = 2),
-    sim_effect("L0 * relapse", "death", coef = 0.5)
+    sim_effect(death ~ relapse == 3, coef = 2),
+    sim_effect(death ~ L0 * relapse, coef = 0.5)
   )
   phi <- process_hazard_multipliers(
     effects,
@@ -133,9 +133,9 @@ test_that("process_hazard_multipliers: event_time() counts from either end", {
 
   phi <- process_hazard_multipliers(
     list(
-      sim_effect("event_time(a, 2)", "d", coef = 1),
-      sim_effect("event_time(a, -1)", "b", coef = 1),
-      sim_effect("event_time(a, -2)", "a", coef = 1)
+      sim_effect(d ~ event_time(a, 2), coef = 1),
+      sim_effect(b ~ event_time(a, -1), coef = 1),
+      sim_effect(a ~ event_time(a, -2), coef = 1)
     ),
     covariates = list(),
     event_counts = list(a = c(2, 0), b = c(0, 1), d = c(0, 0)),
@@ -160,9 +160,9 @@ test_that("process_hazard_multipliers: nodes as functions of time", {
 
   lp <- .sim_linear_predictors(
     list(
-      sim_effect("m(1.5)", "d", coef = 1),
-      sim_effect("m(event_time(a, 1)) + x(0)", "b", coef = 1),
-      sim_effect("a(t - 0.5)", "a", coef = 1)
+      sim_effect(d ~ m(1.5), coef = 1),
+      sim_effect(b ~ m(event_time(a, 1)) + x(0), coef = 1),
+      sim_effect(a ~ a(t - 0.5), coef = 1)
     ),
     covariates = list(m = c(12, 23), x = c(100, 200)),
     event_counts = list(a = c(2, 1), b = c(0, 1), d = c(0, 0)),
@@ -340,8 +340,8 @@ test_that(".sim_uses_time detects effects referring to t", {
     checkup = sim_process("transient", eta = 0.1, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
-      sim_effect("L0", "death", 1),
-      sim_effect("event_time(checkup, -1) > 2", "death", 1)
+      sim_effect(death ~ L0, 1),
+      sim_effect(death ~ event_time(checkup, -1) > 2, 1)
     )
   )
   expect_false(.sim_uses_time(model$effects))
@@ -349,7 +349,7 @@ test_that(".sim_uses_time detects effects referring to t", {
   model_t <- sim_model(
     checkup = sim_process("transient", eta = 0.1, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
-    effects = list(sim_effect("t - event_time(checkup, -1) < 1", "death", 1))
+    effects = list(sim_effect(death ~ t - event_time(checkup, -1) < 1, 1))
   )
   expect_true(.sim_uses_time(model_t$effects))
 })
