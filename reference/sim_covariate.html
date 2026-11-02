@@ -15,8 +15,7 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
@@ -71,24 +70,12 @@ covariate's values. May also take covariates defined earlier in the same
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># A covariate that doesn't depend on any other:</span></span></span>
 <span class="r-in"><span><span class="fu">sim_covariate</span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">N</span>, mean <span class="op">=</span> <span class="fl">50</span>, sd <span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $generator</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> function (N) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rnorm(N, mean = 50, sd = 10)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55fd5ba2d770&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "sim_covariate"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_covariate&gt; function (N) rnorm(N, mean = 50, sd = 10)</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># A covariate whose generator depends on another covariate defined</span></span></span>
 <span class="r-in"><span><span class="co"># earlier in the same sim_model() call:</span></span></span>
 <span class="r-in"><span><span class="fu">sim_covariate</span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span>, <span class="va">age</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">0.03</span> <span class="op">*</span> <span class="va">age</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $generator</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> function (N, age) </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> rbinom(N, 1, plogis(-2 + 0.03 * age))</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;environment: 0x55fd5ba2d770&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"class")</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "sim_covariate"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_covariate&gt; function (N, age) rbinom(N, 1, plogis(-2 + 0.03 * age))</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

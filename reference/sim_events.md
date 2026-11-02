@@ -14,8 +14,6 @@ sim_events(
   cens = 1,
   max_cens = Inf,
   max_events = 50,
-  lower = 1e-25,
-  upper = 1e+08,
   time_step = 0.01,
   seed = NULL
 )
@@ -54,11 +52,6 @@ sim_events(
 - max_events:
 
   Integer. Maximum number of events per individual. Default 50.
-
-- lower, upper:
-
-  Numeric. Root-finding bounds, used when processes have different
-  Weibull parameters, with `0 <= lower < upper`. Defaults `1e-25`/`1e8`.
 
 - time_step:
 
@@ -100,23 +93,23 @@ model <- sim_model(
   checkup = sim_process("transient", eta = 0.2, nu = 1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("age", "death", coef = 0.03),
-    sim_effect("treated", "death", coef = -0.5),
-    sim_effect("illness", "death", coef = 1.2),
-    sim_effect("checkup", "death", coef = 0.8)
+    sim_effect(death ~ age, coef = 0.03),
+    sim_effect(death ~ treated, coef = -0.5),
+    sim_effect(death ~ illness, coef = 1.2),
+    sim_effect(death ~ checkup, coef = 0.8)
   )
 )
 data <- sim_events(model, n = 100)
 head(data)
 #> Key: <id>
-#>       id      time     event      age treated illness checkup
-#>    <int>     <num>    <fctr>    <num>   <int>   <num>   <num>
-#> 1:     1 3.8110136 censoring 42.04579       1       0       0
-#> 2:     2 0.1110879     death 57.96752       0       0       0
-#> 3:     3 0.1180907     death 45.74632       0       0       0
-#> 4:     4 1.1178542   checkup 41.32583       1       0       1
-#> 5:     4 1.7589550     death 41.32583       1       0       1
-#> 6:     5 0.9706924     death 49.84438       1       0       0
+#>       id      time   event      age treated illness checkup
+#>    <int>     <num>  <fctr>    <num>   <int>   <num>   <num>
+#> 1:     1 1.2430518 illness 34.61072       0       1       0
+#> 2:     1 1.3443156   death 34.61072       0       1       0
+#> 3:     2 0.7788992 checkup 40.88235       0       0       1
+#> 4:     2 0.9082643   death 40.88235       0       0       1
+#> 5:     3 0.9370485 checkup 39.63224       0       0       1
+#> 6:     3 1.6289826   death 39.63224       0       0       1
 
 # illness has fired at most twice for everyone (limit = 2):
 all(data$illness <= 2)
@@ -134,10 +127,10 @@ head(data_intervened)
 #> Key: <id>
 #>       id      time     event      age treated illness checkup
 #>    <int>     <num>    <fctr>    <num>   <num>   <num>   <num>
-#> 1:     1 0.2028894   illness 57.30123       1       1       0
-#> 2:     1 1.4002603   checkup 57.30123       1       1       1
-#> 3:     1 1.8264726     death 57.30123       1       1       1
-#> 4:     2 0.1005794   illness 71.22464       1       1       0
-#> 5:     2 0.2775342 censoring 71.22464       1       1       0
-#> 6:     3 0.9454283 censoring 41.52353       1       0       0
+#> 1:     1 0.2197143   checkup 38.47061       1       0       1
+#> 2:     1 0.4107919     death 38.47061       1       0       1
+#> 3:     2 1.1348681     death 48.86712       1       0       0
+#> 4:     3 0.6083544   illness 70.51100       1       1       0
+#> 5:     3 0.7747750 censoring 70.51100       1       1       0
+#> 6:     4 4.0382119     death 53.69561       1       0       0
 ```

@@ -17,8 +17,7 @@ or more other covariates defined earlier in the same sim_model() call."></head><
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
@@ -79,17 +78,17 @@ or more other covariates defined earlier in the same <code><a href="sim_model.ht
 <span class="r-in"><span>  bmi <span class="op">=</span> <span class="fu">sim_derived</span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">weight</span>, <span class="va">height</span><span class="op">)</span> <span class="va">weight</span> <span class="op">/</span> <span class="va">height</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  statin <span class="op">=</span> <span class="fu"><a href="sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span>, <span class="va">bmi</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5</span> <span class="op">+</span> <span class="fl">0.15</span> <span class="op">*</span> <span class="va">bmi</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  death <span class="op">=</span> <span class="fu"><a href="sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"statin"</span>, <span class="st">"death"</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">statin</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;id&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       id       time  event   weight   height      bmi statin</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;      &lt;num&gt; &lt;fctr&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;  &lt;int&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1  8.8603295  death 76.12980 1.870273 21.76430      0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     2  3.5636934  death 59.05287 1.638110 22.00669      0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     3  0.8304477  death 91.27328 1.623237 34.64014      1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     4 17.8972724  death 70.69576 1.757890 22.87758      0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     5  2.9047275  death 84.71315 1.704788 29.14808      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       id        time  event   weight   height      bmi statin</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;       &lt;num&gt; &lt;fctr&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;  &lt;int&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1  4.88049827  death 98.74913 1.869041 28.26803      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     2  0.07393583  death 91.53571 1.747146 29.98694      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     3 39.87390394  death 89.13023 1.733519 29.65976      1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     4  2.44170836  death 93.23339 1.615706 35.71469      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     5  1.75029058  death 83.93065 1.671902 30.02609      0</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

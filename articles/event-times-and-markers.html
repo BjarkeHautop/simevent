@@ -32,7 +32,6 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
@@ -81,15 +80,15 @@
 <p>This vignette shows two ways of making hazards depend on an individual’s history in <code><a href="../reference/sim_model.html">sim_model()</a></code>:</p>
 <ol type="1">
 <li>
-<strong>Event times</strong>, <code>T_&lt;proc&gt;.&lt;k&gt;</code>: effects that depend on <em>when</em> an event happened.</li>
+<strong>Event times</strong>, <code>event_time(proc, k)</code>: effects that depend on <em>when</em> an event happened.</li>
 <li>
 <strong>Markers</strong>, <code><a href="../reference/sim_mark.html">sim_mark()</a></code>: covariates that are re-measured over time, e.g. a lab value drawn at each visit.</li>
 </ol>
-<section class="section level2"><h2 id="event-times-t_proc-k">Event Times: <code>T_&lt;proc&gt;.&lt;k&gt;</code>
-<a class="anchor" aria-label="anchor" href="#event-times-t_proc-k"></a>
+<section class="section level2"><h2 id="event-times-event_timeproc-k">Event Times: <code>event_time(proc, k)</code>
+<a class="anchor" aria-label="anchor" href="#event-times-event_timeproc-k"></a>
 </h2>
-<p>Inside a <code><a href="../reference/sim_effect.html">sim_effect()</a></code> expression, <code>T_&lt;proc&gt;.&lt;k&gt;</code> is the time of process <code>proc</code>’s <code>k</code>-th event, and <code>0</code> if it hasn’t happened yet. Combined with the current time <code>t</code>, this gives effects on time since an event: <code>t - T_operation.1</code> is the time since the first operation.</p>
-<p>Since <code>T_&lt;proc&gt;.&lt;k&gt;</code> is <code>0</code> before the event, <code>t - T_operation.1</code> is just <code>t</code> for someone not yet operated. Multiplying by the event count, as in <code>operation * f(t - T_operation.1)</code>, can be used to have the effect off until the event has happened.</p>
+<p>Inside a <code><a href="../reference/sim_effect.html">sim_effect()</a></code> expression, <code>event_time(proc, k)</code> is the time of process <code>proc</code>’s <code>k</code>-th event, and <code>0</code> if it hasn’t happened yet. A negative <code>k</code> counts back from the latest event: <code>event_time(visit, -1)</code> is the latest visit and <code>event_time(visit, -3)</code> the third latest. Combined with the current time <code>t</code>, this gives effects on time since an event: <code>t - event_time(operation, 1)</code> is the time since the first operation.</p>
+<p>Since <code><a href="../reference/event_time.html">event_time()</a></code> is <code>0</code> before the event, <code>t - event_time(operation, 1)</code> is just <code>t</code> for someone not yet operated. Multiplying by the event count, as in <code>operation * f(t - event_time(operation, 1))</code>, can be used to have the effect off until the event has happened.</p>
 <section class="level2"><h3 id="example-post-operative-mortality">Example: Post-Operative Mortality<a class="anchor" aria-label="anchor" href="#example-post-operative-mortality"></a>
 </h3>
 <p>Suppose patients may undergo an operation, which raises the death hazard immediately after, and then gradually fades off. Such an example could look like this:</p>
@@ -109,7 +108,10 @@
 <span>  operation <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"transient"</span>, eta <span class="op">=</span> <span class="fl">0.2</span>, nu <span class="op">=</span> <span class="fl">1</span>, limit <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  death <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.02</span>, nu <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"operation * exp(-2 * (t - T_operation.1))"</span>, <span class="st">"death"</span>, coef <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span></span>
+<span>      <span class="va">death</span> <span class="op">~</span> <span class="va">operation</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="va">t</span> <span class="op">-</span> <span class="fu"><a href="../reference/event_time.html">event_time</a></span><span class="op">(</span><span class="va">operation</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>      coef <span class="op">=</span> <span class="fl">3</span></span>
+<span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -179,8 +181,8 @@
 <p>Other shapes follow the same pattern. The <code>from</code> expression times <code>coef</code> is added to the log-hazard, for example:</p>
 <table class="table caption-top">
 <colgroup>
-<col style="width: 43%">
-<col style="width: 56%">
+<col style="width: 47%">
+<col style="width: 52%">
 </colgroup>
 <thead><tr class="header">
 <th><code>from</code></th>
@@ -188,16 +190,24 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>operation * (t - T_operation.1)</code></td>
+<td><code>operation * (t - event_time(operation, 1))</code></td>
 <td>Grows linearly with time since the operation</td>
 </tr>
 <tr class="even">
-<td><code>operation * (t - T_operation.1 &lt; 1)</code></td>
+<td><code>operation * (t - event_time(operation, 1) &lt; 1)</code></td>
 <td>Constant for one time unit after, then gone</td>
 </tr>
 <tr class="odd">
-<td><code>(relapse &gt;= 2) * (t - T_relapse.2)</code></td>
+<td><code>(relapse &gt;= 2) * (t - event_time(relapse, 2))</code></td>
 <td>Grows linearly with time since the second relapse</td>
+</tr>
+<tr class="even">
+<td><code>visit &gt; 0 &amp; t - event_time(visit, -1) &lt; 1</code></td>
+<td>Constant for one time unit after each visit</td>
+</tr>
+<tr class="odd">
+<td><code>visit &gt;= 3 &amp; t - event_time(visit, -3) &lt; 1</code></td>
+<td>On while the last three visits are within one time unit</td>
 </tr>
 </tbody>
 </table></section></section><section class="section level2"><h2 id="time-varying-markers-sim_mark">Time-Varying Markers: <code>sim_mark()</code>
@@ -237,11 +247,11 @@
 <span>  censoring <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.05</span>, nu <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  stroke <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.02</span>, nu <span class="op">=</span> <span class="fl">1.2</span><span class="op">)</span>,</span>
 <span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"bp - 130"</span>, <span class="st">"bp"</span>, coef <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"treatment"</span>, <span class="st">"bp"</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">2</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"bp - 130"</span>, <span class="st">"treatment"</span>, coef <span class="op">=</span> <span class="fl">0.08</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"bp - 130"</span>, <span class="st">"stroke"</span>, coef <span class="op">=</span> <span class="fl">0.04</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"treatment"</span>, <span class="st">"stroke"</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">bp</span> <span class="op">~</span> <span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span>, coef <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">bp</span> <span class="op">~</span> <span class="va">treatment</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">2</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">treatment</span> <span class="op">~</span> <span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span>, coef <span class="op">=</span> <span class="fl">0.08</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">stroke</span> <span class="op">~</span> <span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span>, coef <span class="op">=</span> <span class="fl">0.04</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">stroke</span> <span class="op">~</span> <span class="va">treatment</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">bp_model</span><span class="op">)</span></span>
@@ -356,7 +366,8 @@
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
       // Inspect non-navigation links and adorn them if external
-     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
       for (var i=0; i<links.length; i++) {
         const link = links[i];
         if (!isInternal(link.href)) {
@@ -365,8 +376,69 @@
           if (link.dataset.originalHref !== undefined) {
             link.href = link.dataset.originalHref;
           }
+          if (!link.classList.contains('no-external-icon')) {
+          }
         }
       }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
     function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
       const config = {
         allowHTML: true,
@@ -380,6 +452,7 @@
         interactiveBorder: 10,
         theme: 'light-border',
         placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
       };
       if (contentFn) {
         config.content = contentFn;

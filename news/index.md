@@ -2,42 +2,23 @@
 
 ## simevent (development version)
 
-### Deprecations
+### Breaking changes
 
-- The old engine and everything built on it is deprecated in favour of
+- Removed the old engine and everything built on it in favour of
   [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
   and
-  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md).
-  Each of the following now warns via
-  [`lifecycle::deprecate_warn()`](https://lifecycle.r-lib.org/reference/deprecate_soft.html)
-  and will be removed in a future release:
-  [`simEventData()`](https://github.com/BjarkeHautop/simevent/reference/simEventData.md),
-  [`simEventDataTdPhi()`](https://github.com/BjarkeHautop/simevent/reference/simEventDataTdPhi.md),
-  [`simEventTV()`](https://github.com/BjarkeHautop/simevent/reference/simEventTV.md),
-  [`simSurvData()`](https://github.com/BjarkeHautop/simevent/reference/simSurvData.md),
-  [`simCRdata()`](https://github.com/BjarkeHautop/simevent/reference/simCRdata.md),
-  [`simDisease()`](https://github.com/BjarkeHautop/simevent/reference/simDisease.md),
-  [`simTreatment()`](https://github.com/BjarkeHautop/simevent/reference/simTreatment.md),
-  [`simDropIn()`](https://github.com/BjarkeHautop/simevent/reference/simDropIn.md),
-  [`simStatinData()`](https://github.com/BjarkeHautop/simevent/reference/simStatinData.md),
-  [`sim.generic()`](https://github.com/BjarkeHautop/simevent/reference/sim.generic.md)
-  (use
+  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md):
+  `simEventData()`, `simEventDataTdPhi()`, `simEventTV()`,
+  `simSurvData()`, `simCRdata()`, `simDisease()`, `simTreatment()`,
+  `simDropIn()`, `simStatinData()`, `sim.generic()` (use
   [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)),
-  [`simEventCox()`](https://github.com/BjarkeHautop/simevent/reference/simEventCox.md),
-  [`simEventObj()`](https://github.com/BjarkeHautop/simevent/reference/simEventObj.md),
-  [`sim.from.data()`](https://github.com/BjarkeHautop/simevent/reference/sim.from.data.md)
-  (use
+  `simEventCox()`, `simEventObj()`, `sim.from.data()` (use
   [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md)),
-  [`alphaSim()`](https://github.com/BjarkeHautop/simevent/reference/alphaSim.md),
-  [`intEffectAlpha()`](https://github.com/BjarkeHautop/simevent/reference/intEffectAlpha.md)
-  (use `sim_events(intervene = )` with
+  `alphaSim()`, `intEffectAlpha()` (use `sim_events(intervene = )` with
   [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md)),
-  [`IntFormatData()`](https://github.com/BjarkeHautop/simevent/reference/IntFormatData.md)
-  (use
+  `IntFormatData()` (use
   [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md))
-  and
-  [`plotEventData()`](https://github.com/BjarkeHautop/simevent/reference/plotEventData.md)
-  (use
+  and `plotEventData()` (use
   [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md)).
 
 ### New features
@@ -63,11 +44,8 @@ CRAN release: 2026-04-24
 
 ### Improvements
 
-- changed
-  [`simEventCox()`](https://github.com/BjarkeHautop/simevent/reference/simEventCox.md)
-  to take `list_old_vars` as input
+- changed `simEventCox()` to take `list_old_vars` as input
 
 ### New features
 
-- Added
-  [`simStatinData()`](https://github.com/BjarkeHautop/simevent/reference/simStatinData.md)
+- Added `simStatinData()`

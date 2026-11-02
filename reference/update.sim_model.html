@@ -23,8 +23,7 @@ sim_events()'s intervene instead."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
@@ -58,7 +57,7 @@ fixing a covariate or scaling a hazard in a single simulation, see
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'sim_model'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, drop_effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">object</span>, <span class="va">...</span>, effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, drop_effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -77,14 +76,14 @@ the node.</p></dd>
 
 
 <dt id="arg-effects">effects<a class="anchor" aria-label="anchor" href="#arg-effects"></a></dt>
-<dd><p>List of <code><a href="sim_effect.html">sim_effect()</a></code>s. One with the same <code>from</code> and <code>to</code>
-as an existing effect replaces it; any other is added.</p></dd>
+<dd><p>List of <code><a href="sim_effect.html">sim_effect()</a></code>s. One with the same formula as an
+existing effect replaces it; any other is added.</p></dd>
 
 
 <dt id="arg-drop-effects">drop_effects<a class="anchor" aria-label="anchor" href="#arg-drop-effects"></a></dt>
-<dd><p>Character vector of effects to remove, as
-<code>"&lt;from&gt; -&gt; &lt;to&gt;"</code> (as listed by <code><a href="summary.sim_model.html">summary.sim_model()</a></code>). Effects using a
-removed node must be dropped here.</p></dd>
+<dd><p>Formula, or list of formulas, of effects to remove,
+e.g. <code>death ~ treated</code>. Effects using a removed node must be dropped
+here.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -104,8 +103,8 @@ removed node must be dropped here.</p></dd>
 <span class="r-in"><span>  censoring <span class="op">=</span> <span class="fu"><a href="sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  death <span class="op">=</span> <span class="fu"><a href="sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"death"</span>, coef <span class="op">=</span> <span class="fl">0.03</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"treated"</span>, <span class="st">"death"</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">age</span>, coef <span class="op">=</span> <span class="fl">0.03</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">treated</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -114,17 +113,19 @@ removed node must be dropped here.</p></dd>
 <span class="r-in"><span>  death <span class="op">=</span> <span class="fu"><a href="sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  frailty <span class="op">=</span> <span class="fu"><a href="sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">rgamma</a></span><span class="op">(</span><span class="va">N</span>, shape <span class="op">=</span> <span class="fl">2</span>, rate <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  treated <span class="op">=</span> <span class="cn">NULL</span>,</span></span>
-<span class="r-in"><span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"log(frailty)"</span>, <span class="st">"death"</span>, coef <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  drop_effects <span class="op">=</span> <span class="st">"treated -&gt; death"</span></span></span>
+<span class="r-in"><span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">frailty</span><span class="op">)</span>, coef <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  drop_effects <span class="op">=</span> <span class="va">death</span> <span class="op">~</span> <span class="va">treated</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_model&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   2 covariate(s): age, frailty</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   2 process(es): censoring, death</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   2 effect(s)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2 effect(s):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     death ~ 0.03 * age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     death ~ 1 * log(frailty)</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># A grid of treatment effects:</span></span></span>
 <span class="r-in"><span><span class="va">models</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">b</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">model</span>, effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"treated"</span>, <span class="st">"death"</span>, coef <span class="op">=</span> <span class="va">b</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/stats/update.html" class="external-link">update</a></span><span class="op">(</span><span class="va">model</span>, effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">treated</span>, coef <span class="op">=</span> <span class="va">b</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>

@@ -74,11 +74,11 @@ model <- sim_model(
   treatment = sim_process("transient", eta = 0.05, nu = 1, limit = 1),
   stroke = sim_process("terminal", eta = 0.01, nu = 1.2),
   effects = list(
-    sim_effect("bp - 130", "bp", coef = 0.8),
-    sim_effect("treatment", "bp", coef = -2),
-    sim_effect("bp - 130", "treatment", coef = 0.08),
-    sim_effect("bp - 130", "stroke", coef = 0.03),
-    sim_effect("treatment", "stroke", coef = -0.2)
+    sim_effect(bp ~ bp - 130, coef = 0.8),
+    sim_effect(bp ~ treatment, coef = -2),
+    sim_effect(treatment ~ bp - 130, coef = 0.08),
+    sim_effect(stroke ~ bp - 130, coef = 0.03),
+    sim_effect(stroke ~ treatment, coef = -0.2)
   )
 )
 summary(model)
@@ -104,16 +104,16 @@ summary(model)
 #> mark[k]: value after the mark's k-th update (k = 0: init)
 head(sim_events(model, n = 5, max_cens = 5), 10)
 #> Key: <id>
-#>        id      time    event      age       bp    bp_0 visit treatment
-#>     <int>     <num>   <fctr>    <num>    <num>   <num> <num>     <num>
-#>  1:     1 1.0561024    visit 55.59929 114.9236 121.870     1         0
-#>  2:     1 1.8127053    visit 55.59929 134.1873 121.870     2         0
-#>  3:     1 3.3220539    visit 55.59929 128.5783 121.870     3         0
-#>  4:     1 5.0000000 max_cens 55.59929 128.5783 121.870     3         0
-#>  5:     2 0.6605733    visit 74.35053 130.4290 137.916     1         0
-#>  6:     2 2.7703674    visit 74.35053 134.3470 137.916     2         0
-#>  7:     2 3.0560960    visit 74.35053 120.8801 137.916     3         0
-#>  8:     2 4.1748935    visit 74.35053 124.7347 137.916     4         0
-#>  9:     2 4.4951303    visit 74.35053 128.8170 137.916     5         0
-#> 10:     2 5.0000000 max_cens 74.35053 128.8170 137.916     5         0
+#>        id      time    event      age       bp     bp_0 visit treatment
+#>     <int>     <num>   <fctr>    <num>    <num>    <num> <num>     <num>
+#>  1:     1 1.8336395    visit 66.93016 108.0877 114.1662     1         0
+#>  2:     1 2.2445046    visit 66.93016 116.8910 114.1662     2         0
+#>  3:     1 3.1449579    visit 66.93016 121.0051 114.1662     3         0
+#>  4:     1 5.0000000 max_cens 66.93016 121.0051 114.1662     3         0
+#>  5:     2 0.1434677    visit 35.21575 107.2412 101.0418     1         0
+#>  6:     2 0.5752606    visit 35.21575 115.3462 101.0418     2         0
+#>  7:     2 2.4103196    visit 35.21575 116.2410 101.0418     3         0
+#>  8:     2 2.7683869    visit 35.21575 119.6469 101.0418     4         0
+#>  9:     2 4.6644730    visit 35.21575 123.7981 101.0418     5         0
+#> 10:     2 5.0000000 max_cens 35.21575 123.7981 101.0418     5         0
 ```

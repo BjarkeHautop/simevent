@@ -14,7 +14,7 @@ scaling a hazard in a single simulation, see
 
 ``` r
 # S3 method for class 'sim_model'
-update(object, ..., effects = list(), drop_effects = character(0))
+update(object, ..., effects = list(), drop_effects = list())
 ```
 
 ## Arguments
@@ -36,15 +36,13 @@ update(object, ..., effects = list(), drop_effects = character(0))
 
   List of
   [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)s.
-  One with the same `from` and `to` as an existing effect replaces it;
-  any other is added.
+  One with the same formula as an existing effect replaces it; any other
+  is added.
 
 - drop_effects:
 
-  Character vector of effects to remove, as `"<from> -> <to>"` (as
-  listed by
-  [`summary.sim_model()`](https://github.com/BjarkeHautop/simevent/reference/summary.sim_model.md)).
-  Effects using a removed node must be dropped here.
+  Formula, or list of formulas, of effects to remove, e.g.
+  `death ~ treated`. Effects using a removed node must be dropped here.
 
 ## Value
 
@@ -65,8 +63,8 @@ model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("age", "death", coef = 0.03),
-    sim_effect("treated", "death", coef = -0.5)
+    sim_effect(death ~ age, coef = 0.03),
+    sim_effect(death ~ treated, coef = -0.5)
   )
 )
 
@@ -75,16 +73,18 @@ update(
   death = sim_process("terminal", eta = 0.1, nu = 1.5),
   frailty = sim_covariate(function(N) rgamma(N, shape = 2, rate = 2)),
   treated = NULL,
-  effects = list(sim_effect("log(frailty)", "death", coef = 1)),
-  drop_effects = "treated -> death"
+  effects = list(sim_effect(death ~ log(frailty), coef = 1)),
+  drop_effects = death ~ treated
 )
 #> <sim_model>
 #>   2 covariate(s): age, frailty
 #>   2 process(es): censoring, death
-#>   2 effect(s)
+#>   2 effect(s):
+#>     death ~ 0.03 * age
+#>     death ~ 1 * log(frailty)
 
 # A grid of treatment effects:
 models <- lapply(c(-1, -0.5, 0), function(b) {
-  update(model, effects = list(sim_effect("treated", "death", coef = b)))
+  update(model, effects = list(sim_effect(death ~ treated, coef = b)))
 })
 ```

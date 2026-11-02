@@ -47,15 +47,17 @@ model <- sim_model(
   relapse = sim_process("transient", eta = 0.2, nu = 1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("age", "death", coef = 0.03),
-    sim_effect("relapse", "death", coef = 1)
+    sim_effect(death ~ age, coef = 0.03),
+    sim_effect(death ~ relapse, coef = 1)
   )
 )
 model
 #> <sim_model>
 #>   1 covariate(s): age
 #>   3 process(es): censoring, relapse, death
-#>   2 effect(s)
+#>   2 effect(s):
+#>     death ~ 0.03 * age
+#>     death ~ 1 * relapse
 summary(model)
 #> <sim_model> covariates
 #>  name     kind

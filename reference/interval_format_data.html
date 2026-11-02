@@ -17,8 +17,7 @@ coxph(Surv(tstart, tstop, ...))."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
@@ -52,7 +51,6 @@ coxph(Surv(tstart, tstop, ...))."></head><body>
 <span>  <span class="va">data</span>,</span>
 <span>  proc_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
 <span>  mark_cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">character</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>,</span>
-<span>  time_var <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  t_prime <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -78,12 +76,8 @@ event, i.e. the one in force during its interval, taken from the
 <code>&lt;name&gt;_0</code> baseline column for the first row.</p></dd>
 
 
-<dt id="arg-time-var">time_var<a class="anchor" aria-label="anchor" href="#arg-time-var"></a></dt>
-<dd><p>Logical. Split intervals at <code>t_prime</code>? Default <code>FALSE</code>.</p></dd>
-
-
 <dt id="arg-t-prime">t_prime<a class="anchor" aria-label="anchor" href="#arg-t-prime"></a></dt>
-<dd><p>Numeric. Split time. Adds a <code>t_group</code> column (1 before,
+<dd><p>Numeric. Optional time to split intervals at. Adds a <code>t_group</code> column (1 before,
 2 after), so an effect can differ between the periods (see Examples).
 The first half of a split interval has <code>event = "none"</code>.</p></dd>
 
@@ -105,19 +99,20 @@ number).</p>
 <span class="r-in"><span>  censoring <span class="op">=</span> <span class="fu"><a href="sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  death <span class="op">=</span> <span class="fu"><a href="sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  relapse <span class="op">=</span> <span class="fu"><a href="sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"transient"</span>, eta <span class="op">=</span> <span class="fl">0.2</span>, nu <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"relapse"</span>, <span class="st">"death"</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">relapse</span>, coef <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">data_int</span> <span class="op">&lt;-</span> <span class="fu">interval_format_data</span><span class="op">(</span><span class="va">data</span>, proc_cols <span class="op">=</span> <span class="st">"relapse"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data_int</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       id      time     event        L0 relapse     k   tstart     tstop</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;     &lt;num&gt;    &lt;fctr&gt;     &lt;num&gt;   &lt;num&gt; &lt;int&gt;    &lt;num&gt;     &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 1.6988933 censoring 0.3152944       0     1 0.000000 1.6988933</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     2 4.9282638   relapse 0.1121613       0     1 0.000000 4.9282638</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     2 6.3790613 censoring 0.1121613       1     2 4.928264 6.3790613</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     3 4.4633263     death 0.6211252       0     1 0.000000 4.4633263</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     4 0.1193703     death 0.6278351       0     1 0.000000 0.1193703</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     5 1.3924952   relapse 0.2475538       0     1 0.000000 1.3924952</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;id&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       id     time     event        L0 relapse     k   tstart    tstop</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;    &lt;num&gt;    &lt;fctr&gt;     &lt;num&gt;   &lt;num&gt; &lt;int&gt;    &lt;num&gt;    &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 2.582850     death 0.9409763       0     1 0.000000 2.582850</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     2 3.009249     death 0.6166710       0     1 0.000000 3.009249</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     3 5.325178   relapse 0.3195034       0     1 0.000000 5.325178</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     3 5.413429   relapse 0.3195034       1     2 5.325178 5.413429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     3 5.470893   relapse 0.3195034       2     3 5.413429 5.470893</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     3 6.527107 censoring 0.3195034       3     4 5.470893 6.527107</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># relapse is now the cumulative count *before* each row's event, so it can</span></span></span>
 <span class="r-in"><span><span class="co"># be used as a time-varying covariate:</span></span></span>
@@ -130,21 +125,21 @@ number).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     "death") ~ L0 + relapse, data = data_int)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>             coef exp(coef) se(coef)      z        p</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> L0      -0.11642   0.89010  0.21433 -0.543    0.587</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> relapse  0.52509   1.69061  0.07353  7.141 9.23e-13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> L0      -0.31134   0.73246  0.19723 -1.579    0.114</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> relapse  0.47957   1.61537  0.08377  5.725 1.04e-08</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=47.5  on 2 df, p=4.848e-11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> n= 854, number of events= 272 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=33.55  on 2 df, p=5.174e-08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> n= 804, number of events= 280 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Splitting at t_prime tests whether an effect changes over time. Here L0</span></span></span>
 <span class="r-in"><span><span class="co"># raises the death hazard before time 2 only:</span></span></span>
 <span class="r-in"><span><span class="va">model_tv</span> <span class="op">&lt;-</span> <span class="fu"><a href="sim_model.html">sim_model</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  L0 <span class="op">=</span> <span class="fu"><a href="sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  death <span class="op">=</span> <span class="fu"><a href="sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.2</span>, nu <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"L0 * (t &lt; 2)"</span>, <span class="st">"death"</span>, coef <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">*</span> <span class="op">(</span><span class="va">t</span> <span class="op">&lt;</span> <span class="fl">2</span><span class="op">)</span>, coef <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">data_tv</span> <span class="op">&lt;-</span> <span class="fu"><a href="sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model_tv</span>, n <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">data_split</span> <span class="op">&lt;-</span> <span class="fu">interval_format_data</span><span class="op">(</span><span class="va">data_tv</span>, time_var <span class="op">=</span> <span class="cn">TRUE</span>, t_prime <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">data_split</span> <span class="op">&lt;-</span> <span class="fu">interval_format_data</span><span class="op">(</span><span class="va">data_tv</span>, t_prime <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># One L0 coefficient per period: about 1 before t_prime, about 0 after.</span></span></span>
 <span class="r-in"><span><span class="fu">survival</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph</a></span><span class="op">(</span></span></span>
@@ -156,11 +151,11 @@ number).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     "death") ~ L0:strata(t_group), data = data_split)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                                coef exp(coef) se(coef)      z      p</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> L0:strata(t_group)t_group=1 1.08781   2.96775  0.06848 15.884 &lt;2e-16</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> L0:strata(t_group)t_group=2 0.05288   1.05430  0.06742  0.784  0.433</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> L0:strata(t_group)t_group=1 0.91187   2.48898  0.06693 13.624 &lt;2e-16</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> L0:strata(t_group)t_group=2 0.03978   1.04058  0.06651  0.598   0.55</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=273.7  on 2 df, p=&lt; 2.2e-16</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> n= 3022, number of events= 2000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=200  on 2 df, p=&lt; 2.2e-16</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> n= 2979, number of events= 2000 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

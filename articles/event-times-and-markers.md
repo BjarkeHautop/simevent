@@ -12,26 +12,30 @@ This vignette shows two ways of making hazards depend on an individual’s
 history in
 [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md):
 
-1.  **Event times**, `T_<proc>.<k>`: effects that depend on *when* an
-    event happened.
+1.  **Event times**, `event_time(proc, k)`: effects that depend on
+    *when* an event happened.
 2.  **Markers**,
     [`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md):
     covariates that are re-measured over time, e.g. a lab value drawn at
     each visit.
 
-## Event Times: `T_<proc>.<k>`
+## Event Times: `event_time(proc, k)`
 
 Inside a
 [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
-expression, `T_<proc>.<k>` is the time of process `proc`’s `k`-th event,
-and `0` if it hasn’t happened yet. Combined with the current time `t`,
-this gives effects on time since an event: `t - T_operation.1` is the
-time since the first operation.
+expression, `event_time(proc, k)` is the time of process `proc`’s `k`-th
+event, and `0` if it hasn’t happened yet. A negative `k` counts back
+from the latest event: `event_time(visit, -1)` is the latest visit and
+`event_time(visit, -3)` the third latest. Combined with the current time
+`t`, this gives effects on time since an event:
+`t - event_time(operation, 1)` is the time since the first operation.
 
-Since `T_<proc>.<k>` is `0` before the event, `t - T_operation.1` is
-just `t` for someone not yet operated. Multiplying by the event count,
-as in `operation * f(t - T_operation.1)`, can be used to have the effect
-off until the event has happened.
+Since
+[`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md)
+is `0` before the event, `t - event_time(operation, 1)` is just `t` for
+someone not yet operated. Multiplying by the event count, as in
+`operation * f(t - event_time(operation, 1))`, can be used to have the
+effect off until the event has happened.
 
 ### Example: Post-Operative Mortality
 
@@ -60,7 +64,10 @@ operation_model <- sim_model(
   operation = sim_process("transient", eta = 0.2, nu = 1, limit = 1),
   death = sim_process("terminal", eta = 0.02, nu = 1),
   effects = list(
-    sim_effect("operation * exp(-2 * (t - T_operation.1))", "death", coef = 3)
+    sim_effect(
+      death ~ operation * exp(-2 * (t - event_time(operation, 1))),
+      coef = 3
+    )
   )
 )
 
@@ -136,9 +143,11 @@ is added to the log-hazard, for example:
 
 | `from` | Effect on the log-hazard |
 |----|----|
-| `operation * (t - T_operation.1)` | Grows linearly with time since the operation |
-| `operation * (t - T_operation.1 < 1)` | Constant for one time unit after, then gone |
-| `(relapse >= 2) * (t - T_relapse.2)` | Grows linearly with time since the second relapse |
+| `operation * (t - event_time(operation, 1))` | Grows linearly with time since the operation |
+| `operation * (t - event_time(operation, 1) < 1)` | Constant for one time unit after, then gone |
+| `(relapse >= 2) * (t - event_time(relapse, 2))` | Grows linearly with time since the second relapse |
+| `visit > 0 & t - event_time(visit, -1) < 1` | Constant for one time unit after each visit |
+| `visit >= 3 & t - event_time(visit, -3) < 1` | On while the last three visits are within one time unit |
 
 ## Time-Varying Markers: `sim_mark()`
 
@@ -201,11 +210,11 @@ bp_model <- sim_model(
   censoring = sim_process("censoring", eta = 0.05, nu = 1),
   stroke = sim_process("terminal", eta = 0.02, nu = 1.2),
   effects = list(
-    sim_effect("bp - 130", "bp", coef = 0.8),
-    sim_effect("treatment", "bp", coef = -2),
-    sim_effect("bp - 130", "treatment", coef = 0.08),
-    sim_effect("bp - 130", "stroke", coef = 0.04),
-    sim_effect("treatment", "stroke", coef = -0.5)
+    sim_effect(bp ~ bp - 130, coef = 0.8),
+    sim_effect(bp ~ treatment, coef = -2),
+    sim_effect(treatment ~ bp - 130, coef = 0.08),
+    sim_effect(stroke ~ bp - 130, coef = 0.04),
+    sim_effect(stroke ~ treatment, coef = -0.5)
   )
 )
 summary(bp_model)

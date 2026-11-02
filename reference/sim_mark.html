@@ -25,8 +25,7 @@ mark_cols turns these into the value in force during each interval."></head><bod
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
@@ -118,11 +117,11 @@ the order they are defined.</p>
 <span class="r-in"><span>  treatment <span class="op">=</span> <span class="fu"><a href="sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"transient"</span>, eta <span class="op">=</span> <span class="fl">0.05</span>, nu <span class="op">=</span> <span class="fl">1</span>, limit <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  stroke <span class="op">=</span> <span class="fu"><a href="sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.01</span>, nu <span class="op">=</span> <span class="fl">1.2</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"bp - 130"</span>, <span class="st">"bp"</span>, coef <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"treatment"</span>, <span class="st">"bp"</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">2</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"bp - 130"</span>, <span class="st">"treatment"</span>, coef <span class="op">=</span> <span class="fl">0.08</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"bp - 130"</span>, <span class="st">"stroke"</span>, coef <span class="op">=</span> <span class="fl">0.03</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="st">"treatment"</span>, <span class="st">"stroke"</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">0.2</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">bp</span> <span class="op">~</span> <span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span>, coef <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">bp</span> <span class="op">~</span> <span class="va">treatment</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">2</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">treatment</span> <span class="op">~</span> <span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span>, coef <span class="op">=</span> <span class="fl">0.08</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">stroke</span> <span class="op">~</span> <span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span>, coef <span class="op">=</span> <span class="fl">0.03</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    <span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">stroke</span> <span class="op">~</span> <span class="va">treatment</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">0.2</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span></span>
@@ -148,18 +147,18 @@ the order they are defined.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> mark[k]: value after the mark's k-th update (k = 0: init)</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">5</span>, max_cens <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>, <span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;id&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        id      time    event      age       bp    bp_0 visit treatment</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;     &lt;num&gt;   &lt;fctr&gt;    &lt;num&gt;    &lt;num&gt;   &lt;num&gt; &lt;num&gt;     &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 1.0561024    visit 55.59929 114.9236 121.870     1         0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1 1.8127053    visit 55.59929 134.1873 121.870     2         0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     1 3.3220539    visit 55.59929 128.5783 121.870     3         0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     1 5.0000000 max_cens 55.59929 128.5783 121.870     3         0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     2 0.6605733    visit 74.35053 130.4290 137.916     1         0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     2 2.7703674    visit 74.35053 134.3470 137.916     2         0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     2 3.0560960    visit 74.35053 120.8801 137.916     3         0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     2 4.1748935    visit 74.35053 124.7347 137.916     4         0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     2 4.4951303    visit 74.35053 128.8170 137.916     5         0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     2 5.0000000 max_cens 74.35053 128.8170 137.916     5         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        id      time    event      age       bp     bp_0 visit treatment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;int&gt;     &lt;num&gt;   &lt;fctr&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt; &lt;num&gt;     &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:     1 1.8336395    visit 66.93016 108.0877 114.1662     1         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:     1 2.2445046    visit 66.93016 116.8910 114.1662     2         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:     1 3.1449579    visit 66.93016 121.0051 114.1662     3         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:     1 5.0000000 max_cens 66.93016 121.0051 114.1662     3         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:     2 0.1434677    visit 35.21575 107.2412 101.0418     1         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6:     2 0.5752606    visit 35.21575 115.3462 101.0418     2         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7:     2 2.4103196    visit 35.21575 116.2410 101.0418     3         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8:     2 2.7683869    visit 35.21575 119.6469 101.0418     4         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9:     2 4.6644730    visit 35.21575 123.7981 101.0418     5         0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10:     2 5.0000000 max_cens 35.21575 123.7981 101.0418     5         0</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

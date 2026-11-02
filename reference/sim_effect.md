@@ -1,23 +1,25 @@
 # Define an Effect for `sim_model()`
 
-Multiplies the hazard of process `to` by `exp(coef * from)`, or, if `to`
-is a
-[`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md),
-adds `coef * from` to the linear predictor `lp` its new values are drawn
-from.
+For each term of `from`, adds `coef * term` to the linear predictor of
+`to`: its log-hazard if `to` is a
+[`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md),
+or the `lp` passed to its `draw` if it's a
+[`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md).
 
 ## Usage
 
 ``` r
-sim_effect(from, to, coef)
+sim_effect(formula, coef)
 ```
 
 ## Arguments
 
-- from:
+- formula:
 
-  Character. A covariate name (its value), a process name (its number of
-  events so far), or an R expression of these. Expressions may also use:
+  `to ~ from`, with `to` the affected process or mark. `from` is one or
+  more terms separated by `+`; wrap a sum in parentheses to make it one
+  term. A term is an R expression of covariates (their value) and
+  processes (their number of events so far), which may also use:
 
   `t`
 
@@ -25,107 +27,43 @@ sim_effect(from, to, coef)
       [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)'s
       `time_step`).
 
-  `T_<proc>.<k>`
+  [`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md)
 
-  :   Time of `proc`'s `k`-th event, `0` if it hasn't happened yet, e.g.
-      `T_operation.1`. Multiply by the event count, as in
-      `operation * f(t - T_operation.1)`, so the effect only applies
-      once the event has happened.
+  :   Time of a process's `k`-th or `k`-th latest event.
 
-  `last_time(proc)`
+  `<name>(s)`
 
-  :   Time of `proc`'s latest event, `-Inf` if none.
-
-- to:
-
-  Character. Name of the affected process or mark.
+  :   The value of covariate, mark or process count `name` at time `s`,
+      after any update at `s`, e.g. `bp(event_time(operation, 1))`.
 
 - coef:
 
-  Numeric. Cox-type coefficient, or for a mark, linear coefficient.
+  Numeric vector, one coefficient per term of `from`.
 
 ## Value
 
-An object of class `sim_effect`, for use in
-[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md).
+A `sim_effect`, for
+[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)'s
+`effects`.
 
 ## See also
 
-[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
+[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md),
+[`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md)
 
 ## Examples
 
 ``` r
-sim_effect("age", "death", coef = 0.03)
-#> $from
-#> [1] "age"
-#> 
-#> $to
-#> [1] "death"
-#> 
-#> $coef
-#> [1] 0.03
-#> 
-#> attr(,"class")
-#> [1] "sim_effect"
-sim_effect("(age - 60)^2", "death", coef = 0.001)
-#> $from
-#> [1] "(age - 60)^2"
-#> 
-#> $to
-#> [1] "death"
-#> 
-#> $coef
-#> [1] 0.001
-#> 
-#> attr(,"class")
-#> [1] "sim_effect"
-sim_effect("relapse == 3", "death", coef = 1.2)
-#> $from
-#> [1] "relapse == 3"
-#> 
-#> $to
-#> [1] "death"
-#> 
-#> $coef
-#> [1] 1.2
-#> 
-#> attr(,"class")
-#> [1] "sim_effect"
-sim_effect("t - last_time(checkup) < 1", "death", coef = 0.5)
-#> $from
-#> [1] "t - last_time(checkup) < 1"
-#> 
-#> $to
-#> [1] "death"
-#> 
-#> $coef
-#> [1] 0.5
-#> 
-#> attr(,"class")
-#> [1] "sim_effect"
-sim_effect("operation * (t - T_operation.1)", "death", coef = 0.1)
-#> $from
-#> [1] "operation * (t - T_operation.1)"
-#> 
-#> $to
-#> [1] "death"
-#> 
-#> $coef
-#> [1] 0.1
-#> 
-#> attr(,"class")
-#> [1] "sim_effect"
-sim_effect("operation * exp(-(t - T_operation.1))", "death", coef = 2)
-#> $from
-#> [1] "operation * exp(-(t - T_operation.1))"
-#> 
-#> $to
-#> [1] "death"
-#> 
-#> $coef
-#> [1] 2
-#> 
-#> attr(,"class")
-#> [1] "sim_effect"
+sim_effect(death ~ age, coef = 0.03)
+#> <sim_effect> death ~ 0.03 * age
+sim_effect(death ~ age + relapse, coef = c(0.03, 1))
+#> <sim_effect> death ~ 0.03 * age + 1 * relapse
+sim_effect(death ~ (age + bmi), coef = 0.02)
+#> <sim_effect> death ~ 0.02 * (age + bmi)
+sim_effect(death ~ (age - 60)^2 + (relapse == 3), coef = c(0.001, 1.2))
+#> <sim_effect> death ~ 0.001 * ((age - 60)^2) + 1.2 * (relapse == 3)
+sim_effect(death ~ checkup > 0 & t - event_time(checkup, -1) < 1, coef = 0.5)
+#> <sim_effect> death ~ 0.5 * (checkup > 0 & t - event_time(checkup, -1) < 1)
+sim_effect(death ~ operation * bp(event_time(operation, 1)), coef = 0.02)
+#> <sim_effect> death ~ 0.02 * (operation * bp(event_time(operation, 1)))
 ```

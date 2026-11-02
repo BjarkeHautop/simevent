@@ -4,41 +4,16 @@
 
 library(simevent)
 library(survival)
-
-compare_model <- function(wrapper_data, model_data) {
-  wrapper_data <- as.data.frame(wrapper_data)
-  model_data <- as.data.frame(model_data)
-  # The wrappers code events as integers; the models below declare their
-  # processes in the same order as those codes.
-  model_data$Delta <- as.integer(model_data$event) - 1L
-  names(model_data)[match(c("id", "time"), names(model_data))] <-
-    c("ID", "Time")
-  isTRUE(all.equal(
-    wrapper_data,
-    model_data[names(wrapper_data)],
-    tolerance = 1e-6
-  ))
-}
 ```
-
-`compare_model()` checks that a
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
-reproduction draws the same random numbers, in the same order, as the
-wrapper it reproduces. Only holds below for
-[`simSurvData()`](https://github.com/BjarkeHautop/simevent/reference/simSurvData.md)/[`simCRdata()`](https://github.com/BjarkeHautop/simevent/reference/simCRdata.md).
-
-[`simDisease()`](https://github.com/BjarkeHautop/simevent/reference/simDisease.md)/[`simTreatment()`](https://github.com/BjarkeHautop/simevent/reference/simTreatment.md)
-have a `"transient"` process, so individuals finish at different times:
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
-only draws for whoever’s still running, while the wrapper draws for
-everyone and discards the unused draws for those already finished.
 
 ## Introduction
 
-Introduces the
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
-API, a front end to the same simulator as
-[`sim.generic()`](https://github.com/BjarkeHautop/simevent/reference/sim.generic.md).
+simevent 0.1.1’s functions (`simEventData()`, the preset wrappers such
+as `simSurvData()`, `sim.generic()`, `sim.from.data()`, `alphaSim()`, …)
+have been removed in favour of the
+[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)/[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+API. This vignette introduces it and shows how to translate code using
+the old functions.
 
 ## The `sim_model()` Interface
 
@@ -54,8 +29,9 @@ call has three kinds of possible inputs:
   times, default `Inf`) process, with Weibull `eta`/`nu` parameters or a
   given cumulative baseline hazard curve (`cumhaz`).
 - [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md):
-  a `from -> to` edge with a Cox-type `coef`, where `from` is a
-  covariate or process name and `to` is a process name.
+  a `to ~ from` edge with a Cox-type `coef`, where `from` is a covariate
+  or process name and `to` is a process name. Several terms take one
+  `coef` each, as in `sim_effect(death ~ L0 + A0, coef = c(1.5, -0.5))`.
 
 ``` r
 
@@ -63,30 +39,30 @@ model <- sim_model(
   L0 = sim_covariate(function(N) rbinom(N, 1, 0.4)),
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
-  effects = list(sim_effect("L0", "death", coef = 1.5))
+  effects = list(sim_effect(death ~ L0, coef = 1.5))
 )
 model
 #> <sim_model>
 #>   1 covariate(s): L0
 #>   2 process(es): censoring, death
-#>   1 effect(s)
+#>   1 effect(s):
+#>     death ~ 1.5 * L0
 
 data <- sim_events(model, n = 100)
 head(data)
 #> Key: <id>
-#>       id      time     event    L0
-#>    <int>     <num>    <fctr> <int>
-#> 1:     1 2.4885416     death     1
-#> 2:     2 0.8253054     death     1
-#> 3:     3 3.5667602     death     1
-#> 4:     4 5.7664268 censoring     1
-#> 5:     5 0.9022812     death     1
-#> 6:     6 2.2981553     death     1
+#>       id     time     event    L0
+#>    <int>    <num>    <fctr> <int>
+#> 1:     1 4.601027 censoring     1
+#> 2:     2 1.826472     death     0
+#> 3:     3 1.265335     death     1
+#> 4:     4 1.407940     death     1
+#> 5:     5 5.401157     death     0
+#> 6:     6 0.104684     death     1
 ```
 
 [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)’s
-`intervene` argument replaces
-[`sim.generic()`](https://github.com/BjarkeHautop/simevent/reference/sim.generic.md)’s
+`intervene` argument replaces `sim.generic()`’s
 `alpha.intervention`/`baseline.intervention` pair with a single named
 list: give a process name to scale its `eta`, or a covariate name to fix
 it to a constant.
@@ -102,22 +78,24 @@ head(data_intervened)
 #> Key: <id>
 #>       id      time     event    L0
 #>    <int>     <num>    <fctr> <num>
-#> 1:     1 1.3536106     death     1
-#> 2:     2 0.1302415 censoring     1
-#> 3:     3 2.7297260 censoring     1
-#> 4:     4 6.1730435 censoring     1
-#> 5:     5 0.8549490 censoring     1
-#> 6:     6 0.2004715     death     1
+#> 1:     1 5.2617802     death     1
+#> 2:     2 2.3162950     death     1
+#> 3:     3 0.2927028     death     1
+#> 4:     4 5.8674881 censoring     1
+#> 5:     5 1.5516597     death     1
+#> 6:     6 5.5676933     death     1
 ```
 
 ### Non-Linear and History-Dependent Effects
 
-[`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)’s
-`from` doesn’t have to name a single covariate or process. Any other
-string is parsed and evaluated as an R expression, against every
-covariate/process value plus the current time `t`, the event times
-`T_<proc>.<k>` (time of `proc`’s `k`-th event, `0` if it hasn’t happened
-yet) and `last_time(proc)`. Covers thresholds, interactions, and
+The right-hand side of a
+[`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
+formula doesn’t have to name a single covariate or process. It can be
+any R expression of the covariate/process values plus the current time
+`t`, the event times `event_time(proc, k)` (time of `proc`’s `k`-th
+event, or `k`-th latest if `k` is negative, `0` if it hasn’t happened
+yet) and node values at earlier times, such as
+`bp(event_time(visit, -1))`. Covers thresholds, interactions, and
 nonlinear transforms inline, and effects depending on a process’s full
 occurrence history, not just its current count, without a separate
 [`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md)
@@ -133,7 +111,7 @@ relapse_model <- sim_model(
   relapse = sim_process("transient", eta = 0.3, nu = 1, limit = 5),
   death = sim_process("terminal", eta = 0.01, nu = 1),
   effects = list(
-    sim_effect("relapse == 3", "death", coef = 8)
+    sim_effect(death ~ relapse == 3, coef = 8)
   )
 )
 
@@ -147,11 +125,12 @@ mean(deaths$relapse == 3)
 
 Most deaths happen right at the 3rd relapse, not before or after.
 
-`T_<proc>.<k>` and `last_time()` give access to timing, not just counts.
-`T_<proc>.<k>` is the time of `proc`’s `k`-th event, and `0` if it
-hasn’t happened yet. Effects on time since an event therefore take the
-form `proc * f(t - T_proc.k)`: multiplying by the event count switches
-the effect off until the event has happened, whatever `f` is.
+[`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md)
+gives access to timing, not just counts. `event_time(proc, k)` is the
+time of `proc`’s `k`-th event, and `0` if it hasn’t happened yet.
+Effects on time since an event therefore take the form
+`proc * f(t - event_time(proc, k))`: multiplying by the event count
+switches the effect off until the event has happened, whatever `f` is.
 
 Here the death hazard spikes right after an operation and then fades:
 
@@ -162,7 +141,10 @@ operation_model <- sim_model(
   operation = sim_process("transient", eta = 0.2, nu = 1, limit = 1),
   death = sim_process("terminal", eta = 0.02, nu = 1),
   effects = list(
-    sim_effect("operation * exp(-(t - T_operation.1))", "death", coef = 3)
+    sim_effect(
+      death ~ operation * exp(-(t - event_time(operation, 1))),
+      coef = 3
+    )
   )
 )
 
@@ -182,10 +164,10 @@ head(operation_data)
 Without the `operation *`, the not-yet-operated would have
 `exp(-(t - 0)) = exp(-t)`, a spike at time 0 that never happened. For a
 risk that instead builds up after the operation, use
-`operation * (t - T_operation.1)`.
+`operation * (t - event_time(operation, 1))`.
 
-And here the death hazard drops for one time unit right after each
-checkup:
+A negative `k` counts back from the latest event. Here the death hazard
+drops for one time unit right after each checkup:
 
 ``` r
 
@@ -194,7 +176,10 @@ checkup_model <- sim_model(
   checkup = sim_process("transient", eta = 0.3, nu = 1),
   death = sim_process("terminal", eta = 0.05, nu = 1.1),
   effects = list(
-    sim_effect("t - last_time(checkup) < 1", "death", coef = -2)
+    sim_effect(
+      death ~ checkup > 0 & t - event_time(checkup, -1) < 1,
+      coef = -2
+    )
   )
 )
 
@@ -211,25 +196,26 @@ head(checkup_data)
 #> 6:     2 14.4228692   checkup       3
 ```
 
-`last_time(proc)` is `-Inf` before `proc`’s first occurrence, so
-`t - last_time(proc) < 1` needs no `NA` handling.
+The `checkup > 0 &` keeps the effect off before the first checkup, when
+`event_time(checkup, -1)` is `0`.
 
-## Reproducing the Preset Wrappers
+## Translating the Preset Wrappers
 
 ### `simSurvData()`
 
-[`simSurvData()`](https://github.com/BjarkeHautop/simevent/reference/simSurvData.md)’s
-default (`beta = NULL`, i.e. no covariate effects) is two terminal
-processes, censoring and death, both with `eta = 0.1`, `nu = 1.1`:
+`simSurvData()`’s default (`beta = NULL`, i.e. no covariate effects) is
+two terminal processes, censoring and death, both with `eta = 0.1`,
+`nu = 1.1`. The old call
 
 ``` r
 
-set.seed(1405)
-wrapper_data <- simSurvData(200)
-#> Warning: `simSurvData()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_events()` instead.
+simSurvData(200)
+```
 
-set.seed(1405)
+becomes
+
+``` r
+
 model <- sim_model(
   L0 = sim_covariate(function(N) runif(N)),
   A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
@@ -237,25 +223,27 @@ model <- sim_model(
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
 model_data <- sim_events(model, n = 200)
-
-compare_model(wrapper_data, model_data)
-#> [1] TRUE
 ```
+
+The old functions coded events as integers in `Delta`;
+[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+returns the process name in `event`, and `id`/`time` in place of
+`ID`/`Time`.
 
 ### `simCRdata()`
 
-[`simCRdata()`](https://github.com/BjarkeHautop/simevent/reference/simCRdata.md)
-adds a third terminal process (a second competing cause):
+`simCRdata()` adds a third terminal process (a second competing cause):
 
 ``` r
 
-set.seed(1405)
 beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
-wrapper_data <- simCRdata(N = 200, beta = beta)
-#> Warning: `simCRdata()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_events()` instead.
+simCRdata(N = 200, beta = beta)
+```
 
-set.seed(1405)
+becomes
+
+``` r
+
 model <- sim_model(
   L0 = sim_covariate(function(N) runif(N)),
   A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
@@ -263,36 +251,23 @@ model <- sim_model(
   cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
   cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("L0", "censoring", 0.5),
-    sim_effect("A0", "censoring", -1),
-    sim_effect("L0", "cause1", -0.5),
-    sim_effect("A0", "cause1", 0.5),
-    sim_effect("A0", "cause2", 0.5)
+    sim_effect(censoring ~ L0 + A0, coef = c(0.5, -1)),
+    sim_effect(cause1 ~ L0 + A0, coef = c(-0.5, 0.5)),
+    sim_effect(cause2 ~ A0, coef = 0.5)
   )
 )
 model_data <- sim_events(model, n = 200)
-
-compare_model(wrapper_data, model_data)
-#> [1] TRUE
 ```
 
 ### `simDisease()`
 
-[`simDisease()`](https://github.com/BjarkeHautop/simevent/reference/simDisease.md)
-has a censoring process, a terminal death process, and a covariate
-process `L` that can happen at most once and can itself affect death; a
-`"transient"` process with `limit = 1`. Since `L` can fire, the
-simulation loop can run more than once per individual, so
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)’s
-random draws no longer line up one-to-one with
-[`simDisease()`](https://github.com/BjarkeHautop/simevent/reference/simDisease.md)’s
-(see the note on `compare_model()` above); event-type proportions are
-compared instead:
+`simDisease()` has a censoring process, a terminal death process, and a
+covariate process `L` that can happen at most once and can itself affect
+death; a `"transient"` process with `limit = 1`:
 
 ``` r
 
-set.seed(1405)
-wrapper_data <- simDisease(
+simDisease(
   N = 5000,
   cens = 1,
   eta = c(0.1, 0.3, 0.1),
@@ -302,8 +277,11 @@ wrapper_data <- simDisease(
   beta_L_D = 1,
   beta_L0_D = 0
 )
-#> Warning: `simDisease()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_events()` instead.
+```
+
+becomes
+
+``` r
 
 model <- sim_model(
   L0 = sim_covariate(function(N) runif(N)),
@@ -312,37 +290,26 @@ model <- sim_model(
   death = sim_process("terminal", eta = 0.3, nu = 1.3),
   L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
   effects = list(
-    sim_effect("L0", "L", 1),
-    sim_effect("A0", "L", -1.1),
-    sim_effect("L", "death", 1)
+    sim_effect(L ~ L0, 1),
+    sim_effect(L ~ A0, -1.1),
+    sim_effect(death ~ L, 1)
   )
 )
 model_data <- sim_events(model, n = 5000)
-
-rbind(
-  simDisease = prop.table(table(wrapper_data$Delta)),
-  sim_model = prop.table(table(model_data$event))
-)
-#>                    0         1         2
-#> simDisease 0.1687941 0.6709775 0.1602284
-#> sim_model  0.1593545 0.6811229 0.1595226
 ```
 
 ### `simTreatment()`
 
-[`simTreatment()`](https://github.com/BjarkeHautop/simevent/reference/simTreatment.md)
-(with `op = 1`, the default) adds a second `"transient"` process,
-treatment (`A`), which can itself affect and be affected by the
-covariate process `L`.
-[`simTreatment()`](https://github.com/BjarkeHautop/simevent/reference/simTreatment.md)
-doesn’t declare its own `A0`, so its reproduction skips it too:
+`simTreatment()` (with `op = 1`, the default) adds a second
+`"transient"` process, treatment (`A`), which can itself affect and be
+affected by the covariate process `L`. `simTreatment()` doesn’t declare
+its own `A0`, so its translation skips it too:
 [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 has no default covariates.
 
 ``` r
 
-set.seed(1405)
-wrapper_data <- simTreatment(
+simTreatment(
   N = 5000,
   beta_L_A = 1,
   beta_L_D = 1,
@@ -354,8 +321,11 @@ wrapper_data <- simTreatment(
   cens = 1,
   op = 1
 )
-#> Warning: `simTreatment()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_events()` instead.
+```
+
+becomes
+
+``` r
 
 model <- sim_model(
   L0 = sim_covariate(function(N) runif(N)),
@@ -364,30 +334,22 @@ model <- sim_model(
   A = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
   L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
   effects = list(
-    sim_effect("L0", "death", 1),
-    sim_effect("L0", "A", 1),
-    sim_effect("L0", "L", 1),
-    sim_effect("A", "death", -1),
-    sim_effect("A", "L", -0.5),
-    sim_effect("L", "death", 1),
-    sim_effect("L", "A", 1)
+    sim_effect(death ~ L0, 1),
+    sim_effect(A ~ L0, 1),
+    sim_effect(L ~ L0, 1),
+    sim_effect(death ~ A, -1),
+    sim_effect(L ~ A, -0.5),
+    sim_effect(death ~ L, 1),
+    sim_effect(A ~ L, 1)
   )
 )
 model_data <- sim_events(model, n = 5000)
-
-rbind(
-  simTreatment = prop.table(table(wrapper_data$Delta)),
-  sim_model = prop.table(table(model_data$event))
-)
-#>                      0         1         2         3
-#> simTreatment 0.2233639 0.3350458 0.2285012 0.2130891
-#> sim_model    0.2180713 0.3445482 0.2259480 0.2114324
 ```
 
 ### `simStatinData()`
 
-[`simStatinData()`](https://github.com/BjarkeHautop/simevent/reference/simStatinData.md)
-mainly demonstrates non-default baseline covariate generators.
+`simStatinData()` mainly demonstrates non-default baseline covariate
+generators.
 [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)
 reproduces this directly, with no forced covariate names to work around:
 
@@ -408,15 +370,12 @@ summary(model_data$A0)
 
 ## Estimating Intervention Effects
 
-[`alphaSim()`](https://github.com/BjarkeHautop/simevent/reference/alphaSim.md)
-and
-[`intEffectAlpha()`](https://github.com/BjarkeHautop/simevent/reference/intEffectAlpha.md)
-simulate one of the preset settings with the shape parameter `eta` of
-one process multiplied by `alpha`, and summarise the result as the
-proportion of individuals experiencing death and the intervened process
-by time \tau (or the years lost to them before \tau). With the model API
-this splits into two general steps, which work for any process in any
-model:
+`alphaSim()` and `intEffectAlpha()` simulate one of the preset settings
+with the shape parameter `eta` of one process multiplied by `alpha`, and
+summarise the result as the proportion of individuals experiencing death
+and the intervened process by time \tau (or the years lost to them
+before \tau). With the model API this splits into two general steps,
+which work for any process in any model:
 
 1.  Simulate under the intervention with
     [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)’s
@@ -428,14 +387,11 @@ model:
     (`type = "time_lost"`) the expected time lost to it before \tau,
     E\[\tau - \min(T, \tau)\].
 
-Take
-[`alphaSim()`](https://github.com/BjarkeHautop/simevent/reference/alphaSim.md)’s
-`"Disease"` setting with `alpha = 0.5`, which halves the hazard of the
-disease process `L`:
+Take `alphaSim()`’s `"Disease"` setting with `alpha = 0.5`, which halves
+the hazard of the disease process `L`:
 
 ``` r
 
-set.seed(1405)
 alphaSim(
   N = 5000,
   eta = rep(0.1, 3),
@@ -444,13 +400,6 @@ alphaSim(
   tau = 5,
   setting = "Disease"
 )
-#> Warning: `alphaSim()` was deprecated in simevent 0.2.0.
-#> ℹ Please use `sim_events()` instead.
-#> $effectDeath
-#> [1] 0.6977671
-#> 
-#> $effectSetting
-#> [1] 0.2531898
 ```
 
 The same model with
@@ -465,16 +414,15 @@ disease_model <- sim_model(
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
   effects = list(
-    sim_effect("L0", "death", 1),
-    sim_effect("L0", "L", 1),
-    sim_effect("L", "death", 1)
+    sim_effect(death ~ L0, 1),
+    sim_effect(L ~ L0, 1),
+    sim_effect(death ~ L, 1)
   )
 )
 ```
 
-[`alphaSim()`](https://github.com/BjarkeHautop/simevent/reference/alphaSim.md)
-switches censoring off by default (`cens = 0`). Simulating both with and
-without the intervention gives the effect directly:
+`alphaSim()` switches censoring off by default (`cens = 0`). Simulating
+both with and without the intervention gives the effect directly:
 
 ``` r
 
@@ -506,13 +454,13 @@ cbind(
 ```
 
 Halving the disease hazard lowers the risk of disease, and, since
-disease raises the death hazard (`sim_effect("L", "death", 1)`), the
-risk of death too.
+disease raises the death hazard (`sim_effect(death ~ L, 1)`), the risk
+of death too.
 
-[`alphaSim()`](https://github.com/BjarkeHautop/simevent/reference/alphaSim.md)/[`intEffectAlpha()`](https://github.com/BjarkeHautop/simevent/reference/intEffectAlpha.md)’s
-`years_lost = TRUE` corresponds to `type = "time_lost"`, and their `a0`
-argument (summarise only individuals with `A0 == a0`) to `by = "A0"`,
-which summarises every group at once:
+`alphaSim()`/`intEffectAlpha()`’s `years_lost = TRUE` corresponds to
+`type = "time_lost"`, and their `a0` argument (summarise only
+individuals with `A0 == a0`) to `by = "A0"`, which summarises every
+group at once:
 
 ``` r
 
@@ -536,9 +484,7 @@ event_risk(
 contrast, where everyone’s `A0` is set to a value, fix it with
 `intervene` instead, e.g. `intervene = list(L = 0.5, A0 = 1)`.
 
-Finally,
-[`intEffectAlpha()`](https://github.com/BjarkeHautop/simevent/reference/intEffectAlpha.md)’s
-`plot = TRUE` is
+Finally, `intEffectAlpha()`’s `plot = TRUE` is
 [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md)
 on the intervened data:
 
@@ -580,9 +526,9 @@ disease_effect_on_death <- function(coef, n = 3000, tau = 5, seed = 1) {
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
     effects = list(
-      sim_effect("L0", "death", 1),
-      sim_effect("L0", "L", 1),
-      sim_effect("L", "death", coef)
+      sim_effect(death ~ L0, 1),
+      sim_effect(L ~ L0, 1),
+      sim_effect(death ~ L, coef)
     )
   )
 
@@ -634,19 +580,16 @@ deviations into one objective (still with common random numbers) and use
 ## Building a `sim_model()` from Fitted Cox Models
 
 [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md)
-is the model-native replacement for
-[`sim.from.data()`](https://github.com/BjarkeHautop/simevent/reference/sim.from.data.md):
-instead of user-specified effects, it builds a
+is the model-native replacement for `sim.from.data()`: instead of
+user-specified effects, it builds a
 [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 from a set of fitted
 [`coxph()`](https://rdrr.io/pkg/survival/man/coxph.html) models (one per
 process) and the data they were fit to, so simulated data mimics an
 observed dataset’s distribution.
 
-Unlike
-[`sim.from.data()`](https://github.com/BjarkeHautop/simevent/reference/sim.from.data.md),
-which requires building a `sim.parameters` list, including a
-`baseline.summary` computed by hand from
+Unlike `sim.from.data()`, which requires building a `sim.parameters`
+list, including a `baseline.summary` computed by hand from
 [`mean()`](https://rdrr.io/r/base/mean.html)/
 [`sd()`](https://rdrr.io/r/stats/sd.html)/[`min()`](https://rdrr.io/r/base/Extremes.html)/[`max()`](https://rdrr.io/r/base/Extremes.html),
 [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md)
@@ -665,11 +608,9 @@ observed_model <- sim_model(
   cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
   cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("L0", "censoring", 0.5),
-    sim_effect("A0", "censoring", -1),
-    sim_effect("L0", "cause1", -0.5),
-    sim_effect("A0", "cause1", 0.5),
-    sim_effect("A0", "cause2", 0.5)
+    sim_effect(censoring ~ L0 + A0, coef = c(0.5, -1)),
+    sim_effect(cause1 ~ L0 + A0, coef = c(-0.5, 0.5)),
+    sim_effect(cause2 ~ A0, coef = 0.5)
   )
 )
 observed_data <- sim_events(observed_model, n = 1000)
@@ -691,7 +632,13 @@ model
 #> <sim_model>
 #>   2 covariate(s): L0, A0
 #>   3 process(es): censoring, cause1, cause2
-#>   6 effect(s)
+#>   6 effect(s):
+#>     censoring ~ 0.4875836 * L0
+#>     censoring ~ -0.9133865 * A0
+#>     cause1 ~ -0.4906536 * L0
+#>     cause1 ~ 0.3575318 * A0
+#>     cause2 ~ 0.02845469 * L0
+#>     cause2 ~ 0.6609588 * A0
 ```
 
 Each process uses its
@@ -739,9 +686,7 @@ regenerates it as its integer level codes, plus one
 dummy per non-reference level, named to match
 [`coxph()`](https://rdrr.io/pkg/survival/man/coxph.html)’s own
 coefficient names (`"<variable><level>"`). The model-native replacement
-for
-[`sim.from.data()`](https://github.com/BjarkeHautop/simevent/reference/sim.from.data.md)’s
-`"(region==2)"`-style expression matching.
+for `sim.from.data()`’s `"(region==2)"`-style expression matching.
 
 ``` r
 
@@ -769,5 +714,12 @@ model_region
 #> <sim_model>
 #>   4 covariate(s): L0, region, regionb, regionc
 #>   3 process(es): censoring, cause1, cause2
-#>   7 effect(s)
+#>   7 effect(s):
+#>     censoring ~ 0.5553192 * L0
+#>     censoring ~ 0.1303675 * regionb
+#>     censoring ~ -0.1039648 * regionc
+#>     cause1 ~ -0.5294444 * L0
+#>     cause1 ~ -0.06959473 * regionb
+#>     cause1 ~ -0.2083812 * regionc
+#>     cause2 ~ -0.01866116 * L0
 ```

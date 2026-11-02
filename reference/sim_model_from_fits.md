@@ -9,7 +9,7 @@ per process, so simulated data resembles the data they were fit to.
 ## Usage
 
 ``` r
-sim_model_from_fits(fits, data, types, limits = list())
+sim_model_from_fits(fits, data, types, limits = numeric())
 ```
 
 ## Arguments
@@ -38,8 +38,8 @@ sim_model_from_fits(fits, data, types, limits = list())
 
 - limits:
 
-  Named list giving `limit` for any `"transient"` process not using the
-  default (`limit = Inf`).
+  Named numeric vector giving `limit` for any `"transient"` process not
+  using the default (`limit = Inf`).
 
 ## Value
 
@@ -86,11 +86,11 @@ observed_model <- sim_model(
   cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
   cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(
-    sim_effect("L0", "censoring", 0.5),
-    sim_effect("A0", "censoring", -1),
-    sim_effect("L0", "cause1", -0.5),
-    sim_effect("A0", "cause1", 0.5),
-    sim_effect("A0", "cause2", 0.5)
+    sim_effect(censoring ~ L0, coef = 0.5),
+    sim_effect(censoring ~ A0, coef = -1),
+    sim_effect(cause1 ~ L0, coef = -0.5),
+    sim_effect(cause1 ~ A0, coef = 0.5),
+    sim_effect(cause2 ~ A0, coef = 0.5)
   )
 )
 observed_data <- sim_events(observed_model, n = 1000)

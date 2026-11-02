@@ -41,15 +41,15 @@ model <- sim_model(
   bmi = sim_derived(function(weight, height) weight / height^2),
   statin = sim_covariate(function(N, bmi) rbinom(N, 1, plogis(-5 + 0.15 * bmi))),
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
-  effects = list(sim_effect("statin", "death", coef = -0.3))
+  effects = list(sim_effect(death ~ statin, coef = -0.3))
 )
 head(sim_events(model, n = 5))
 #> Key: <id>
-#>       id       time  event   weight   height      bmi statin
-#>    <int>      <num> <fctr>    <num>    <num>    <num>  <int>
-#> 1:     1  8.8603295  death 76.12980 1.870273 21.76430      0
-#> 2:     2  3.5636934  death 59.05287 1.638110 22.00669      0
-#> 3:     3  0.8304477  death 91.27328 1.623237 34.64014      1
-#> 4:     4 17.8972724  death 70.69576 1.757890 22.87758      0
-#> 5:     5  2.9047275  death 84.71315 1.704788 29.14808      0
+#>       id        time  event   weight   height      bmi statin
+#>    <int>       <num> <fctr>    <num>    <num>    <num>  <int>
+#> 1:     1  4.88049827  death 98.74913 1.869041 28.26803      0
+#> 2:     2  0.07393583  death 91.53571 1.747146 29.98694      0
+#> 3:     3 39.87390394  death 89.13023 1.733519 29.65976      1
+#> 4:     4  2.44170836  death 93.23339 1.615706 35.71469      0
+#> 5:     5  1.75029058  death 83.93065 1.671902 30.02609      0
 ```
