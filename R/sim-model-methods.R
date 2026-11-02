@@ -204,11 +204,10 @@ update.sim_model <- function(
   old <- old[!(old_keys %in% drop_effects)]
   old_keys <- old_keys[!(old_keys %in% drop_effects)]
 
+  node_names <- c(names(object$covariates), names(object$processes))
   dangling <- old_keys[vapply(
     old,
-    function(eff) {
-      any(.sim_effect_refs(eff, names(object$processes)) %in% removed)
-    },
+    function(eff) any(.sim_effect_refs(eff, node_names) %in% removed),
     logical(1)
   )]
   if (length(dangling) > 0) {
@@ -239,9 +238,7 @@ update.sim_model <- function(
 }
 
 # Node names a sim_effect() uses: its `to`, and its `from` (a node name, or
-# the names in its expression, with T_<proc>.<k> mapped to <proc>).
-.sim_effect_refs <- function(eff, process_names) {
-  used <- all.vars(str2lang(eff$from))
-  history <- .sim_history_vars(used, process_names)
-  c(eff$to, setdiff(used, history$name), history$proc)
+# the nodes its expression refers to).
+.sim_effect_refs <- function(eff, node_names) {
+  c(eff$to, .sim_expr_refs(str2lang(eff$from), node_names))
 }

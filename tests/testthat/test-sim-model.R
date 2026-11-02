@@ -211,14 +211,18 @@ test_that("sim_events recovers an effect that changes with t", {
   expect_ci_covers(fit, c(1, 0))
 })
 
-test_that("sim_events recovers an effect of time since a T_<proc>.<k>", {
+test_that("sim_events recovers an effect of time since a k-th event", {
   # Death hazard is raised only in the year after the second relapse.
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     relapse = sim_process("transient", eta = 0.5, nu = 1, limit = 3),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
-      sim_effect("relapse >= 2 & t - T_relapse.2 < 1", "death", coef = 1.5)
+      sim_effect(
+        "relapse >= 2 & t - event_time(relapse, 2) < 1",
+        "death",
+        coef = 1.5
+      )
     )
   )
   data <- sim_events(model, n = 3000, seed = 1)
@@ -234,13 +238,15 @@ test_that("sim_events recovers an effect of time since a T_<proc>.<k>", {
   expect_ci_covers(fit, 1.5)
 })
 
-test_that("sim_events recovers an effect of time since last_time()", {
+test_that("sim_events recovers an effect of time since the latest event", {
   # Death hazard is raised for half a time unit after every visit.
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     visit = sim_process("transient", eta = 0.5, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
-    effects = list(sim_effect("t - last_time(visit) < 0.5", "death", coef = 1))
+    effects = list(
+      sim_effect("visit > 0 & t - event_time(visit, -1) < 0.5", "death", 1)
+    )
   )
   data <- sim_events(model, n = 3000, seed = 1)
 
@@ -966,58 +972,140 @@ test_that("sim_model_from_fits reproduces a non-Weibull baseline hazard", {
   expect_lte(max(simulated$time), max(observed$time))
 })
 
-test_that("sim_model validates T_<proc>.<k> event-time variables", {
+test_that("sim_model validates event_time() calls", {
   cens <- sim_process("censoring", eta = 0.1, nu = 1)
   op <- sim_process("transient", eta = 0.1, nu = 1, limit = 1)
   death <- sim_process("terminal", eta = 0.1, nu = 1)
-
-  model <- sim_model(
-    censoring = cens,
-    operation = op,
-    death = death,
-    effects = list(sim_effect("T_operation.1 > 0", "death", 1))
-  )
-  expect_s3_class(model, "sim_model")
-
-  expect_error(
+  model_with <- function(from, to = "death") {
     sim_model(
+      age = sim_covariate(function(N) rnorm(N)),
+      censoring = cens,
       operation = op,
       death = death,
-      effects = list(sim_effect("T_operation.2 > 0", "death", 1))
-    ),
-    "beyond the process's limit"
+      effects = list(sim_effect(from, to, 1))
+    )
+  }
+
+  expect_s3_class(model_with("event_time(operation, 1) > 0"), "sim_model")
+  expect_s3_class(model_with("event_time(operation, -1) > 0"), "sim_model")
+  expect_s3_class(
+    model_with("event_time(k = 1, proc = operation)"),
+    "sim_model"
   )
+
   expect_error(
-    sim_model(
-      operation = op,
-      death = death,
-      effects = list(sim_effect("T_death.1 > 0", "operation", 1))
-    ),
+    model_with("event_time(operation, 2) > 0"),
+    "uses event_time\\(operation, 2\\), beyond the process's limit"
+  )
+  expect_error(model_with("event_time(operation, -2)"), "beyond")
+  expect_error(
+    model_with("event_time(death, 1)", "operation"),
     "censoring/terminal"
   )
   expect_error(
-    sim_model(
-      operation = op,
-      death = death,
-      effects = list(sim_effect("T_surgery.1 > 0", "death", 1))
-    ),
-    "not found in model: T_surgery.1"
+    model_with("event_time(surgery, 1)"),
+    "not found in model: surgery"
   )
+  expect_error(model_with("event_time(age, 1)"), "non-process\\(es\\): age")
+  for (bad in c(
+    "event_time(operation, 0)",
+    "event_time(operation, 1.5)",
+    "event_time(operation, age)",
+    "event_time(operation)",
+    "event_time('operation', 1)"
+  )) {
+    expect_error(model_with(bad), "must call event_time", info = bad)
+  }
   expect_error(
     sim_model(
-      T_operation.1 = sim_covariate(function(N) rnorm(N)),
+      event_time = sim_covariate(function(N) rnorm(N)),
       operation = op,
       death = death
     ),
-    "clash with event-time variables"
+    "reserved: event_time"
   )
 })
 
-test_that("sim_events: an effect on T_<proc>.<k> applies only after the event", {
+test_that("sim_events: event_time(proc, -k) is the k-th latest event", {
+  # Visits are logged in a mark as their own visit count, so the mark's
+  # value at the k-th latest visit is the count back then.
+  model <- sim_model(
+    nth = sim_mark(
+      init = function(N) rep(0, N),
+      update = "visit",
+      draw = function(N, lp) lp
+    ),
+    visit = sim_process("transient", eta = 1, nu = 1, limit = 6),
+    other = sim_process("transient", eta = 1, nu = 1),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(
+      sim_effect("visit", "nth", 1),
+      sim_effect(
+        "event_time(visit, -3) + 1000 * nth(event_time(visit, -3))",
+        "other",
+        0
+      )
+    )
+  )
+  data <- sim_events(model, n = 50, max_cens = 5, max_events = 100, seed = 1)
+
+  env <- .sim_effect_env(
+    c(model$effects, list(sim_effect("visit(t)", "other", 0))),
+    covariates = list(nth = 0),
+    event_counts = list(visit = 0, other = 0, death = 0),
+    process_names = c("visit", "other", "death"),
+    t = 0,
+    history = .sim_history(
+      time = matrix(c(1, 2, 3, 4), ncol = 1),
+      type = matrix(c("visit", "other", "visit", "visit"), ncol = 1),
+      n = 4,
+      marks = list(nth = matrix(c(0, 1, 1, 2, 3), ncol = 1))
+    )
+  )
+  expect_equal(eval(quote(event_time(visit, -1)), env), 4)
+  expect_equal(eval(quote(event_time(visit, -3)), env), 1)
+  expect_equal(eval(quote(event_time(visit, -4)), env), 0)
+  expect_equal(eval(quote(nth(event_time(visit, -2))), env), 2)
+  expect_equal(eval(quote(nth(2.5)), env), 1)
+  expect_equal(eval(quote(visit(3.5)), env), 2)
+  expect_equal(nrow(data[data$event == "visit" & data$nth != data$visit]), 0)
+})
+
+test_that("sim_events: a mark's value at an event time", {
+  # Death hazard depends on blood pressure at the operation, which later
+  # visits redraw.
+  model <- sim_model(
+    bp = sim_mark(
+      init = function(N) rnorm(N),
+      update = c("operation", "visit"),
+      draw = function(N) rnorm(N)
+    ),
+    operation = sim_process("transient", eta = 0.5, nu = 1, limit = 1),
+    visit = sim_process("transient", eta = 1, nu = 1),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(
+      sim_effect("operation * bp(event_time(operation, 1))", "death", 1)
+    )
+  )
+  data <- sim_events(model, n = 3000, max_cens = 10, seed = 1)
+
+  op <- data[data$event == "operation", c("id", "time", "bp")]
+  base <- follow_up(data)
+  tv <- tmerge(base, base, id = id, death = event(futime, death))
+  tv <- tmerge(tv, op, id = id, bp_op = tdc(time, bp, 0))
+  fit <- coxph(Surv(tstart, tstop, death) ~ bp_op, data = tv)
+  expect_ci_covers(fit, 1)
+})
+
+test_that("sim_events: an effect on event_time() applies only after the event", {
   model <- sim_model(
     operation = sim_process("transient", eta = 0.5, nu = 1, limit = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1),
-    effects = list(sim_effect("T_operation.1 > 0", "death", coef = 3))
+    effects = list(sim_effect(
+      "event_time(operation, 1) > 0",
+      "death",
+      coef = 3
+    ))
   )
   data <- sim_events(model, n = 2000, seed = 1)
   op_time <- data[data$event == "operation", c("id", "time")]

@@ -277,12 +277,15 @@ sim_process <- function(
 #'   also use:
 #'   \describe{
 #'     \item{`t`}{The current time (see [sim_events()]'s `time_step`).}
-#'     \item{`T_<proc>.<k>`}{Time of `proc`'s `k`-th event, `0` if it
-#'       hasn't happened yet, e.g. `T_operation.1`. Multiply by the event
-#'       count, as in `operation * f(t - T_operation.1)`, so the effect only
-#'       applies once the event has happened.}
-#'     \item{`last_time(proc)`}{Time of `proc`'s latest event, `-Inf` if
-#'       none.}
+#'     \item{`event_time(proc, k)`}{Time of `proc`'s `k`-th event, counting
+#'       back from the latest if `k` is negative (`-1` is the latest), or `0`
+#'       if there are fewer than `abs(k)` events so far. `k` must be a whole
+#'       number written out, e.g. `event_time(operation, 1)`. Multiply by the
+#'       event count, as in `operation * f(t - event_time(operation, 1))`, so
+#'       the effect only applies once the event has happened.}
+#'     \item{`<name>(s)`}{The value of covariate, mark or process count
+#'       `name` at time `s`, after any update at `s`, e.g.
+#'       `bp(event_time(operation, 1))`.}
 #'   }
 #' @param to Character. Name of the affected process or mark.
 #' @param coef Numeric. Cox-type coefficient, or for a mark, linear
@@ -294,9 +297,11 @@ sim_process <- function(
 #' sim_effect("age", "death", coef = 0.03)
 #' sim_effect("(age - 60)^2", "death", coef = 0.001)
 #' sim_effect("relapse == 3", "death", coef = 1.2)
-#' sim_effect("t - last_time(checkup) < 1", "death", coef = 0.5)
-#' sim_effect("operation * (t - T_operation.1)", "death", coef = 0.1)
-#' sim_effect("operation * exp(-(t - T_operation.1))", "death", coef = 2)
+#' sim_effect("checkup > 0 & t - event_time(checkup, -1) < 1", "death", 0.5)
+#' sim_effect("operation * (t - event_time(operation, 1))", "death", 0.1)
+#' sim_effect("operation * exp(-(t - event_time(operation, 1)))", "death", 2)
+#' sim_effect("relapse >= 3 & t - event_time(relapse, -3) < 1", "death", 1)
+#' sim_effect("operation * bp(event_time(operation, 1))", "death", 0.02)
 #' @export
 sim_effect <- function(from, to, coef) {
   checkmate::assert_string(from)
@@ -363,7 +368,7 @@ sim_model <- function(..., effects = list()) {
     "max_cens",
     "none",
     "t",
-    "last_time"
+    "event_time"
   )
   reserved <- intersect(names(nodes), reserved_names)
   if (length(reserved) > 0) {
@@ -387,14 +392,6 @@ sim_model <- function(..., effects = list()) {
     )
   }
   process_names <- names(nodes)[is_process]
-  clash <- .sim_history_vars(names(nodes), process_names)$name
-  if (length(clash) > 0) {
-    stop(
-      "sim_model() node name(s) clash with event-time variables: ",
-      paste(clash, collapse = ", "),
-      "."
-    )
-  }
   process_types <- vapply(nodes[is_process], `[[`, character(1), "type")
   if (!any(process_types == "terminal")) {
     stop(
@@ -465,9 +462,9 @@ sim_model <- function(..., effects = list()) {
     eff <- effects[[i]]
     if (!(eff$from %in% names(nodes))) {
       # Not a bare node name: must be a valid R expression whose free
-      # variables are all covariate/process names, `t` or T_<proc>.<k>;
-      # last_time() takes a process name as an unevaluated argument, which
-      # all.vars() still picks up as a reference to validate here.
+      # variables are all node names or `t`; event_time() takes a process
+      # name as an unevaluated argument, which all.vars() still picks up as
+      # a reference to validate here.
       parsed <- tryCatch(
         str2lang(eff$from),
         error = function(e) {
@@ -479,9 +476,7 @@ sim_model <- function(..., effects = list()) {
           )
         }
       )
-      used <- setdiff(all.vars(parsed), "t")
-      history <- .sim_history_vars(used, process_names)
-      unknown <- setdiff(used, c(names(nodes), history$name))
+      unknown <- setdiff(all.vars(parsed), c(names(nodes), "t"))
       if (length(unknown) > 0) {
         stop(
           "sim_effect() 'from' expression '",
@@ -490,12 +485,22 @@ sim_model <- function(..., effects = list()) {
           paste(unknown, collapse = ", ")
         )
       }
+      history <- .sim_event_time_calls(parsed, eff$from)
+      not_process <- setdiff(history$proc, process_names)
+      if (length(not_process) > 0) {
+        stop(
+          "sim_effect() 'from' expression '",
+          eff$from,
+          "' uses event_time() of non-process(es): ",
+          paste(not_process, collapse = ", ")
+        )
+      }
       limit <- vapply(
         nodes[history$proc],
         function(node) if (node$type == "transient") node$limit else 1,
         numeric(1)
       )
-      unreachable <- history$name[history$k > limit]
+      unreachable <- history$text[abs(history$k) > limit]
       if (length(unreachable) > 0) {
         stop(
           "sim_effect() 'from' expression '",
@@ -519,9 +524,7 @@ sim_model <- function(..., effects = list()) {
     sources <- if (eff$from %in% names(nodes)) {
       eff$from
     } else {
-      used <- setdiff(all.vars(eff$parsed_from), "t")
-      history <- .sim_history_vars(used, process_names)
-      c(setdiff(used, history$name), history$proc)
+      .sim_expr_refs(eff$parsed_from, names(nodes))
     }
     bad_source <- intersect(sources, ended)
     if (length(bad_source) > 0) {
@@ -543,18 +546,70 @@ sim_model <- function(..., effects = list()) {
   )
 }
 
-# The T_<proc>.<k> event-time variables among `vars`, as a data.frame with
-# columns name, proc and k. Process names may themselves contain "." or "_".
-.sim_history_vars <- function(vars, process_names) {
-  pattern <- "^T_(.+)\\.([1-9][0-9]*)$"
-  vars <- vars[grepl(pattern, vars)]
-  proc <- sub(pattern, "\\1", vars)
-  keep <- proc %in% process_names
-  data.frame(
-    name = vars[keep],
-    proc = proc[keep],
-    k = as.integer(sub(pattern, "\\2", vars[keep]))
+# Every call within `expr` (itself included), as a list of calls.
+.sim_calls <- function(expr) {
+  if (!is.call(expr)) {
+    return(list())
+  }
+  c(list(expr), unlist(lapply(as.list(expr), .sim_calls), recursive = FALSE))
+}
+
+# Names of the functions `expr` calls by name.
+.sim_called <- function(expr) {
+  heads <- lapply(.sim_calls(expr), `[[`, 1)
+  unique(vapply(heads[vapply(heads, is.name, logical(1))], as.character, ""))
+}
+
+# Node names `expr` refers to: its variables (event_time()'s process
+# included) and the nodes it calls as functions of time.
+.sim_expr_refs <- function(expr, node_names) {
+  union(
+    setdiff(all.vars(expr), "t"),
+    intersect(.sim_called(expr), node_names)
   )
+}
+
+# The event_time() calls in `expr` (the text of sim_effect() `from`), as a
+# data.frame with columns text, proc and k; stops on a malformed one.
+.sim_event_time_calls <- function(expr, from) {
+  calls <- Filter(
+    function(call) identical(call[[1]], as.name("event_time")),
+    .sim_calls(expr)
+  )
+  template <- function(proc, k) NULL
+  rows <- lapply(calls, function(written) {
+    call <- tryCatch(match.call(template, written), error = function(e) NULL)
+    k <- if (!is.null(call)) .sim_literal_number(call$k)
+    if (
+      is.null(call) ||
+        !is.name(call$proc) ||
+        is.null(k) ||
+        k != round(k) ||
+        k == 0
+    ) {
+      stop(
+        "sim_effect() 'from' expression '",
+        from,
+        "' must call event_time() as event_time(<process>, <k>), with k a ",
+        "whole number other than 0 written out, e.g. event_time(visit, -1)."
+      )
+    }
+    data.frame(text = deparse(written), proc = as.character(call$proc), k = k)
+  })
+  empty <- data.frame(text = character(), proc = character(), k = numeric())
+  do.call(rbind, c(list(empty), rows))
+}
+
+# The value of a number written out in an expression (`2`, `-1`), or NULL.
+.sim_literal_number <- function(expr) {
+  negate <- is.call(expr) &&
+    identical(expr[[1]], as.name("-")) &&
+    length(expr) == 2
+  value <- if (negate) expr[[2]] else expr
+  if (!is.numeric(value) || length(value) != 1) {
+    return(NULL)
+  }
+  if (negate) -value else value
 }
 
 #' @export

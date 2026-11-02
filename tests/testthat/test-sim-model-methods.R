@@ -77,16 +77,22 @@ test_that("update errors when a removed node is still used by an effect", {
   expect_error(update(model, bogus = NULL), "not in the model: bogus")
 
   t_model <- sim_model(
+    bp = sim_mark(
+      init = function(N) rnorm(N),
+      update = "visit",
+      draw = function(N) rnorm(N)
+    ),
     relapse = sim_process("transient", eta = 0.2, nu = 1),
     visit = sim_process("transient", eta = 0.2, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
-      sim_effect("t - T_relapse.1 < 1", "death", coef = 1),
-      sim_effect("t - last_time(visit) < 1", "death", coef = 1)
+      sim_effect("t - event_time(relapse, 1) < 1", "death", coef = 1),
+      sim_effect("bp(event_time(visit, -1))", "death", coef = 1)
     )
   )
-  expect_error(update(t_model, relapse = NULL), "T_relapse.1")
-  expect_error(update(t_model, visit = NULL), "last_time\\(visit\\)")
+  expect_error(update(t_model, relapse = NULL), "event_time\\(relapse, 1\\)")
+  expect_error(update(t_model, visit = NULL), "bp\\(event_time\\(visit")
+  expect_error(update(t_model, bp = NULL), "bp\\(event_time\\(visit")
 
   # Dropping the effect too makes the removal valid.
   updated <- update(

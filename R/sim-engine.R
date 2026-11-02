@@ -43,95 +43,109 @@ apply_intervention <- function(model, intervene) {
   list(covs = covs, eta = eta)
 }
 
-# The time of process `proc`'s most recent occurrence so far (per alive
-# individual, i.e. per column of type_log/time_log), or -Inf where it hasn't
-# occurred yet. type_log (process names) and time_log hold only the first
-# n_rows rows (the individual's events so far).
-.sim_last_time <- function(type_log, time_log, proc, n_rows) {
-  n <- ncol(time_log)
-  if (n_rows == 0) {
-    return(rep(-Inf, n))
+# Each individual's history so far, one column per individual: `time` and
+# `type` (process name) of their events in the first `n` rows, and for each
+# mark in `marks`, its value at baseline (row 1) and after each event (row
+# i + 1).
+.sim_history <- function(time, type, n, marks = list()) {
+  list(time = time, type = type, n = n, marks = marks)
+}
+
+# `history` restricted to individuals (columns) `cols`.
+.sim_history_cols <- function(history, cols) {
+  if (is.null(history)) {
+    return(NULL)
   }
-  hit <- type_log[seq_len(n_rows), , drop = FALSE] == proc
+  .sim_history(
+    history$time[, cols, drop = FALSE],
+    history$type[, cols, drop = FALSE],
+    history$n,
+    lapply(history$marks, function(m) m[, cols, drop = FALSE])
+  )
+}
+
+# The time of process `proc`'s k-th event so far per individual, counting
+# back from the latest if k < 0, or 0 where there are fewer than abs(k).
+.sim_event_time <- function(history, proc, k) {
+  hit <- history$type[seq_len(history$n), , drop = FALSE] == proc
   vapply(
-    seq_len(n),
+    seq_len(ncol(history$time)),
     function(j) {
       w <- which(hit[, j])
-      if (length(w) == 0) -Inf else time_log[max(w), j]
+      if (length(w) < abs(k)) {
+        return(0)
+      }
+      history$time[w[if (k > 0) k else length(w) + 1 + k], j]
     },
     numeric(1)
   )
 }
 
-# The time of a process's k-th occurrence so far (per column), or 0 where
-# fewer than k occurrences have happened yet.
-.sim_nth_time <- function(type_log, time_log, proc, k, n_rows) {
-  n <- ncol(time_log)
-  if (n_rows == 0) {
-    return(rep(0, n))
+# Per entry of `s` (individual rep_len(columns, length(s))), the number of
+# that individual's events (of process `proc` only, if given) at or before
+# time s.
+.sim_events_by <- function(history, s, proc = NULL) {
+  rows <- seq_len(history$n)
+  cols <- rep_len(seq_len(ncol(history$time)), length(s))
+  by <- history$time[rows, cols, drop = FALSE] <= rep(s, each = history$n)
+  if (!is.null(proc)) {
+    type <- history$type[rows, cols, drop = FALSE]
+    by <- by & !is.na(type) & type == proc
   }
-  hit <- type_log[seq_len(n_rows), , drop = FALSE] == proc
-  vapply(
-    seq_len(n),
-    function(j) {
-      w <- which(hit[, j])
-      if (length(w) < k) 0 else time_log[w[k], j]
-    },
-    numeric(1)
-  )
+  colSums(by)
 }
 
 # Evaluation environment for sim_effect() `from` expressions: covariates and
-# event counts bound by name, `t` (current time), the T_<proc>.<k> event
-# times used by `effects`, and `last_time()`, which reads the process name
-# out of its unevaluated argument (so `last_time(checkup)` doesn't require
-# `checkup` to resolve to anything itself). With rep_times > 1,
-# covariates/event_counts/t cover rep_times time points per individual
-# (rep(x, times = rep_times) layout) while the event logs cover each
-# individual once, so the history accessors' results are replicated to match.
+# event counts bound by name, `t` (current time), event_time(), which reads
+# the process name out of its unevaluated argument, and each node called as
+# a function of time in `effects`. Those functions sit in the parent
+# environment, so R's function lookup skips over the node's value to reach
+# them. With rep_times > 1, covariates/event_counts/t cover rep_times time
+# points per individual (rep(x, times = rep_times) layout) while `history`
+# covers each individual once, so its results are replicated to match.
 .sim_effect_env <- function(
   effects,
   covariates,
   event_counts,
   process_names,
   t,
-  event_time_log,
-  event_type_log,
-  n_events_so_far,
+  history,
   rep_times = 1
 ) {
-  env <- list2env(c(covariates, event_counts), parent = parent.frame())
-  env$t <- t
-  used <- unique(unlist(lapply(effects, function(eff) {
+  funs <- new.env(parent = parent.frame())
+  n_points <- length(event_counts[[1]])
+  funs$event_time <- function(proc, k) {
+    rep(
+      .sim_event_time(history, deparse(substitute(proc)), k),
+      times = rep_times
+    )
+  }
+  called <- unique(unlist(lapply(effects, function(eff) {
     expr <- eff$parsed_from
     if (is.null(expr)) {
       expr <- tryCatch(str2lang(eff$from), error = function(e) NULL)
     }
-    all.vars(expr)
+    .sim_called(expr)
   })))
-  history <- .sim_history_vars(used, process_names)
-  for (i in seq_len(nrow(history))) {
-    env[[history$name[i]]] <- rep(
-      .sim_nth_time(
-        event_type_log,
-        event_time_log,
-        history$proc[i],
-        history$k[i],
-        n_events_so_far
-      ),
-      times = rep_times
-    )
+  for (nm in intersect(called, c(names(covariates), process_names))) {
+    funs[[nm]] <- local({
+      nm <- nm
+      function(s) {
+        s <- rep_len(s, n_points)
+        if (nm %in% process_names) {
+          return(.sim_events_by(history, s, nm))
+        }
+        mark <- history$marks[[nm]]
+        if (is.null(mark)) {
+          return(covariates[[nm]])
+        }
+        cols <- rep_len(seq_len(ncol(mark)), n_points)
+        mark[cbind(.sim_events_by(history, s) + 1, cols)]
+      }
+    })
   }
-  env$last_time <- function(proc) {
-    nm <- deparse(substitute(proc))
-    if (!nm %in% process_names) {
-      stop("last_time(): unknown process '", nm, "'")
-    }
-    rep(
-      .sim_last_time(event_type_log, event_time_log, nm, n_events_so_far),
-      times = rep_times
-    )
-  }
+  env <- list2env(c(covariates, event_counts), parent = funs)
+  env$t <- t
   env
 }
 
@@ -145,9 +159,7 @@ process_hazard_multipliers <- function(
   event_counts,
   process_names,
   t = NULL,
-  event_time_log = NULL,
-  event_type_log = NULL,
-  n_events_so_far = 0,
+  history = NULL,
   rep_times = 1
 ) {
   exp(.sim_linear_predictors(
@@ -157,9 +169,7 @@ process_hazard_multipliers <- function(
     process_names,
     targets = process_names,
     t = t,
-    event_time_log = event_time_log,
-    event_type_log = event_type_log,
-    n_events_so_far = n_events_so_far,
+    history = history,
     rep_times = rep_times
   ))
 }
@@ -168,7 +178,7 @@ process_hazard_multipliers <- function(
 # sim_effect() coefs * current value of their `from`; effects into anything
 # else are ignored. `from` naming a covariate or process directly is looked
 # up by name; anything else is parsed and evaluated as an R expression
-# against covariates/event counts/`t`/T_<proc>.<k>/last_time().
+# in .sim_effect_env().
 # Returns a length(event_counts[[1]]) x length(targets) matrix.
 # rep_times: see .sim_effect_env().
 .sim_linear_predictors <- function(
@@ -178,9 +188,7 @@ process_hazard_multipliers <- function(
   process_names,
   targets,
   t = NULL,
-  event_time_log = NULL,
-  event_type_log = NULL,
-  n_events_so_far = 0,
+  history = NULL,
   rep_times = 1
 ) {
   n <- length(event_counts[[1]])
@@ -205,9 +213,7 @@ process_hazard_multipliers <- function(
           event_counts,
           process_names,
           t,
-          event_time_log,
-          event_type_log,
-          n_events_so_far,
+          history,
           rep_times
         )
       }
@@ -381,9 +387,7 @@ sample_next_event_times_td <- function(
   baselines,
   effects,
   process_names,
-  event_time_log,
-  event_type_log,
-  n_events_so_far,
+  history,
   max_cens,
   time_step,
   upper,
@@ -426,9 +430,7 @@ sample_next_event_times_td <- function(
       lapply(event_counts, `[`, point_ind),
       process_names,
       t = as.vector((lefts + rights) / 2),
-      event_time_log = event_time_log[, searching, drop = FALSE],
-      event_type_log = event_type_log[, searching, drop = FALSE],
-      n_events_so_far = n_events_so_far,
+      history = .sim_history_cols(history, searching),
       rep_times = b
     )
     rate_ind <- t(risk_alive[, searching, drop = FALSE]) * rep(eta, each = m)
@@ -566,7 +568,7 @@ sample_event_types <- function(
 
 # New values of mark `nm` for individuals `rows`, from its sim_mark() draw
 # function given N and `lp`, the linear predictor of the effects into it at
-# the current state (event `n_events_so_far` included).
+# the current state (`history` including the current event).
 .sim_draw_mark <- function(
   nm,
   draw,
@@ -576,9 +578,7 @@ sample_event_types <- function(
   event_counts,
   process_names,
   t,
-  event_time_log,
-  event_type_log,
-  n_events_so_far
+  history
 ) {
   lp <- .sim_linear_predictors(
     effects,
@@ -587,9 +587,7 @@ sample_event_types <- function(
     process_names,
     targets = nm,
     t = t[rows],
-    event_time_log = event_time_log[, rows, drop = FALSE],
-    event_type_log = event_type_log[, rows, drop = FALSE],
-    n_events_so_far = n_events_so_far
+    history = .sim_history_cols(history, rows)
   )[, nm]
   args <- list(N = length(rows), lp = lp)
   value <- do.call(draw, args[names(formals(draw))])
@@ -667,10 +665,23 @@ run_sim <- function(
     process_names
   )
 
-  # Full per-individual event log (time + which process, one row per event
-  # so far), so sim_effect() expressions can use T_<proc>.<k>/last_time().
-  event_time_log <- matrix(0, nrow = max_events, ncol = n)
-  event_type_log <- matrix(NA_character_, nrow = max_events, ncol = n)
+  # Full per-individual history, so sim_effect() expressions can use
+  # event_time() and nodes as functions of time. Only the marks called as
+  # functions of time need their values logged.
+  called <- unique(unlist(lapply(model$effects, function(eff) {
+    if (is.null(eff$parsed_from)) NULL else .sim_called(eff$parsed_from)
+  })))
+  timed_marks <- intersect(called, names(marks))
+  history <- .sim_history(
+    time = matrix(0, nrow = max_events, ncol = n),
+    type = matrix(NA_character_, nrow = max_events, ncol = n),
+    n = 0,
+    marks = lapply(covariates[timed_marks], function(value) {
+      log <- matrix(NA_real_, nrow = max_events + 1, ncol = n)
+      log[1, ] <- value
+      log
+    })
+  )
 
   t_k <- rep(0, n)
   alive <- seq_len(n)
@@ -694,9 +705,7 @@ run_sim <- function(
         baselines,
         process_effects,
         process_names,
-        event_time_log = event_time_log[, alive, drop = FALSE],
-        event_type_log = event_type_log[, alive, drop = FALSE],
-        n_events_so_far = idx - 1,
+        history = .sim_history_cols(history, alive),
         max_cens = max_cens,
         time_step = time_step,
         upper = upper
@@ -710,9 +719,7 @@ run_sim <- function(
         event_counts_alive,
         process_names,
         t = t_k[alive],
-        event_time_log = event_time_log[, alive, drop = FALSE],
-        event_type_log = event_type_log[, alive, drop = FALSE],
-        n_events_so_far = idx - 1
+        history = .sim_history_cols(history, alive)
       )
       w <- if (weibull_only) {
         sample_next_event_times(
@@ -754,8 +761,12 @@ run_sim <- function(
       hit <- alive[events == nm]
       event_counts[[nm]][hit] <- event_counts[[nm]][hit] + 1
     }
-    event_time_log[idx, ] <- t_k
-    event_type_log[idx, alive] <- events
+    history$time[idx, ] <- t_k
+    history$type[idx, alive] <- events
+    history$n <- idx
+    for (nm in timed_marks) {
+      history$marks[[nm]][idx + 1, alive] <- covariates[[nm]][alive]
+    }
 
     for (nm in names(marks)) {
       hit <- alive[events %in% marks[[nm]]$update]
@@ -769,10 +780,11 @@ run_sim <- function(
           event_counts,
           process_names,
           t_k,
-          event_time_log,
-          event_type_log,
-          n_events_so_far = idx
+          history
         )
+        if (nm %in% timed_marks) {
+          history$marks[[nm]][idx + 1, hit] <- covariates[[nm]][hit]
+        }
       }
     }
 

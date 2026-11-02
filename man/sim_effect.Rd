@@ -12,12 +12,15 @@ number of events so far), or an R expression of these. Expressions may
 also use:
 \describe{
 \item{\code{t}}{The current time (see \code{\link[=sim_events]{sim_events()}}'s \code{time_step}).}
-\item{\verb{T_<proc>.<k>}}{Time of \code{proc}'s \code{k}-th event, \code{0} if it
-hasn't happened yet, e.g. \code{T_operation.1}. Multiply by the event
-count, as in \code{operation * f(t - T_operation.1)}, so the effect only
-applies once the event has happened.}
-\item{\code{last_time(proc)}}{Time of \code{proc}'s latest event, \code{-Inf} if
-none.}
+\item{\code{event_time(proc, k)}}{Time of \code{proc}'s \code{k}-th event, counting
+back from the latest if \code{k} is negative (\code{-1} is the latest), or \code{0}
+if there are fewer than \code{abs(k)} events so far. \code{k} must be a whole
+number written out, e.g. \code{event_time(operation, 1)}. Multiply by the
+event count, as in \code{operation * f(t - event_time(operation, 1))}, so
+the effect only applies once the event has happened.}
+\item{\verb{<name>(s)}}{The value of covariate, mark or process count
+\code{name} at time \code{s}, after any update at \code{s}, e.g.
+\code{bp(event_time(operation, 1))}.}
 }}
 
 \item{to}{Character. Name of the affected process or mark.}
@@ -37,9 +40,11 @@ new values are drawn from.
 sim_effect("age", "death", coef = 0.03)
 sim_effect("(age - 60)^2", "death", coef = 0.001)
 sim_effect("relapse == 3", "death", coef = 1.2)
-sim_effect("t - last_time(checkup) < 1", "death", coef = 0.5)
-sim_effect("operation * (t - T_operation.1)", "death", coef = 0.1)
-sim_effect("operation * exp(-(t - T_operation.1))", "death", coef = 2)
+sim_effect("checkup > 0 & t - event_time(checkup, -1) < 1", "death", 0.5)
+sim_effect("operation * (t - event_time(operation, 1))", "death", 0.1)
+sim_effect("operation * exp(-(t - event_time(operation, 1)))", "death", 2)
+sim_effect("relapse >= 3 & t - event_time(relapse, -3) < 1", "death", 1)
+sim_effect("operation * bp(event_time(operation, 1))", "death", 0.02)
 }
 \seealso{
 \code{\link[=sim_model]{sim_model()}}

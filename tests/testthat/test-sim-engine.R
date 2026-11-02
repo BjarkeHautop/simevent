@@ -123,46 +123,57 @@ test_that("process_hazard_multipliers expressions can threshold/interact with co
   )
 })
 
-test_that("process_hazard_multipliers: last_time() gives -Inf before any occurrence", {
-  # individual 1: 'a' occurred at t=1 (n_events_so_far row 1); individual 2:
-  # no events yet.
-  time_log <- matrix(c(1, 0), nrow = 1)
-  type_log <- matrix(c("a", NA), nrow = 1)
-
-  phi <- process_hazard_multipliers(
-    list(sim_effect("t - last_time(a) < 1", "d", coef = 2)),
-    covariates = list(),
-    event_counts = list(a = c(1, 0), d = c(0, 0)),
-    process_names = c("a", "d"),
-    t = c(1.5, 5),
-    event_time_log = time_log,
-    event_type_log = type_log,
-    n_events_so_far = 1
-  )
-  # individual 1: t - last_time = 0.5 < 1 -> active; individual 2: -Inf -> inactive
-  expect_equal(phi[, "d"], c(exp(2), 1))
-})
-
-test_that("process_hazard_multipliers: T_<proc>.<k> is 0 before the k-th occurrence", {
+test_that("process_hazard_multipliers: event_time() counts from either end", {
   # individual 1: 'a' at t = 0.5 and 1; individual 2: 'b' at t = 0.7 only.
-  time_log <- matrix(c(0.5, 1, 0.7, 0), nrow = 2)
-  type_log <- matrix(c("a", "a", "b", NA), nrow = 2)
+  history <- .sim_history(
+    time = matrix(c(0.5, 1, 0.7, 0), nrow = 2),
+    type = matrix(c("a", "a", "b", NA), nrow = 2),
+    n = 2
+  )
 
   phi <- process_hazard_multipliers(
     list(
-      sim_effect("T_a.2", "d", coef = 1),
-      sim_effect("T_a.1 > 0", "b", coef = 1)
+      sim_effect("event_time(a, 2)", "d", coef = 1),
+      sim_effect("event_time(a, -1)", "b", coef = 1),
+      sim_effect("event_time(a, -2)", "a", coef = 1)
     ),
     covariates = list(),
     event_counts = list(a = c(2, 0), b = c(0, 1), d = c(0, 0)),
     process_names = c("a", "b", "d"),
     t = c(2, 2),
-    event_time_log = time_log,
-    event_type_log = type_log,
-    n_events_so_far = 2
+    history = history
   )
   expect_equal(unname(phi[, "d"]), exp(c(1, 0)))
   expect_equal(unname(phi[, "b"]), exp(c(1, 0)))
+  expect_equal(unname(phi[, "a"]), exp(c(0.5, 0)))
+})
+
+test_that("process_hazard_multipliers: nodes as functions of time", {
+  # individual 1: 'a' at t = 1, then 2, with mark m 10 -> 11 -> 12;
+  # individual 2: 'b' at t = 1, then 'a' at 3, with m 20 -> 20 -> 23.
+  history <- .sim_history(
+    time = matrix(c(1, 2, 1, 3), nrow = 2),
+    type = matrix(c("a", "a", "b", "a"), nrow = 2),
+    n = 2,
+    marks = list(m = matrix(c(10, 11, 12, 20, 20, 23), nrow = 3))
+  )
+
+  lp <- .sim_linear_predictors(
+    list(
+      sim_effect("m(1.5)", "d", coef = 1),
+      sim_effect("m(event_time(a, 1)) + x(0)", "b", coef = 1),
+      sim_effect("a(t - 0.5)", "a", coef = 1)
+    ),
+    covariates = list(m = c(12, 23), x = c(100, 200)),
+    event_counts = list(a = c(2, 1), b = c(0, 1), d = c(0, 0)),
+    process_names = c("a", "b", "d"),
+    targets = c("a", "b", "d"),
+    t = c(2.5, 3.5),
+    history = history
+  )
+  expect_equal(unname(lp[, "d"]), c(11, 20))
+  expect_equal(unname(lp[, "b"]), c(111, 223))
+  expect_equal(unname(lp[, "a"]), c(2, 1))
 })
 
 test_that("process_hazard_multipliers is all-ones with no effects", {
@@ -330,7 +341,7 @@ test_that(".sim_uses_time detects effects referring to t", {
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
       sim_effect("L0", "death", 1),
-      sim_effect("last_time(checkup) > 2", "death", 1)
+      sim_effect("event_time(checkup, -1) > 2", "death", 1)
     )
   )
   expect_false(.sim_uses_time(model$effects))
@@ -338,7 +349,7 @@ test_that(".sim_uses_time detects effects referring to t", {
   model_t <- sim_model(
     checkup = sim_process("transient", eta = 0.1, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
-    effects = list(sim_effect("t - last_time(checkup) < 1", "death", 1))
+    effects = list(sim_effect("t - event_time(checkup, -1) < 1", "death", 1))
   )
   expect_true(.sim_uses_time(model_t$effects))
 })

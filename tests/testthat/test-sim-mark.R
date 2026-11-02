@@ -114,7 +114,7 @@ test_that("a mark's lp sees t, counts and event times including the triggering e
     effects = list(
       sim_effect("t", "tm", coef = 1),
       sim_effect("visit", "tm", coef = 100),
-      sim_effect("last_time(visit) == t", "tm", coef = 1000)
+      sim_effect("event_time(visit, -1) == t", "tm", coef = 1000)
     )
   )
   data <- sim_events(model, n = 200, max_cens = 5, seed = 1)
@@ -291,7 +291,7 @@ test_that("summary() labels marks and unrolls effects into them", {
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
       sim_effect("bp", "bp", coef = 0.8),
-      sim_effect("(bp - 130)^2 + T_visit.1", "bp", coef = 0.1),
+      sim_effect("(bp - 130)^2 + event_time(visit, 1)", "bp", coef = 0.1),
       sim_effect("visit", "bp", coef = 1),
       sim_effect("bp", "death", coef = 0.1)
     )
@@ -300,7 +300,7 @@ test_that("summary() labels marks and unrolls effects into them", {
   expect_equal(s$covariates$kind, "mark")
   expect_equal(
     s$effects$from,
-    c("bp[k]", "(bp[k] - 130)^2 + T_visit.1", "visit", "bp")
+    c("bp[k]", "(bp[k] - 130)^2 + event_time(visit, 1)", "visit", "bp")
   )
   expect_equal(s$effects$to, c("bp[k+1]", "bp[k+1]", "bp[k+1]", "death"))
   expect_output(print(s), "k-th update")
