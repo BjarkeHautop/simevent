@@ -273,8 +273,10 @@ sim_process <- function(
 #' [sim_mark()].
 #'
 #' @param formula A formula `to ~ from`. `to` names the affected process or
-#'   mark. `from` is a covariate name (its value), a process name (its number
-#'   of events so far), or an R expression of these, which may also use:
+#'   mark. `from` is one or more terms separated by `+`, each a covariate name
+#'   (its value), a process name (its number of events so far), or an R
+#'   expression of these; wrap a sum in parentheses to make it one term.
+#'   Expressions may also use:
 #'   \describe{
 #'     \item{`t`}{The current time (see [sim_events()]'s `time_step`).}
 #'     \item{[event_time()]}{Time of a process's `k`-th or `k`-th latest
@@ -283,13 +285,16 @@ sim_process <- function(
 #'       `name` at time `s`, after any update at `s`, e.g.
 #'       `bp(event_time(operation, 1))`.}
 #'   }
-#' @param coef Numeric. The coefficient on `from`.
+#' @param coef Numeric vector. One coefficient per term of `from`.
 #'
-#' @return An object of class `sim_effect`, for use in [sim_model()].
+#' @return An object of class `sim_effect`, or for several terms, a
+#'   `sim_effects` list of them, for use in [sim_model()].
 #' @seealso [sim_model()], [event_time()]
 #' @examples
 #' sim_effect(death ~ age, coef = 0.03)
 #' sim_effect(death ~ (age - 60)^2, coef = 0.001)
+#' sim_effect(death ~ age + relapse, coef = c(0.03, 1))
+#' sim_effect(death ~ (age + bmi), coef = 0.02)
 #' sim_effect(death ~ relapse == 3, coef = 1.2)
 #' sim_effect(death ~ checkup > 0 & t - event_time(checkup, -1) < 1, coef = 0.5)
 #' sim_effect(death ~ operation * (t - event_time(operation, 1)), coef = 0.1)
@@ -308,15 +313,60 @@ sim_effect <- function(formula, coef) {
       "process or mark."
     )
   }
-  checkmate::assert_number(coef, finite = TRUE)
-  structure(
-    list(
-      to = as.character(formula[[2]]),
-      from = .sim_deparse(formula[[3]]),
-      expr = formula[[3]],
-      coef = coef
-    ),
-    class = "sim_effect"
+  terms <- .sim_terms(formula[[3]])
+  checkmate::assert_numeric(coef, finite = TRUE, any.missing = FALSE)
+  if (length(coef) != length(terms)) {
+    stop(
+      "sim_effect() formula '",
+      .sim_deparse(formula),
+      "' has ",
+      length(terms),
+      " term(s) but ",
+      length(coef),
+      " coef(s). Wrap a sum in parentheses to make it a single term."
+    )
+  }
+  effects <- Map(
+    function(expr, coef) {
+      structure(
+        list(
+          to = as.character(formula[[2]]),
+          from = .sim_deparse(expr),
+          expr = expr,
+          coef = coef
+        ),
+        class = "sim_effect"
+      )
+    },
+    terms,
+    coef
+  )
+  if (length(effects) == 1) {
+    return(effects[[1]])
+  }
+  structure(unname(effects), class = "sim_effects")
+}
+
+# The terms of `expr` separated by top-level `+`, as a list of expressions.
+.sim_terms <- function(expr) {
+  is_sum <- is.call(expr) &&
+    identical(expr[[1]], as.name("+")) &&
+    length(expr) == 3
+  if (is_sum) {
+    return(c(.sim_terms(expr[[2]]), .sim_terms(expr[[3]])))
+  }
+  list(expr)
+}
+
+# `effects` (sim_effect()s and sim_effects lists) as a flat list of
+# sim_effect()s.
+.sim_flatten_effects <- function(effects) {
+  checkmate::assert_list(effects, types = c("sim_effect", "sim_effects"))
+  unlist(
+    lapply(effects, function(eff) {
+      if (inherits(eff, "sim_effects")) unclass(eff) else list(eff)
+    }),
+    recursive = FALSE
   )
 }
 
@@ -494,7 +544,7 @@ sim_model <- function(..., effects = list()) {
     }
   }
 
-  checkmate::assert_list(effects, types = "sim_effect")
+  effects <- .sim_flatten_effects(effects)
   effect_keys <- .sim_effect_keys(effects)
   if (anyDuplicated(effect_keys) > 0) {
     stop(

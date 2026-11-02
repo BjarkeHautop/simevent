@@ -45,7 +45,7 @@ test_that("sim_model validates node types, effect endpoints, and requires a proc
     sim_model(
       a = cov,
       d = proc,
-      effects = list(sim_effect(d ~ bogus + 1, 1))
+      effects = list(sim_effect(d ~ (bogus + 1), 1))
     ),
     "not found in model: bogus"
   )
@@ -1044,7 +1044,7 @@ test_that("sim_events: event_time(proc, -k) is the k-th latest event", {
     effects = list(
       sim_effect(nth ~ visit, 1),
       sim_effect(
-        other ~ event_time(visit, -3) + 1000 * nth(event_time(visit, -3)),
+        other ~ (event_time(visit, -3) + 1000 * nth(event_time(visit, -3))),
         0
       )
     )
@@ -1120,4 +1120,60 @@ test_that("sim_events: an effect on event_time() applies only after the event", 
 
 test_that("event_time() errors outside a sim_effect() formula", {
   expect_error(event_time(visit, 1), "only works inside a sim_effect")
+})
+
+test_that("sim_effect() splits top-level + into one effect per term", {
+  effects <- sim_effect(death ~ age + relapse + (bmi + 1), coef = c(1, 2, 3))
+  expect_s3_class(effects, "sim_effects")
+  expect_equal(
+    vapply(effects, `[[`, "", "from"),
+    c("age", "relapse", "(bmi + 1)")
+  )
+  expect_equal(vapply(effects, `[[`, 0, "coef"), c(1, 2, 3))
+  expect_equal(unique(vapply(effects, `[[`, "", "to")), "death")
+
+  single <- sim_effect(death ~ (age + relapse), coef = 1)
+  expect_s3_class(single, "sim_effect")
+  expect_equal(single$from, "(age + relapse)")
+  expect_equal(sim_effect(death ~ +age, coef = 1)$from, "+age")
+
+  expect_error(
+    sim_effect(death ~ age + relapse, coef = 1),
+    "2 term\\(s\\) but 1 coef\\(s\\)\\. Wrap a sum in parentheses"
+  )
+  expect_error(sim_effect(death ~ age, coef = c(1, 2)), "1 term")
+})
+
+test_that("multi-term sim_effect()s act as their separate terms", {
+  model <- sim_model(
+    age = sim_covariate(function(N) rnorm(N)),
+    bmi = sim_covariate(function(N) rnorm(N)),
+    relapse = sim_process("transient", eta = 0.2, nu = 1),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(
+      sim_effect(death ~ age + bmi + relapse, coef = c(0.5, -0.5, 1)),
+      sim_effect(relapse ~ age, coef = 0.2)
+    )
+  )
+  expect_equal(
+    summary(model)$effects$from,
+    c("age", "bmi", "relapse", "age")
+  )
+  expect_error(
+    sim_model(
+      age = sim_covariate(function(N) rnorm(N)),
+      death = sim_process("terminal", eta = 0.1, nu = 1),
+      effects = list(sim_effect(death ~ age + age, coef = c(1, 2)))
+    ),
+    "duplicate"
+  )
+
+  updated <- update(
+    model,
+    effects = list(sim_effect(death ~ age + relapse, coef = c(2, 3)))
+  )
+  expect_equal(summary(updated)$effects$coef, c(2, -0.5, 3, 0.2))
+
+  dropped <- update(model, drop_effects = death ~ age + bmi)
+  expect_equal(summary(dropped)$effects$from, c("relapse", "age"))
 })

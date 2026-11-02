@@ -58,7 +58,7 @@ test_that("sim_model validates a mark's init, update and effects", {
       death = death,
       effects = list(
         sim_effect(m ~ m, coef = 0.5),
-        sim_effect(m ~ t + visit + age, coef = 1)
+        sim_effect(m ~ t + visit + age, coef = c(1, 1, 1))
       )
     ),
     "sim_model"
@@ -291,7 +291,7 @@ test_that("summary() labels marks and unrolls effects into them", {
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
       sim_effect(bp ~ bp, coef = 0.8),
-      sim_effect(bp ~ (bp - 130)^2 + event_time(visit, 1), coef = 0.1),
+      sim_effect(bp ~ ((bp - 130)^2 + event_time(visit, 1)), coef = 0.1),
       sim_effect(bp ~ visit, coef = 1),
       sim_effect(death ~ bp, coef = 0.1)
     )
@@ -300,7 +300,7 @@ test_that("summary() labels marks and unrolls effects into them", {
   expect_equal(s$covariates$kind, "mark")
   expect_equal(
     s$effects$from,
-    c("bp[k]", "(bp[k] - 130)^2 + event_time(visit, 1)", "visit", "bp")
+    c("bp[k]", "((bp[k] - 130)^2 + event_time(visit, 1))", "visit", "bp")
   )
   expect_equal(s$effects$to, c("bp[k+1]", "bp[k+1]", "bp[k+1]", "death"))
   expect_output(print(s), "k-th update")

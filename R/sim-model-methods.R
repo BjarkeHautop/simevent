@@ -173,12 +173,18 @@ update.sim_model <- function(
   if (length(changes) > 0) {
     checkmate::assert_list(changes, names = "unique")
   }
-  checkmate::assert_list(effects, types = "sim_effect")
+  effects <- .sim_flatten_effects(effects)
   if (inherits(drop_effects, "formula")) {
     drop_effects <- list(drop_effects)
   }
   checkmate::assert_list(drop_effects, types = "formula")
-  drop_effects <- .sim_effect_keys(lapply(drop_effects, sim_effect, coef = 0))
+  drop_effects <- .sim_effect_keys(.sim_flatten_effects(lapply(
+    drop_effects,
+    function(f) {
+      n_terms <- if (length(f) == 3) length(.sim_terms(f[[3]])) else 1
+      sim_effect(f, coef = rep(0, n_terms))
+    }
+  )))
 
   nodes <- c(object$covariates, object$processes)
   removed <- names(changes)[vapply(changes, is.null, logical(1))]

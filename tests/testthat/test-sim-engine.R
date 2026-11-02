@@ -161,7 +161,7 @@ test_that("process_hazard_multipliers: nodes as functions of time", {
   lp <- .sim_linear_predictors(
     list(
       sim_effect(d ~ m(1.5), coef = 1),
-      sim_effect(b ~ m(event_time(a, 1)) + x(0), coef = 1),
+      sim_effect(b ~ (m(event_time(a, 1)) + x(0)), coef = 1),
       sim_effect(a ~ a(t - 0.5), coef = 1)
     ),
     covariates = list(m = c(12, 23), x = c(100, 200)),
