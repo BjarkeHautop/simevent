@@ -68,7 +68,9 @@ summary.sim_model <- function(object, ...) {
   into_mark <- to %in% marks
   from[into_mark] <- vapply(
     which(into_mark),
-    function(i) .sim_index_symbol(from[i], to[i]),
+    function(i) {
+      .sim_deparse(.sim_index_symbol(object$effects[[i]]$expr, to[i]))
+    },
     character(1)
   )
   to[into_mark] <- paste0(to[into_mark], "[k+1]")
@@ -100,17 +102,15 @@ print.summary.sim_model <- function(x, ...) {
 }
 
 # Expression `expr` with each use of the variable `name` replaced by
-# `name[k]`, keeping the rest of its text as written.
+# `name[k]`; calls to `name` as a function of time are left as they are.
 .sim_index_symbol <- function(expr, name) {
-  data <- utils::getParseData(parse(text = expr, keep.source = TRUE))
-  hits <- data[data$token == "SYMBOL" & data$text == name, ]
-  # Replace from the end, so earlier positions stay valid.
-  for (i in rev(order(hits$col1))) {
-    expr <- paste0(
-      substr(expr, 1, hits$col2[i]),
-      "[k]",
-      substr(expr, hits$col2[i] + 1, nchar(expr))
-    )
+  if (identical(expr, as.name(name))) {
+    return(call("[", expr, quote(k)))
+  }
+  if (is.call(expr)) {
+    for (i in seq_along(expr)[-1]) {
+      expr[[i]] <- .sim_index_symbol(expr[[i]], name)
+    }
   }
   expr
 }
@@ -178,13 +178,10 @@ update.sim_model <- function(
     drop_effects <- list(drop_effects)
   }
   checkmate::assert_list(drop_effects, types = "formula")
-  drop_effects <- .sim_effect_keys(.sim_flatten_effects(lapply(
-    drop_effects,
-    function(f) {
-      n_terms <- if (length(f) == 3) length(.sim_terms(f[[3]])) else 1
-      sim_effect(f, coef = rep(0, n_terms))
-    }
-  )))
+  drop_effects <- unlist(lapply(drop_effects, function(f) {
+    parsed <- .sim_parse_formula(f)
+    paste(parsed$to, "~", vapply(parsed$terms, .sim_deparse, character(1)))
+  }))
 
   nodes <- c(object$covariates, object$processes)
   removed <- names(changes)[vapply(changes, is.null, logical(1))]

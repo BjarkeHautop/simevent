@@ -89,14 +89,11 @@ apply_intervention <- function(model, intervene) {
   colSums(by)
 }
 
-# Evaluation environment for sim_effect() `from` expressions: covariates and
-# event counts bound by name, `t` (current time), event_time(), which reads
-# the process name out of its unevaluated argument, and each node called as
-# a function of time in `effects`. Those functions sit in the parent
-# environment, so R's function lookup skips over the node's value to reach
-# them. With rep_times > 1, covariates/event_counts/t cover rep_times time
-# points per individual (rep(x, times = rep_times) layout) while `history`
-# covers each individual once, so its results are replicated to match.
+# Environment for evaluating sim_effect() expressions: node values and `t`,
+# over a child of `parent` (the formula's environment) holding event_time()
+# and the nodes as functions of time, so a call like bp(s) skips the value
+# `bp`. rep_times: number of time points per individual in
+# covariates/event_counts/t, which `history` results are repeated to match.
 .sim_effect_env <- function(
   effects,
   covariates,
@@ -104,9 +101,10 @@ apply_intervention <- function(model, intervene) {
   process_names,
   t,
   history,
-  rep_times = 1
+  rep_times = 1,
+  parent = globalenv()
 ) {
-  funs <- new.env(parent = parent.frame())
+  funs <- new.env(parent = parent)
   n_points <- length(event_counts[[1]])
   funs$event_time <- function(proc, k) {
     rep(
@@ -164,13 +162,8 @@ process_hazard_multipliers <- function(
   ))
 }
 
-# For each of `targets` (processes or marks), the sum of incoming
-# sim_effect() coefs * current value of their `from`; effects into anything
-# else are ignored. `from` naming a covariate or process directly is looked
-# up by name; anything else is parsed and evaluated as an R expression
-# in .sim_effect_env().
-# Returns a length(event_counts[[1]]) x length(targets) matrix.
-# rep_times: see .sim_effect_env().
+# Linear predictor of each of `targets` (processes or marks) from the
+# effects into it, as a matrix with one column per target.
 .sim_linear_predictors <- function(
   effects,
   covariates,
@@ -189,25 +182,31 @@ process_hazard_multipliers <- function(
     dimnames = list(NULL, targets)
   )
   effects <- Filter(function(eff) eff$to %in% targets, effects)
-  env <- NULL
+  values <- c(covariates, event_counts)
+  parents <- list()
+  envs <- list()
   for (eff in effects) {
-    value <- covariates[[eff$from]]
+    value <- if (is.name(eff$expr)) values[[as.character(eff$expr)]]
     if (is.null(value)) {
-      value <- event_counts[[eff$from]]
-    }
-    if (is.null(value)) {
-      if (is.null(env)) {
-        env <- .sim_effect_env(
-          effects,
-          covariates,
-          event_counts,
-          process_names,
-          t,
-          history,
-          rep_times
+      i <- Position(function(p) identical(p, eff$env), parents)
+      if (is.na(i)) {
+        parents <- c(parents, eff$env)
+        envs <- c(
+          envs,
+          .sim_effect_env(
+            effects,
+            covariates,
+            event_counts,
+            process_names,
+            t,
+            history,
+            rep_times,
+            parent = eff$env
+          )
         )
+        i <- length(envs)
       }
-      value <- eval(eff$expr, envir = env)
+      value <- eval(eff$expr, envir = envs[[i]])
     }
     lp[, eff$to] <- lp[, eff$to] + eff$coef * value
   }
@@ -350,8 +349,6 @@ sample_next_event_times <- function(
     logical(1)
   ))
 }
-
-# TODO: Improve this
 
 # Samples each alive individual's next event time when hazard multipliers
 # depend on `t`. Between events only `t` changes, so time is split into steps
@@ -791,9 +788,8 @@ run_sim <- function(
       stop(
         "max_events (",
         max_events,
-        ") exceeded before a terminal event ",
-        "occurred for all individuals. Increase max_events or adjust ",
-        "at_risk/beta so that a terminal event becomes certain."
+        ") exceeded before follow-up ended for all individuals. Increase ",
+        "max_events, or make censoring/terminal events more likely."
       )
     }
   }

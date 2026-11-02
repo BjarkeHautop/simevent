@@ -280,6 +280,25 @@ test_that("sim_events: a threshold sim_effect() fires specifically on the k-th j
   expect_gt(mean(deaths$relapse == 3), 0.8)
 })
 
+test_that("sim_effect() expressions use functions from the formula's environment", {
+  make_effect <- function() {
+    centred <- function(x) x - 60
+    sim_effect(death ~ centred(age), coef = 0.03)
+  }
+  model <- sim_model(
+    age = sim_covariate(function(N) rep(70, N)),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(make_effect())
+  )
+  phi <- process_hazard_multipliers(
+    model$effects,
+    covariates = list(age = 70),
+    event_counts = list(death = 0),
+    process_names = "death"
+  )
+  expect_equal(phi[[1, "death"]], exp(0.3))
+})
+
 test_that("sim_events reports named transient-process event counts", {
   set.seed(1405)
 

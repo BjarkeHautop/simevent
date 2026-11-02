@@ -118,8 +118,15 @@ sim.generic <- function(
     )
   })
 
+  # Each of `effects` is c(from, to, coef), with `from` R code as text.
   effect_nodes <- lapply(effects, function(effect) {
-    .sim_effect_text(effect[[1]], effect[[2]], as.numeric(effect[[3]]))
+    sim_effect(
+      stats::as.formula(
+        call("~", as.name(effect[[2]]), str2lang(effect[[1]])),
+        env = globalenv()
+      ),
+      as.numeric(effect[[3]])
+    )
   })
 
   model <- do.call(

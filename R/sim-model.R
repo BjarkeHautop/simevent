@@ -297,14 +297,8 @@ sim_process <- function(
 #' sim_effect(death ~ operation * bp(event_time(operation, 1)), coef = 0.02)
 #' @export
 sim_effect <- function(formula, coef) {
-  checkmate::assert_formula(formula)
-  if (length(formula) != 3 || !is.name(formula[[2]])) {
-    stop(
-      "sim_effect()'s formula must be `to ~ from`, with `to` the name of a ",
-      "process or mark."
-    )
-  }
-  terms <- .sim_terms(formula[[3]])
+  parsed <- .sim_parse_formula(formula)
+  terms <- parsed$terms
   checkmate::assert_numeric(coef, finite = TRUE, any.missing = FALSE)
   if (length(coef) != length(terms)) {
     stop(
@@ -318,9 +312,26 @@ sim_effect <- function(formula, coef) {
     )
   }
   structure(
-    list(to = as.character(formula[[2]]), terms = terms, coef = coef),
+    list(
+      to = parsed$to,
+      terms = terms,
+      coef = coef,
+      env = environment(formula)
+    ),
     class = "sim_effect"
   )
+}
+
+# The `to` (as text) and `from` terms of a sim_effect() formula.
+.sim_parse_formula <- function(formula) {
+  checkmate::assert_formula(formula)
+  if (length(formula) != 3 || !is.name(formula[[2]])) {
+    stop(
+      "sim_effect()'s formula must be `to ~ from`, with `to` the name of a ",
+      "process or mark."
+    )
+  }
+  list(to = as.character(formula[[2]]), terms = .sim_terms(formula[[3]]))
 }
 
 #' @export
@@ -370,7 +381,8 @@ print.sim_effect <- function(x, ...) {
 
 # `effects` (sim_effect()s, or per-term records already expanded by this)
 # as a flat list of per-term records: to, from (the term as text), expr (the
-# term) and coef.
+# term), coef and env (the formula's environment, which expr is evaluated
+# in).
 .sim_flatten_effects <- function(effects) {
   checkmate::assert_list(effects, types = c("sim_effect", "sim_term"))
   unlist(
@@ -385,7 +397,8 @@ print.sim_effect <- function(x, ...) {
               to = eff$to,
               from = .sim_deparse(expr),
               expr = expr,
-              coef = coef
+              coef = coef,
+              env = eff$env
             ),
             class = "sim_term"
           )
@@ -421,14 +434,6 @@ print.sim_effect <- function(x, ...) {
 #' @export
 event_time <- function(proc, k) {
   stop("event_time() only works inside a sim_effect() formula.")
-}
-
-# A sim_effect() from `from` (R code, as text) into `to`.
-.sim_effect_text <- function(from, to, coef) {
-  sim_effect(
-    stats::as.formula(call("~", as.name(to), str2lang(from))),
-    coef
-  )
 }
 
 # `expr` as a single line of R code.
@@ -584,48 +589,43 @@ sim_model <- function(..., effects = list()) {
   # A censoring or terminal process ends follow-up, so it can never be
   # observed as a cause of a later event.
   ended <- names(nodes)[is_process][process_types != "transient"]
-  for (i in seq_along(effects)) {
-    eff <- effects[[i]]
-    if (!(eff$from %in% names(nodes))) {
-      # Not a bare node name: an R expression whose free variables must all
-      # be node names or `t`; event_time() takes a process name as an
-      # unevaluated argument, which all.vars() still picks up as a reference
-      # to validate here.
-      parsed <- eff$expr
-      unknown <- setdiff(all.vars(parsed), c(names(nodes), "t"))
-      if (length(unknown) > 0) {
-        stop(
-          "sim_effect() expression '",
-          eff$from,
-          "' references name(s) not found in model: ",
-          paste(unknown, collapse = ", ")
-        )
-      }
-      history <- .sim_event_time_calls(parsed, eff$from)
-      not_process <- setdiff(history$proc, process_names)
-      if (length(not_process) > 0) {
-        stop(
-          "sim_effect() expression '",
-          eff$from,
-          "' uses event_time() of non-process(es): ",
-          paste(not_process, collapse = ", ")
-        )
-      }
-      limit <- vapply(
-        nodes[history$proc],
-        function(node) if (node$type == "transient") node$limit else 1,
-        numeric(1)
+  for (eff in effects) {
+    # Free variables must all be node names or `t`; event_time() takes a
+    # process name as an unevaluated argument, which all.vars() still picks
+    # up as a reference to validate here.
+    unknown <- setdiff(all.vars(eff$expr), c(names(nodes), "t"))
+    if (length(unknown) > 0) {
+      stop(
+        "sim_effect() expression '",
+        eff$from,
+        "' references name(s) not found in model: ",
+        paste(unknown, collapse = ", ")
       )
-      unreachable <- history$text[abs(history$k) > limit]
-      if (length(unreachable) > 0) {
-        stop(
-          "sim_effect() expression '",
-          eff$from,
-          "' uses ",
-          paste(unreachable, collapse = ", "),
-          ", beyond the process's limit, so always 0."
-        )
-      }
+    }
+    history <- .sim_event_time_calls(eff$expr, eff$from)
+    not_process <- setdiff(history$proc, process_names)
+    if (length(not_process) > 0) {
+      stop(
+        "sim_effect() expression '",
+        eff$from,
+        "' uses event_time() of non-process(es): ",
+        paste(not_process, collapse = ", ")
+      )
+    }
+    limit <- vapply(
+      nodes[history$proc],
+      function(node) if (node$type == "transient") node$limit else 1,
+      numeric(1)
+    )
+    unreachable <- history$text[abs(history$k) > limit]
+    if (length(unreachable) > 0) {
+      stop(
+        "sim_effect() expression '",
+        eff$from,
+        "' uses ",
+        paste(unreachable, collapse = ", "),
+        ", beyond the process's limit, so always 0."
+      )
     }
     if (!(eff$to %in% c(process_names, mark_names))) {
       stop(
@@ -635,12 +635,7 @@ sim_model <- function(..., effects = list()) {
         "' is not one."
       )
     }
-    sources <- if (eff$from %in% names(nodes)) {
-      eff$from
-    } else {
-      .sim_expr_refs(eff$expr, names(nodes))
-    }
-    bad_source <- intersect(sources, ended)
+    bad_source <- intersect(.sim_expr_refs(eff$expr, names(nodes)), ended)
     if (length(bad_source) > 0) {
       stop(
         "sim_effect() expressions cannot use censoring/terminal process(es) ",
@@ -708,7 +703,11 @@ sim_model <- function(..., effects = list()) {
         "whole number other than 0 written out, e.g. event_time(visit, -1)."
       )
     }
-    data.frame(text = deparse(written), proc = as.character(call$proc), k = k)
+    data.frame(
+      text = .sim_deparse(written),
+      proc = as.character(call$proc),
+      k = k
+    )
   })
   empty <- data.frame(text = character(), proc = character(), k = numeric())
   do.call(rbind, c(list(empty), rows))
@@ -1048,13 +1047,15 @@ sim_events <- function(
   sim_derived(f)
 }
 
-# The sim_effect() `from` for a coxph() coefficient name: a node name as-is,
-# otherwise an expression, with interaction terms' ":" turned into "*".
+# The sim_effect() `from` expression for a coxph() coefficient name: the
+# product of its interaction parts (split on ":"), each a node name or, for
+# a transformed term such as `I(age^2)`, that term's code.
 .sim_effect_from_coef <- function(coef_name, node_names) {
-  if (coef_name %in% node_names) {
-    return(coef_name)
-  }
-  gsub(":", " * ", coef_name, fixed = TRUE)
+  parts <- lapply(
+    strsplit(coef_name, ":", fixed = TRUE)[[1]],
+    function(part) if (part %in% node_names) as.name(part) else str2lang(part)
+  )
+  Reduce(function(x, y) call("*", x, y), parts)
 }
 
 #' Build a `sim_model()` from Fitted Cox Models
@@ -1204,27 +1205,32 @@ sim_model_from_fits <- function(fits, data, types, limits = list()) {
   }
 
   node_names <- c(names(baseline_nodes), names(types))
-  process_nodes <- list()
-  effects <- list()
-  for (proc in names(fits)) {
-    fit <- fits[[proc]]
-    process_nodes[[proc]] <- sim_process(
+  process_nodes <- lapply(stats::setNames(nm = names(fits)), function(proc) {
+    sim_process(
       type = types[[proc]],
       limit = if (is.null(limits[[proc]])) Inf else limits[[proc]],
-      cumhaz = .sim_basehaz(fit, proc)
+      cumhaz = .sim_basehaz(fits[[proc]], proc)
     )
-
+  })
+  effects <- lapply(names(fits), function(proc) {
+    fit <- fits[[proc]]
     cf <- stats::coef(fit)
     cf <- cf[!is.na(cf)]
-    for (v in names(cf)) {
-      from <- .sim_effect_from_coef(v, node_names)
-      effects[[length(effects) + 1]] <- .sim_effect_text(
-        from,
-        proc,
-        unname(cf[[v]])
-      )
-    }
-  }
+    # Evaluated where the fit's formula was written, like the fit's own terms.
+    env <- environment(stats::terms(fit))
+    Map(
+      function(coef_name, coef) {
+        from <- .sim_effect_from_coef(coef_name, node_names)
+        sim_effect(
+          stats::as.formula(call("~", as.name(proc), from), env = env),
+          coef
+        )
+      },
+      names(cf),
+      unname(cf)
+    )
+  })
+  effects <- unlist(effects, recursive = FALSE)
 
   do.call(
     sim_model,

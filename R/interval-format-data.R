@@ -91,25 +91,10 @@ interval_format_data <- function(
     }
   }
 
-  data[, k := stats::ave(id, id, FUN = seq_along)]
-  max_k <- max(data$k)
-
-  data_k <- list()
-  data_k[[1]] <- data[data$k == 1, ]
-
-  data_k[[1]][, tstart := 0]
-  data_k[[1]][, tstop := time]
-
-  for (i in seq_len(max_k)[-1]) {
-    data_k[[i]] <- data[data$k == i, ]
-
-    data_k[[i]][,
-      tstart := data_k[[i - 1]][data_k[[i - 1]]$id %in% data_k[[i]]$id, ]$tstop
-    ]
-    data_k[[i]][, tstop := time]
-  }
-
-  res <- do.call(rbind, data_k)
+  data[, k := data.table::rowid(id)]
+  data[, tstart := data.table::shift(time, fill = 0), by = id]
+  data[, tstop := time]
+  res <- data
 
   if (time_var) {
     if (is.factor(res$event)) {
