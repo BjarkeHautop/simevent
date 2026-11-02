@@ -300,7 +300,7 @@ sample_next_event_times_general <- function(
 # Samples the time increment to each alive individual's next event, for one
 # iteration of the simulation loop: the closed-form vectorized path when
 # every process shares one Weibull shape/scale (same_params), else the
-# per-individual numerical inverse (inverseScHazCpp) via inverseScHaz().
+# per-individual numerical inverse (inverseScHazCpp()).
 sample_next_event_times <- function(
   t_now,
   phi_alive,
@@ -317,13 +317,12 @@ sample_next_event_times <- function(
     denom <- colSums(risk_alive * eta * t(phi_alive))
     (v / denom + t_now^nu[1])^(1 / nu[1]) - t_now
   } else {
-    n_alive <- length(t_now)
     vapply(
-      seq_len(n_alive),
+      seq_along(t_now),
       function(j) {
-        inverseScHaz(
-          v[j],
-          t_now[j],
+        inverseScHazCpp(
+          p = v[j],
+          t = t_now[j],
           lower = lower,
           upper = upper,
           eta = eta,
@@ -512,7 +511,7 @@ sample_next_event_times_td <- function(
 
 # Samples which process fires next for each alive individual, given their
 # updated times: vectorized event intensities across all alive individuals,
-# then sampleEvents() draws one event type per individual. Anyone who has
+# then sampleEventsCpp() draws one event type per individual. Anyone who has
 # reached max_cens gets "max_cens" instead of a process. Returns a character
 # vector of process names (names(eta)).
 sample_event_types <- function(
@@ -541,10 +540,9 @@ sample_event_types <- function(
   # so their columns don't divide by zero.
   censored <- t_alive >= max_cens
   lambda_mat[, censored] <- 1
-  probs_mat <- lambda_mat / rep(colSums(lambda_mat), each = num_events)
 
-  # sampleEvents() returns 0-indexed rows of probs_mat.
-  events <- names(eta)[sampleEvents(probs_mat) + 1L]
+  # sampleEventsCpp() normalises each column and returns 0-indexed rows.
+  events <- names(eta)[sampleEventsCpp(lambda_mat) + 1L]
   events[censored] <- "max_cens"
   events
 }

@@ -131,7 +131,7 @@ test_that("sim_events's intervene fixes a sim_derived() covariate too", {
   expect_true(all(data$region2 == 1))
 })
 
-test_that("sim_events does not force L0/A0 into the output", {
+test_that("sim_events adds no columns for a model without covariates", {
   set.seed(1405)
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),

@@ -25,17 +25,7 @@ export(sim_process)
 importFrom(Rcpp,sourceCpp)
 importFrom(data.table,
   ":=",
-  .SD,
-  copy,
-  data.table,
-  setkey
+  .SD
 )
-importFrom(stats,
-  predict,
-  update
-)
-importFrom(survival,
-  Surv,
-  survfit
-)
+importFrom(stats,update)
 useDynLib(simevent, .registration = TRUE)
