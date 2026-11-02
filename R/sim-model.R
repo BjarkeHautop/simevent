@@ -157,7 +157,7 @@ sim_mark <- function(init, update, draw) {
     )
   }
   structure(
-    list(generator = init, update = update, draw = draw),
+    list(init = init, update = update, draw = draw),
     class = "sim_mark"
   )
 }
@@ -531,7 +531,7 @@ sim_model <- function(..., effects = list()) {
     node <- nodes[[nm]]
     earlier <- baseline_names[seq_len(match(nm, baseline_names) - 1)]
     if (inherits(node, c("sim_covariate", "sim_mark"))) {
-      missing <- setdiff(names(formals(node$generator)), c("N", earlier))
+      missing <- setdiff(names(formals(.sim_initial(node))), c("N", earlier))
       if (length(missing) > 0) {
         stop(
           class(node)[1],
@@ -742,9 +742,85 @@ print.sim_model <- function(x, ...) {
       length(x$processes),
       paste(names(x$processes), collapse = ", ")
     ),
-    sprintf("  %d effect(s)", length(x$effects)),
+    sprintf(
+      "  %d effect(s)%s",
+      length(x$effects),
+      if (length(x$effects) > 0) ":" else ""
+    ),
+    if (length(x$effects) > 0) paste0("    ", .sim_format_terms(x$effects)),
     sep = "\n"
   )
+  invisible(x)
+}
+
+# Each per-term effect record (see .sim_flatten_effects()) as one line,
+# e.g. "death ~ 0.03 * age".
+.sim_format_terms <- function(terms) {
+  vapply(
+    terms,
+    function(term) {
+      format(structure(
+        list(to = term$to, terms = list(term$expr), coef = term$coef),
+        class = "sim_effect"
+      ))
+    },
+    character(1)
+  )
+}
+
+# The function giving a covariate node's baseline values from N and earlier
+# covariates: a sim_covariate()'s generator, a sim_mark()'s init, or a
+# sim_derived()'s fn wrapped to take N first.
+.sim_initial <- function(node) {
+  if (inherits(node, "sim_derived")) {
+    .sim_wrap_derived(node$fn)
+  } else if (inherits(node, "sim_mark")) {
+    node$init
+  } else {
+    node$generator
+  }
+}
+
+# A function as one line of code, cut down to its signature if long.
+.sim_format_fn <- function(fn) {
+  text <- paste(trimws(deparse(fn)), collapse = " ")
+  if (nchar(text) <= 60) {
+    return(text)
+  }
+  paste0("function(", paste(names(formals(fn)), collapse = ", "), ") ...")
+}
+
+#' @export
+print.sim_covariate <- function(x, ...) {
+  cat("<sim_covariate> ", .sim_format_fn(x$generator), "\n", sep = "")
+  invisible(x)
+}
+
+#' @export
+print.sim_derived <- function(x, ...) {
+  cat("<sim_derived> ", .sim_format_fn(x$fn), "\n", sep = "")
+  invisible(x)
+}
+
+#' @export
+print.sim_mark <- function(x, ...) {
+  update <- paste(x$update, collapse = ", ")
+  cat("<sim_mark> updated by ", update, "\n", sep = "")
+  invisible(x)
+}
+
+#' @export
+print.sim_process <- function(x, ...) {
+  type <- x$type
+  if (type == "transient" && is.finite(x$limit)) {
+    type <- sprintf("transient (limit %d)", as.integer(x$limit))
+  }
+  baseline <- if (is.null(x$cumhaz)) {
+    sprintf("Weibull(eta = %s, nu = %s)", format(x$eta), format(x$nu))
+  } else {
+    sprintf("cumhaz up to t = %s", format(max(x$cumhaz$time)))
+  }
+  cat("<sim_process> ", type, ", ", baseline, "\n", sep = "")
   invisible(x)
 }
 

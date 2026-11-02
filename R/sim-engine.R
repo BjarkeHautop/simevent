@@ -18,13 +18,7 @@ apply_intervention <- function(model, intervene) {
   covariate_names <- names(model$covariates)
   process_names <- names(model$processes)
 
-  covs <- lapply(model$covariates, function(node) {
-    if (inherits(node, "sim_derived")) {
-      .sim_wrap_derived(node$fn)
-    } else {
-      node$generator
-    }
-  })
+  covs <- lapply(model$covariates, .sim_initial)
   for (nm in intersect(names(intervene), covariate_names)) {
     value <- intervene[[nm]]
     covs[[nm]] <- local({

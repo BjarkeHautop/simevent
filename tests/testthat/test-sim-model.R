@@ -1194,3 +1194,55 @@ test_that("sim_effect() prints as one line", {
     "death ~ -0.5 * age - 1 * relapse"
   )
 })
+
+test_that("nodes and models print as short summaries", {
+  expect_output(
+    print(sim_covariate(function(N) rnorm(N))),
+    "<sim_covariate> function ?[(]N[)] rnorm[(]N[)]"
+  )
+  expect_output(
+    print(sim_covariate(function(N, age) {
+      rbinom(N, 1, plogis(-2 + 0.03 * age + 0.001 * age^2 - 0.5 * log(age)))
+    })),
+    "<sim_covariate> function(N, age) ...",
+    fixed = TRUE
+  )
+  expect_output(
+    print(sim_derived(function(w, h) w / h^2)),
+    "<sim_derived> function ?[(]w, h[)]"
+  )
+  expect_output(
+    print(sim_mark(
+      init = function(N) rnorm(N),
+      update = c("visit", "operation"),
+      draw = function(N) rnorm(N)
+    )),
+    "<sim_mark> updated by visit, operation",
+    fixed = TRUE
+  )
+  expect_output(
+    print(sim_process("transient", eta = 0.1, nu = 1, limit = 3)),
+    "<sim_process> transient (limit 3), Weibull(eta = 0.1, nu = 1)",
+    fixed = TRUE
+  )
+  expect_output(
+    print(sim_process(
+      "terminal",
+      cumhaz = data.frame(time = c(1, 10), hazard = c(0.1, 1))
+    )),
+    "<sim_process> terminal, cumhaz up to t = 10",
+    fixed = TRUE
+  )
+
+  model <- sim_model(
+    age = sim_covariate(function(N) rnorm(N)),
+    relapse = sim_process("transient", eta = 0.2, nu = 1),
+    death = sim_process("terminal", eta = 0.1, nu = 1),
+    effects = list(sim_effect(death ~ age + relapse, coef = c(0.03, -1)))
+  )
+  expect_output(
+    print(model),
+    "2 effect(s):\n    death ~ 0.03 * age\n    death ~ -1 * relapse",
+    fixed = TRUE
+  )
+})
