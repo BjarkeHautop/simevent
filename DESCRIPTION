@@ -20,10 +20,8 @@ Roxygen: list(markdown = TRUE)
 URL: https://github.com/BjarkeHautop/simevent
 BugReports: https://github.com/BjarkeHautop/simevent/issues
 Imports:
-    utils,
     stats,
     checkmate,
-    lifecycle,
     data.table,
     survival,
     withr,

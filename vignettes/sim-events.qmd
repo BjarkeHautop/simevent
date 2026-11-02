@@ -21,36 +21,14 @@ knitr::opts_chunk$set(
 
 library(simevent)
 library(survival)
-
-compare_model <- function(wrapper_data, model_data) {
-  wrapper_data <- as.data.frame(wrapper_data)
-  model_data <- as.data.frame(model_data)
-  # The wrappers code events as integers; the models below declare their
-  # processes in the same order as those codes.
-  model_data$Delta <- as.integer(model_data$event) - 1L
-  names(model_data)[match(c("id", "time"), names(model_data))] <-
-    c("ID", "Time")
-  isTRUE(all.equal(
-    wrapper_data,
-    model_data[names(wrapper_data)],
-    tolerance = 1e-6
-  ))
-}
 ```
-
-`compare_model()` checks that a `sim_events()` reproduction draws the same
-random numbers, in the same order, as the wrapper it reproduces. Only holds
-below for `simSurvData()`/`simCRdata()`.
-
-`simDisease()`/`simTreatment()` have a `"transient"` process, so individuals
-finish at different times: `sim_events()` only draws for whoever's still
-running, while the wrapper draws for everyone and discards the unused draws for
-those already finished.
 
 # Introduction
 
-Introduces the `sim_events()` API, a front end to the same simulator as
-`sim.generic()`.
+simevent 0.1.1's functions (`simEventData()`, the preset wrappers such as
+`simSurvData()`, `sim.generic()`, `sim.from.data()`, `alphaSim()`, ...) have
+been removed in favour of the `sim_model()`/`sim_events()` API. This vignette
+introduces it and shows how to translate code using the old functions.
 
 # The `sim_model()` Interface
 
@@ -188,20 +166,26 @@ head(checkup_data)
 The `checkup > 0 &` keeps the effect off before the first checkup, when
 `event_time(checkup, -1)` is `0`.
 
-# Reproducing the Preset Wrappers
+# Translating the Preset Wrappers
 
 ## `simSurvData()`
 
 `simSurvData()`'s default (`beta = NULL`, i.e. no covariate effects) is two
-terminal processes, censoring and death, both with `eta = 0.1`, `nu = 1.1`:
+terminal processes, censoring and death, both with `eta = 0.1`, `nu = 1.1`. The
+old call
+
+```{r}
+#| label: simsurvdata-old
+#| eval: false
+
+simSurvData(200)
+```
+
+becomes
 
 ```{r}
 #| label: simsurvdata-equivalence
 
-set.seed(1405)
-wrapper_data <- simSurvData(200)
-
-set.seed(1405)
 model <- sim_model(
   L0 = sim_covariate(function(N) runif(N)),
   A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
@@ -209,22 +193,28 @@ model <- sim_model(
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
 model_data <- sim_events(model, n = 200)
-
-compare_model(wrapper_data, model_data)
 ```
+
+The old functions coded events as integers in `Delta`; `sim_events()` returns
+the process name in `event`, and `id`/`time` in place of `ID`/`Time`.
 
 ## `simCRdata()`
 
 `simCRdata()` adds a third terminal process (a second competing cause):
 
 ```{r}
+#| label: simcrdata-old
+#| eval: false
+
+beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
+simCRdata(N = 200, beta = beta)
+```
+
+becomes
+
+```{r}
 #| label: simcrdata-equivalence
 
-set.seed(1405)
-beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
-wrapper_data <- simCRdata(N = 200, beta = beta)
-
-set.seed(1405)
 model <- sim_model(
   L0 = sim_covariate(function(N) runif(N)),
   A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
@@ -238,24 +228,19 @@ model <- sim_model(
   )
 )
 model_data <- sim_events(model, n = 200)
-
-compare_model(wrapper_data, model_data)
 ```
 
 ## `simDisease()`
 
 `simDisease()` has a censoring process, a terminal death process, and a
 covariate process `L` that can happen at most once and can itself affect death;
-a `"transient"` process with `limit = 1`. Since `L` can fire, the simulation
-loop can run more than once per individual, so `sim_events()`'s random draws no
-longer line up one-to-one with `simDisease()`'s (see the note on
-`compare_model()` above); event-type proportions are compared instead:
+a `"transient"` process with `limit = 1`:
 
 ```{r}
-#| label: simdisease-equivalence
+#| label: simdisease-old
+#| eval: false
 
-set.seed(1405)
-wrapper_data <- simDisease(
+simDisease(
   N = 5000,
   cens = 1,
   eta = c(0.1, 0.3, 0.1),
@@ -265,6 +250,12 @@ wrapper_data <- simDisease(
   beta_L_D = 1,
   beta_L0_D = 0
 )
+```
+
+becomes
+
+```{r}
+#| label: simdisease-equivalence
 
 model <- sim_model(
   L0 = sim_covariate(function(N) runif(N)),
@@ -279,11 +270,6 @@ model <- sim_model(
   )
 )
 model_data <- sim_events(model, n = 5000)
-
-rbind(
-  simDisease = prop.table(table(wrapper_data$Delta)),
-  sim_model = prop.table(table(model_data$event))
-)
 ```
 
 ## `simTreatment()`
@@ -291,13 +277,13 @@ rbind(
 `simTreatment()` (with `op = 1`, the default) adds a second `"transient"`
 process, treatment (`A`), which can itself affect and be affected by the
 covariate process `L`. `simTreatment()` doesn't declare its own `A0`, so its
-reproduction skips it too: `sim_model()` has no default covariates.
+translation skips it too: `sim_model()` has no default covariates.
 
 ```{r}
-#| label: simtreatment-equivalence
+#| label: simtreatment-old
+#| eval: false
 
-set.seed(1405)
-wrapper_data <- simTreatment(
+simTreatment(
   N = 5000,
   beta_L_A = 1,
   beta_L_D = 1,
@@ -309,6 +295,12 @@ wrapper_data <- simTreatment(
   cens = 1,
   op = 1
 )
+```
+
+becomes
+
+```{r}
+#| label: simtreatment-equivalence
 
 model <- sim_model(
   L0 = sim_covariate(function(N) runif(N)),
@@ -327,11 +319,6 @@ model <- sim_model(
   )
 )
 model_data <- sim_events(model, n = 5000)
-
-rbind(
-  simTreatment = prop.table(table(wrapper_data$Delta)),
-  sim_model = prop.table(table(model_data$event))
-)
 ```
 
 ## `simStatinData()`
@@ -374,8 +361,8 @@ hazard of the disease process `L`:
 
 ```{r}
 #| label: alphasim-old
+#| eval: false
 
-set.seed(1405)
 alphaSim(
   N = 5000,
   eta = rep(0.1, 3),

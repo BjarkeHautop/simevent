@@ -409,13 +409,21 @@ test_that("sim_events's transient process respects a custom limit", {
 
 test_that("sim_model_from_fits recovers the fitted event-type distribution", {
   set.seed(1405)
-  beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
-  observed_data <- .simCRdata(N = 2000, beta = beta)
+  observed_data <- sim_cr_data(2000)
 
   fits <- list(
-    censoring = coxph(Surv(Time, Delta == 0) ~ L0 + A0, data = observed_data),
-    cause1 = coxph(Surv(Time, Delta == 1) ~ L0 + A0, data = observed_data),
-    cause2 = coxph(Surv(Time, Delta == 2) ~ L0 + A0, data = observed_data)
+    censoring = coxph(
+      Surv(time, event == "censoring") ~ L0 + A0,
+      data = observed_data
+    ),
+    cause1 = coxph(
+      Surv(time, event == "cause1") ~ L0 + A0,
+      data = observed_data
+    ),
+    cause2 = coxph(
+      Surv(time, event == "cause2") ~ L0 + A0,
+      data = observed_data
+    )
   )
   types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 
@@ -425,19 +433,19 @@ test_that("sim_model_from_fits recovers the fitted event-type distribution", {
   new_data <- sim_events(model, n = 5000)
   expect_setequal(names(new_data), c("id", "time", "event", "L0", "A0"))
 
-  observed_props <- prop.table(table(observed_data$Delta))
+  causes <- c("censoring", "cause1", "cause2")
+  observed_props <- prop.table(table(observed_data$event))
   simulated_props <- prop.table(table(new_data$event))
   expect_equal(
-    as.numeric(observed_props),
-    as.numeric(simulated_props[c("censoring", "cause1", "cause2")]),
+    as.numeric(observed_props[causes]),
+    as.numeric(simulated_props[causes]),
     tolerance = 0.05
   )
 })
 
 test_that("sim_model_from_fits builds sim_derived() dummies for a factor covariate", {
   set.seed(1405)
-  beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
-  observed_data <- .simCRdata(N = 3000, beta = beta)
+  observed_data <- sim_cr_data(3000)
   observed_data$region <- factor(sample(
     c("a", "b", "c"),
     nrow(observed_data),
@@ -447,11 +455,14 @@ test_that("sim_model_from_fits builds sim_derived() dummies for a factor covaria
 
   fits <- list(
     censoring = coxph(
-      Surv(Time, Delta == 0) ~ L0 + region,
+      Surv(time, event == "censoring") ~ L0 + region,
       data = observed_data
     ),
-    cause1 = coxph(Surv(Time, Delta == 1) ~ L0 + region, data = observed_data),
-    cause2 = coxph(Surv(Time, Delta == 2) ~ L0, data = observed_data)
+    cause1 = coxph(
+      Surv(time, event == "cause1") ~ L0 + region,
+      data = observed_data
+    ),
+    cause2 = coxph(Surv(time, event == "cause2") ~ L0, data = observed_data)
   )
   types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 
@@ -472,20 +483,21 @@ test_that("sim_model_from_fits builds sim_derived() dummies for a factor covaria
 })
 
 test_that("sim_model_from_fits validates types/fits/limits", {
-  fit <- coxph(Surv(Time, Delta == 0) ~ L0, data = .simSurvData(100))
+  data <- sim_cr_data(100)
+  fit <- coxph(Surv(time, event == "censoring") ~ L0, data = data)
 
   expect_error(
-    sim_model_from_fits(list(a = fit), .simSurvData(100), c(b = "censoring")),
+    sim_model_from_fits(list(a = fit), data, c(b = "censoring")),
     "permutation"
   )
   expect_error(
-    sim_model_from_fits(list(a = fit), .simSurvData(100), c(a = "bogus")),
+    sim_model_from_fits(list(a = fit), data, c(a = "bogus")),
     "subset"
   )
   expect_error(
     sim_model_from_fits(
       list(a = "not a fit"),
-      .simSurvData(100),
+      data,
       c(a = "censoring")
     ),
     "coxph"
@@ -635,11 +647,11 @@ test_that("sim_model_from_fits handles transformed and interaction terms", {
 })
 
 test_that("sim_model_from_fits errors on a fit with too few events", {
-  data <- .simSurvData(100)
-  types <- c(censoring = "censoring", death = "terminal")
+  data <- sim_cr_data(100)
+  types <- c(censoring = "censoring", cause1 = "terminal")
   fits <- list(
-    censoring = coxph(Surv(Time, Delta == 99) ~ L0, data = data),
-    death = coxph(Surv(Time, Delta == 1) ~ L0, data = data)
+    censoring = coxph(Surv(time, event == "bogus") ~ L0, data = data),
+    cause1 = coxph(Surv(time, event == "cause1") ~ L0, data = data)
   )
   expect_error(sim_model_from_fits(fits, data, types), "no events")
 })
