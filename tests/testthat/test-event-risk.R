@@ -1,5 +1,5 @@
 test_that("event_risk recovers a single terminal process's Weibull risk", {
-  set.seed(400)
+  withr::local_seed(400)
   model <- sim_model(
     death = sim_process("terminal", eta = 0.1, nu = 1.1)
   )
@@ -25,7 +25,7 @@ test_that("event_risk recovers a single terminal process's Weibull risk", {
 })
 
 test_that("event_risk counts only the first event of a transient process", {
-  set.seed(401)
+  withr::local_seed(401)
   model <- sim_model(
     death = sim_process("terminal", eta = 0.3, nu = 1),
     relapse = sim_process("transient", eta = 0.5, nu = 1)
@@ -44,7 +44,7 @@ test_that("event_risk counts only the first event of a transient process", {
 })
 
 test_that("event_risk summarises several processes and within by-groups", {
-  set.seed(402)
+  withr::local_seed(402)
   model <- sim_model(
     A0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
@@ -61,7 +61,7 @@ test_that("event_risk summarises several processes and within by-groups", {
 })
 
 test_that("event_risk detects the effect of a sim_events() intervention", {
-  set.seed(403)
+  withr::local_seed(403)
   model <- sim_model(
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     disease = sim_process("transient", eta = 0.2, nu = 1.1, limit = 1)
@@ -80,7 +80,7 @@ test_that("event_risk detects the effect of a sim_events() intervention", {
 })
 
 test_that("event_risk warns when individuals are censored before tau", {
-  set.seed(404)
+  withr::local_seed(404)
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.2, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1)

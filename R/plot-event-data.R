@@ -30,22 +30,13 @@ plot_event_data <- function(data, title = "Event Data") {
   ]
   data[, event := as.character(event)]
 
-  # Extract unique patient IDs and number of patients
-  n <- length(unique(data$id))
-
-  # We order according to time
+  # Individuals ordered by end of follow-up, each line starting at time 0.
   ordering <- data[, list(max_time = max(time)), by = id]
-  data.table::setkey(ordering, max_time)
-
-  # We add the start time to the data set
+  data.table::setorder(ordering, max_time)
   data[, id := factor(id, levels = ordering$id)]
   plotdata <- rbind(
     data,
-    data.table::data.table(
-      id = unique(data$id),
-      time = rep(0, n),
-      event = rep("start", n)
-    )
+    data.table::data.table(id = unique(data$id), time = 0, event = "start")
   )
 
   ggplot2::ggplot(plotdata) +
@@ -69,7 +60,7 @@ plot_event_data <- function(data, title = "Event Data") {
     ggplot2::labs(
       title = title,
       x = "Time",
-      y = "Patient ID",
+      y = "Individual",
       shape = "Event Type",
       color = "Event Type"
     ) +

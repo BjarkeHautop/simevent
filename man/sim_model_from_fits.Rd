@@ -4,7 +4,7 @@
 \alias{sim_model_from_fits}
 \title{Build a \code{sim_model()} from Fitted Cox Models}
 \usage{
-sim_model_from_fits(fits, data, types, limits = list())
+sim_model_from_fits(fits, data, types, limits = numeric())
 }
 \arguments{
 \item{fits}{Named list of \code{\link[survival:coxph]{survival::coxph()}} fits, one per process.}
@@ -17,8 +17,8 @@ covariates are resampled from each id's first row.}
 \code{\link[=sim_process]{sim_process()}} \code{type} (\code{"censoring"}, \code{"terminal"}, or \code{"transient"}),
 with the same names as \code{fits}.}
 
-\item{limits}{Named list giving \code{limit} for any \code{"transient"} process not
-using the default (\code{limit = Inf}).}
+\item{limits}{Named numeric vector giving \code{limit} for any \code{"transient"}
+process not using the default (\code{limit = Inf}).}
 }
 \value{
 A \code{\link[=sim_model]{sim_model()}}, ready for \code{\link[=sim_events]{sim_events()}}.

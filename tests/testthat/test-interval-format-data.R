@@ -1,5 +1,5 @@
 test_that("interval_format_data builds tstart/tstop intervals from sim_events() output", {
-  set.seed(300)
+  withr::local_seed(300)
   model <- sim_model(
     L0 = sim_covariate(function(N) runif(N)),
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
@@ -9,14 +9,14 @@ test_that("interval_format_data builds tstart/tstop intervals from sim_events() 
 
   data_int <- interval_format_data(data)
 
-  expect_true(all(c("tstart", "tstop", "k") %in% names(data_int)))
+  expect_contains(names(data_int), c("tstart", "tstop", "k"))
   expect_true(all(data_int$tstart < data_int$tstop))
   first_rows <- data_int[data_int$k == 1, ]
-  expect_true(all(first_rows$tstart == 0))
+  expect_in(first_rows$tstart, 0)
 })
 
 test_that("interval_format_data lags a transient process's count by one row per id", {
-  set.seed(301)
+  withr::local_seed(301)
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1),
@@ -41,8 +41,8 @@ test_that("interval_format_data lags a transient process's count by one row per 
   }
 })
 
-test_that("interval_format_data splits intervals at t_prime when time_var = TRUE", {
-  set.seed(302)
+test_that("interval_format_data splits intervals at t_prime", {
+  withr::local_seed(302)
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1)
@@ -50,22 +50,23 @@ test_that("interval_format_data splits intervals at t_prime when time_var = TRUE
   data <- sim_events(model, n = 100)
   t_prime <- stats::median(data$time)
 
-  data_int <- interval_format_data(data, time_var = TRUE, t_prime = t_prime)
+  data_int <- interval_format_data(data, t_prime = t_prime)
 
   # No remaining interval should straddle t_prime once splitting is applied.
-  expect_true(!any(data_int$tstart < t_prime & data_int$tstop > t_prime))
+  expect_false(any(data_int$tstart < t_prime & data_int$tstop > t_prime))
   expect_true(any(data_int$tstop == t_prime))
 })
 
-test_that("interval_format_data requires t_prime when time_var = TRUE", {
+test_that("interval_format_data only splits intervals given t_prime", {
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1)
   )
   data <- sim_events(model, n = 10, seed = 1)
 
-  expect_error(interval_format_data(data, time_var = TRUE), "t_prime")
-  expect_no_error(interval_format_data(data, t_prime = NULL))
+  data_int <- interval_format_data(data)
+  expect_equal(nrow(data_int), nrow(data))
+  expect_false("t_group" %in% names(data_int))
 })
 
 test_that("interval_format_data labels the pre-t_prime half of a split as \"none\"", {
@@ -76,11 +77,11 @@ test_that("interval_format_data labels the pre-t_prime half of a split as \"none
   data <- sim_events(model, n = 100, seed = 2)
   t_prime <- stats::median(data$time)
 
-  data_int <- interval_format_data(data, time_var = TRUE, t_prime = t_prime)
+  data_int <- interval_format_data(data, t_prime = t_prime)
 
   split_rows <- data_int[data_int$event == "none", ]
   expect_gt(nrow(split_rows), 0)
-  expect_true(all(split_rows$tstop == t_prime))
+  expect_in(split_rows$tstop, t_prime)
   expect_false(anyNA(data_int$event))
 })
 

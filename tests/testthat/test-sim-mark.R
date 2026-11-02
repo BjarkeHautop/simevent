@@ -138,7 +138,7 @@ test_that("a mark with no incoming effects gets lp = 0", {
     death = sim_process("terminal", eta = 0.2, nu = 1)
   )
   data <- sim_events(model, n = 100, max_cens = 5, seed = 1)
-  expect_true(all(data$m == ifelse(data$visit > 0, 0, 1)))
+  expect_equal(data$m, ifelse(data$visit > 0, 0, 1))
 })
 
 test_that("effects into a mark don't change any hazard", {
@@ -174,7 +174,7 @@ test_that("intervening on a mark fixes it for all time", {
     effects = list(sim_effect(bp ~ bp, coef = 1))
   )
   data <- sim_events(model, n = 100, intervene = list(bp = 3), seed = 1)
-  expect_true(all(data$bp == 3))
+  expect_in(data$bp, 3)
 })
 
 test_that("sim_events outputs each mark's baseline value after it", {
@@ -199,11 +199,11 @@ test_that("sim_events outputs each mark's baseline value after it", {
     c("id", "time", "event", "bp", "bp_0", "age", "visit")
   )
   bp_0 <- NULL
-  expect_true(all(data[, data.table::uniqueN(bp_0), by = id]$V1 == 1))
+  expect_in(data[, data.table::uniqueN(bp_0), by = id]$V1, 1)
   expect_equal(data$bp_0[data$visit == 0], data$bp[data$visit == 0])
 
   fixed <- sim_events(model, n = 10, intervene = list(bp = 3), seed = 1)
-  expect_true(all(fixed$bp_0 == 3))
+  expect_in(fixed$bp_0, 3)
 })
 
 test_that("sim_model rejects nodes named like a mark's baseline column", {

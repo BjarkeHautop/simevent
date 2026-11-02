@@ -59,5 +59,5 @@ test_that("plot_event_data lets the caller override the palette", {
     )
   expect_s3_class(p, "ggplot")
   built <- ggplot2::ggplot_build(p)
-  expect_true(all(built$data[[2]]$colour %in% c("blue", "red")))
+  expect_in(built$data[[2]]$colour, c("blue", "red"))
 })

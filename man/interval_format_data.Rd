@@ -8,7 +8,6 @@ interval_format_data(
   data,
   proc_cols = character(0),
   mark_cols = character(0),
-  time_var = FALSE,
   t_prime = NULL
 )
 }
@@ -24,9 +23,7 @@ time-varying covariates: each row then holds the value \emph{before} its
 event, i.e. the one in force during its interval, taken from the
 \verb{<name>_0} baseline column for the first row.}
 
-\item{time_var}{Logical. Split intervals at \code{t_prime}? Default \code{FALSE}.}
-
-\item{t_prime}{Numeric. Split time. Adds a \code{t_group} column (1 before,
+\item{t_prime}{Numeric. Optional time to split intervals at. Adds a \code{t_group} column (1 before,
 2 after), so an effect can differ between the periods (see Examples).
 The first half of a split interval has \code{event = "none"}.}
 }
@@ -65,7 +62,7 @@ model_tv <- sim_model(
   effects = list(sim_effect(death ~ L0 * (t < 2), coef = 1))
 )
 data_tv <- sim_events(model_tv, n = 2000)
-data_split <- interval_format_data(data_tv, time_var = TRUE, t_prime = 2)
+data_split <- interval_format_data(data_tv, t_prime = 2)
 
 # One L0 coefficient per period: about 1 before t_prime, about 0 after.
 survival::coxph(

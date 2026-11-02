@@ -11,8 +11,6 @@ sim_events(
   cens = 1,
   max_cens = Inf,
   max_events = 50,
-  lower = 1e-25,
-  upper = 1e+08,
   time_step = 0.01,
   seed = NULL
 )
@@ -35,10 +33,6 @@ ends at the last \code{time} of any \code{\link[=sim_process]{sim_process()}} \c
 
 \item{max_events}{Integer. Maximum number of events per individual.
 Default 50.}
-
-\item{lower, upper}{Numeric. Root-finding bounds, used when processes have
-different Weibull parameters, with \verb{0 <= lower < upper}. Defaults
-\code{1e-25}/\code{1e8}.}
 
 \item{time_step}{Numeric. Grid step on which \code{\link[=sim_effect]{sim_effect()}}s using \code{t}
 are evaluated; ignored if none do. Smaller is more accurate but slower.

@@ -78,6 +78,11 @@ event_risk <- function(
   # columns are baseline covariates, so the first row's value is the value.
   individuals <- unique(data[, c("id", by), with = FALSE], by = "id")
 
+  estimate <- if (type == "risk") {
+    function(first_time) mean(first_time <= tau)
+  } else {
+    function(first_time) mean(tau - pmin(first_time, tau))
+  }
   res <- lapply(process, function(proc) {
     first <- data[
       event == proc,
@@ -86,12 +91,7 @@ event_risk <- function(
     ]
     ind <- merge(individuals, first, by = "id", all.x = TRUE)
     ind[is.na(first_time), first_time := Inf]
-    value <- if (type == "risk") {
-      quote(mean(first_time <= tau))
-    } else {
-      quote(mean(tau - pmin(first_time, tau)))
-    }
-    out <- ind[, list(estimate = eval(value)), keyby = by]
+    out <- ind[, list(estimate = estimate(first_time)), keyby = by]
     out[, process := proc]
     out
   })

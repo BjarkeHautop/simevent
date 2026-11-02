@@ -88,7 +88,7 @@ test_that("sim_model validates sim_derived() dependency ordering", {
 })
 
 test_that("sim_events recovers categorical-level effects via sim_derived", {
-  set.seed(1405)
+  withr::local_seed(1405)
 
   model <- sim_model(
     region = sim_covariate(function(N) {
@@ -109,7 +109,7 @@ test_that("sim_events recovers categorical-level effects via sim_derived", {
     names(data),
     c("id", "time", "event", "region", "region2", "region3")
   )
-  expect_true(all(data$region2 %in% c(0, 1)))
+  expect_in(data$region2, c(0, 1))
 
   fit <- coxph(Surv(time, event == "death") ~ factor(region), data = data)
   ci <- confint(fit)
@@ -128,11 +128,11 @@ test_that("sim_events's intervene fixes a sim_derived() covariate too", {
   )
   data <- sim_events(model, n = 50, intervene = list(region2 = 1))
 
-  expect_true(all(data$region2 == 1))
+  expect_in(data$region2, 1)
 })
 
 test_that("sim_events adds no columns for a model without covariates", {
-  set.seed(1405)
+  withr::local_seed(1405)
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.1, nu = 1.1)
@@ -143,7 +143,7 @@ test_that("sim_events adds no columns for a model without covariates", {
 })
 
 test_that("sim_events recovers effect coefficients", {
-  set.seed(1405)
+  withr::local_seed(1405)
 
   model <- sim_model(
     L0 = sim_covariate(function(N) rbinom(N, 1, 0.4)),
@@ -204,7 +204,7 @@ test_that("sim_events recovers an effect that changes with t", {
 
   fit <- coxph(
     Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
-    data = interval_format_data(data, time_var = TRUE, t_prime = 2)
+    data = interval_format_data(data, t_prime = 2)
   )
   expect_ci_covers(fit, c(1, 0))
 })
@@ -263,7 +263,7 @@ test_that("sim_events recovers an effect of time since the latest event", {
 })
 
 test_that("sim_events: a threshold sim_effect() fires specifically on the k-th jump", {
-  set.seed(1)
+  withr::local_seed(1)
 
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.01, nu = 1),
@@ -290,7 +290,7 @@ test_that("sim_effect() expressions use functions from the formula's environment
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(make_effect())
   )
-  phi <- process_hazard_multipliers(
+  phi <- .sim_process_hazard_multipliers(
     model$effects,
     covariates = list(age = 70),
     event_counts = list(death = 0),
@@ -300,7 +300,7 @@ test_that("sim_effect() expressions use functions from the formula's environment
 })
 
 test_that("sim_events reports named transient-process event counts", {
-  set.seed(1405)
+  withr::local_seed(1405)
 
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
@@ -311,12 +311,12 @@ test_that("sim_events reports named transient-process event counts", {
   data <- sim_events(model, n = 500)
 
   expect_setequal(names(data), c("id", "time", "event", "relapse"))
-  expect_true(all(data$relapse >= 0))
-  expect_true(any(data$relapse > 0))
+  expect_gte(min(data$relapse), 0)
+  expect_gt(max(data$relapse), 0)
 })
 
 test_that("sim_events intervene fixes covariates and scales process intensities", {
-  set.seed(1405)
+  withr::local_seed(1405)
 
   model <- sim_model(
     L0 = sim_covariate(function(N) rbinom(N, 1, 0.4)),
@@ -325,12 +325,13 @@ test_that("sim_events intervene fixes covariates and scales process intensities"
   )
 
   data_fixed <- sim_events(model, n = 100, intervene = list(L0 = 1))
-  expect_true(all(data_fixed$L0 == 1))
+  expect_in(data_fixed$L0, 1)
 
   data_base <- sim_events(model, n = 5000)
   data_high <- sim_events(model, n = 5000, intervene = list(death = 10))
-  expect_true(
-    mean(data_high$event == "death") > mean(data_base$event == "death")
+  expect_gt(
+    mean(data_high$event == "death"),
+    mean(data_base$event == "death")
   )
 
   expect_error(
@@ -358,17 +359,11 @@ test_that("sim_events validates its numeric arguments", {
   expect_error(sim_events(model, n = 10, max_cens = -1), "max_cens")
   expect_error(sim_events(model, n = 10, max_events = 0), "max_events")
   expect_error(sim_events(model, n = 10, max_events = 2.5), "max_events")
-  expect_error(sim_events(model, n = 10, lower = -1), "lower")
-  expect_error(sim_events(model, n = 10, upper = Inf), "upper")
-  expect_error(
-    sim_events(model, n = 10, lower = 10, upper = 1),
-    "lower must be smaller than upper"
-  )
   expect_no_error(sim_events(model, n = 10, cens = 0, max_cens = 5))
 })
 
 test_that("sim_events's transient process is unlimited by default", {
-  set.seed(1405)
+  withr::local_seed(1405)
 
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
@@ -377,11 +372,11 @@ test_that("sim_events's transient process is unlimited by default", {
   )
   data <- sim_events(model, n = 500)
 
-  expect_true(any(data$illness > 1))
+  expect_gt(max(data$illness), 1)
 })
 
 test_that("sim_events's transient process respects limit = 1", {
-  set.seed(1405)
+  withr::local_seed(1405)
 
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
@@ -390,11 +385,11 @@ test_that("sim_events's transient process respects limit = 1", {
   )
   data <- sim_events(model, n = 500)
 
-  expect_true(all(data$illness <= 1))
+  expect_lte(max(data$illness), 1)
 })
 
 test_that("sim_events's transient process respects a custom limit", {
-  set.seed(1405)
+  withr::local_seed(1405)
 
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
@@ -403,12 +398,11 @@ test_that("sim_events's transient process respects a custom limit", {
   )
   data <- sim_events(model, n = 500)
 
-  expect_true(all(data$illness <= 2))
-  expect_true(any(data$illness == 2))
+  expect_equal(max(data$illness), 2)
 })
 
 test_that("sim_model_from_fits recovers the fitted event-type distribution", {
-  set.seed(1405)
+  withr::local_seed(1405)
   observed_data <- sim_cr_data(2000)
 
   fits <- list(
@@ -444,7 +438,7 @@ test_that("sim_model_from_fits recovers the fitted event-type distribution", {
 })
 
 test_that("sim_model_from_fits builds sim_derived() dummies for a factor covariate", {
-  set.seed(1405)
+  withr::local_seed(1405)
   observed_data <- sim_cr_data(3000)
   observed_data$region <- factor(sample(
     c("a", "b", "c"),
@@ -477,7 +471,7 @@ test_that("sim_model_from_fits builds sim_derived() dummies for a factor covaria
     names(new_data),
     c("id", "time", "event", "L0", "region", "regionb", "regionc")
   )
-  expect_true(all(new_data$region %in% 1:3))
+  expect_in(new_data$region, 1:3)
   expect_equal(new_data$regionb, as.numeric(new_data$region == 2))
   expect_equal(new_data$regionc, as.numeric(new_data$region == 3))
 })
@@ -505,7 +499,7 @@ test_that("sim_model_from_fits validates types/fits/limits", {
 })
 
 test_that("sim_model_from_fits wires a cross-process effect, not a bogus covariate", {
-  set.seed(1405)
+  withr::local_seed(1405)
 
   observed_model <- sim_model(
     L0 = sim_covariate(function(N) runif(N)),
@@ -545,14 +539,18 @@ test_that("sim_model_from_fits wires a cross-process effect, not a bogus covaria
     function(e) paste(e$from, e$to, sep = "->"),
     character(1)
   )
-  expect_true("relapse->death" %in% effect_pairs)
+  expect_contains(effect_pairs, "relapse->death")
 
   new_data <- sim_events(model, n = 100)
   expect_setequal(names(new_data), c("id", "time", "event", "L0", "relapse"))
+
+  limited <- sim_model_from_fits(fits, observed_data, types, c(relapse = 2))
+  expect_equal(limited$processes$relapse$limit, 2)
+  expect_equal(model$processes$relapse$limit, Inf)
 })
 
 test_that("sim_model_from_fits resamples observed covariate rows jointly", {
-  set.seed(1405)
+  withr::local_seed(1405)
   observed_model <- sim_model(
     L0 = sim_covariate(function(N) runif(N)),
     A0 = sim_covariate(function(N, L0) rbinom(N, 1, plogis(-3 + 6 * L0))),
@@ -573,7 +571,7 @@ test_that("sim_model_from_fits resamples observed covariate rows jointly", {
   model <- sim_model_from_fits(fits, observed_data, types)
   new_data <- sim_events(model, n = 1000)
 
-  expect_true(all(new_data$L0 %in% observed_data$L0))
+  expect_in(new_data$L0, observed_data$L0)
   expect_equal(
     cor(new_data$L0, new_data$A0),
     cor(observed_data$L0, observed_data$A0),
@@ -584,7 +582,7 @@ test_that("sim_model_from_fits resamples observed covariate rows jointly", {
 })
 
 test_that("sim_model_from_fits uses one row per id", {
-  set.seed(1405)
+  withr::local_seed(1405)
   observed_model <- sim_model(
     L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
@@ -623,7 +621,7 @@ test_that("sim_model_from_fits uses one row per id", {
 })
 
 test_that("sim_model_from_fits handles transformed and interaction terms", {
-  set.seed(1405)
+  withr::local_seed(1405)
   observed_model <- sim_model(
     L0 = sim_covariate(function(N) runif(N)),
     A0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
@@ -740,9 +738,9 @@ test_that("sim_events is reproducible with seed and leaves the global RNG alone"
   expect_equal(x, y)
   expect_false(isTRUE(all.equal(x, z)))
 
-  set.seed(10)
+  withr::local_seed(10)
   expected <- runif(1)
-  set.seed(10)
+  withr::local_seed(10)
   sim_events(model, n = 50, seed = 1)
   expect_equal(runif(1), expected)
 
@@ -761,7 +759,7 @@ test_that("sim_events labels events by process name, in declared order", {
   expect_equal(levels(data$event), c("relapse", "death", "censoring"))
   # Each individual's last row, and only that row, ends follow-up.
   last <- data[, .SD[.N], by = id]
-  expect_true(all(last$event %in% c("death", "censoring")))
+  expect_in(last$event, c("death", "censoring"))
   expect_equal(sum(data$event %in% c("death", "censoring")), 200)
 })
 
@@ -772,8 +770,8 @@ test_that("sim_events labels administrative censoring as max_cens", {
   data <- sim_events(model, n = 200, max_cens = 1, seed = 1)
 
   expect_equal(levels(data$event), c("death", "max_cens"))
-  expect_true(all(data$event[data$time == 1] == "max_cens"))
-  expect_true(all(data$event[data$time < 1] == "death"))
+  expect_in(data$event[data$time == 1], "max_cens")
+  expect_in(data$event[data$time < 1], "death")
   expect_gt(sum(data$event == "max_cens"), 150)
 
   # Without max_cens, "max_cens" isn't a level at all.
@@ -800,7 +798,7 @@ test_that("sim_events: an effect using t switches off between events", {
     effects = list(sim_effect(death ~ L0 * (t < 2), coef = 1))
   )
   data <- sim_events(model, n = 6000, seed = 11)
-  data_split <- interval_format_data(data, time_var = TRUE, t_prime = 2)
+  data_split <- interval_format_data(data, t_prime = 2)
 
   fit <- coxph(
     Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
@@ -843,8 +841,8 @@ test_that("sim_events: effects using t respect max_cens", {
   )
   data <- sim_events(model, n = 200, max_cens = 1.234, seed = 13)
 
-  expect_true(all(data$time <= 1.234))
-  expect_true(all(data$event[data$time == 1.234] == "max_cens"))
+  expect_lte(max(data$time), 1.234)
+  expect_in(data$event[data$time == 1.234], "max_cens")
   expect_gt(sum(data$event == "max_cens"), 150)
 })
 
@@ -913,7 +911,7 @@ test_that("a cumhaz process follows its cumulative hazard curve", {
 
   # Follow-up ends where the curve does:
   expect_equal(max(data$time), 6)
-  expect_true(all(data$time[data$event == "max_cens"] == 6))
+  expect_in(data$time[data$event == "max_cens"], 6)
   expect_equal(mean(data$event == "max_cens"), exp(-2), tolerance = 0.05)
   shorter <- sim_events(model, n = 100, max_cens = 2, seed = 1)
   expect_equal(max(shorter$time), 2)
@@ -937,7 +935,7 @@ test_that("a cumhaz process works with Weibull processes and time-varying effect
     effects = list(sim_effect(death ~ L0 * (t < 2), 1))
   )
   data <- sim_events(model, n = 10000, seed = 1)
-  data_split <- interval_format_data(data, time_var = TRUE, t_prime = 2)
+  data_split <- interval_format_data(data, t_prime = 2)
   fit <- coxph(
     Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
     data = data_split

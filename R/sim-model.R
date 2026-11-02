@@ -70,7 +70,7 @@ sim_derived <- function(fn) {
   structure(list(fn = fn), class = "sim_derived")
 }
 
-# Wraps a sim_derived() fn into a generator draw_baseline_covariates() can
+# Wraps a sim_derived() fn into a generator .sim_draw_baseline_covariates() can
 # call like any other covariate generator (which always passes N first).
 .sim_wrap_derived <- function(fn) {
   wrapper <- function() {}
@@ -868,9 +868,6 @@ print.sim_process <- function(x, ...) {
 #'   ends at the last `time` of any [sim_process()] `cumhaz` curve.
 #' @param max_events Integer. Maximum number of events per individual.
 #'   Default 50.
-#' @param lower,upper Numeric. Root-finding bounds, used when processes have
-#'   different Weibull parameters, with `0 <= lower < upper`. Defaults
-#'   `1e-25`/`1e8`.
 #' @param time_step Numeric. Grid step on which [sim_effect()]s using `t`
 #'   are evaluated; ignored if none do. Smaller is more accurate but slower.
 #'   Default `0.01`.
@@ -925,8 +922,6 @@ sim_events <- function(
   cens = 1,
   max_cens = Inf,
   max_events = 50,
-  lower = 1e-25,
-  upper = 1e8,
   time_step = 0.01,
   seed = NULL
 ) {
@@ -940,11 +935,6 @@ sim_events <- function(
     stop("max_cens must be positive.")
   }
   checkmate::assert_count(max_events, positive = TRUE)
-  checkmate::assert_number(lower, lower = 0, finite = TRUE)
-  checkmate::assert_number(upper, finite = TRUE)
-  if (lower >= upper) {
-    stop("lower must be smaller than upper.")
-  }
   checkmate::assert_number(time_step, lower = 0, finite = TRUE)
   if (time_step == 0) {
     stop("time_step must be positive.")
@@ -977,15 +967,13 @@ sim_events <- function(
   }
 
   run <- function() {
-    run_sim(
+    .sim_run(
       model,
       n = n,
       intervene = intervene,
       cens = cens,
       max_cens = max_cens,
       max_events = max_events,
-      lower = lower,
-      upper = upper,
       time_step = time_step
     )
   }
@@ -1039,7 +1027,7 @@ sim_events <- function(
 # regenerated as its integer codes), with its formal argument literally
 # named `varname` (matching coxph()'s coefficient naming convention
 # paste0(varname, level) for the default treatment contrasts), so
-# draw_baseline_covariates() passes it that covariate by name.
+# .sim_draw_baseline_covariates() passes it that covariate by name.
 .sim_level_dummy <- function(varname, level_code) {
   f <- function() NULL
   formals(f) <- stats::setNames(alist(x = ), varname)
@@ -1084,8 +1072,8 @@ sim_events <- function(
 #' @param types Named character vector giving each process's
 #'   [sim_process()] `type` (`"censoring"`, `"terminal"`, or `"transient"`),
 #'   with the same names as `fits`.
-#' @param limits Named list giving `limit` for any `"transient"` process not
-#'   using the default (`limit = Inf`).
+#' @param limits Named numeric vector giving `limit` for any `"transient"`
+#'   process not using the default (`limit = Inf`).
 #'
 #' @return A [sim_model()], ready for [sim_events()].
 #' @seealso [sim_events()]
@@ -1136,7 +1124,7 @@ sim_events <- function(
 #'   simulated = prop.table(table(new_data$event))
 #' )
 #' @export
-sim_model_from_fits <- function(fits, data, types, limits = list()) {
+sim_model_from_fits <- function(fits, data, types, limits = numeric()) {
   checkmate::assert_list(fits, names = "unique", min.len = 1)
   if (!all(vapply(fits, inherits, logical(1), what = "coxph"))) {
     stop("Every entry of fits must be a survival::coxph() fit.")
@@ -1148,7 +1136,7 @@ sim_model_from_fits <- function(fits, data, types, limits = list()) {
     types,
     c("censoring", "terminal", "transient")
   )
-  checkmate::assert_list(limits, names = "unique")
+  checkmate::assert_numeric(limits, any.missing = FALSE, names = "unique")
   checkmate::assert_subset(names(limits), names(types)[types == "transient"])
 
   var_names <- unique(unlist(lapply(fits, function(fit) {
@@ -1208,7 +1196,7 @@ sim_model_from_fits <- function(fits, data, types, limits = list()) {
   process_nodes <- lapply(stats::setNames(nm = names(fits)), function(proc) {
     sim_process(
       type = types[[proc]],
-      limit = if (is.null(limits[[proc]])) Inf else limits[[proc]],
+      limit = if (proc %in% names(limits)) limits[[proc]] else Inf,
       cumhaz = .sim_basehaz(fits[[proc]], proc)
     )
   })

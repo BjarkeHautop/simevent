@@ -1,7 +1,7 @@
 # Draws baseline covariates in declared order, as a named list of length-N
 # numeric vectors, so a generator may depend on any covariate drawn before
 # it (matched by argument name).
-draw_baseline_covariates <- function(covs, n) {
+.sim_draw_baseline_covariates <- function(covs, n) {
   drawn <- list()
   for (nm in names(covs)) {
     f <- covs[[nm]]
@@ -14,7 +14,7 @@ draw_baseline_covariates <- function(covs, n) {
 # Applies a sim_events() `intervene` list to a model: fixes an
 # intervened covariate/sim_derived() to a constant generator, and scales an
 # intervened process's baseline eta.
-apply_intervention <- function(model, intervene) {
+.sim_apply_intervention <- function(model, intervene) {
   covariate_names <- names(model$covariates)
   process_names <- names(model$processes)
 
@@ -141,7 +141,7 @@ apply_intervention <- function(model, intervene) {
 # sim_effect() coefs * current value of their `from`); see
 # .sim_linear_predictors(). Returns a length(event_counts[[1]]) x
 # length(process_names) matrix.
-process_hazard_multipliers <- function(
+.sim_process_hazard_multipliers <- function(
   effects,
   covariates,
   event_counts,
@@ -265,7 +265,7 @@ process_hazard_multipliers <- function(
 # sum_k rate[, k] * (H_k(t) - H_k(t_now)) = Exp(1) draw for t by bisection
 # on [t_now, max_cens], or returns the increment to max_cens if the draw
 # isn't reached before it.
-sample_next_event_times_general <- function(
+.sim_sample_next_event_times_general <- function(
   t_now,
   phi_alive,
   risk_alive,
@@ -276,40 +276,49 @@ sample_next_event_times_general <- function(
   n <- length(t_now)
   v <- -log(stats::runif(n))
   rate <- t(risk_alive) * rep(eta, each = n) * phi_alive
-  base_now <- .sim_cumhaz_matrix(baselines, t_now)
-  reached <- function(x, ind) {
-    added <- .sim_cumhaz_matrix(baselines, x) -
-      base_now[ind, , drop = FALSE]
-    rowSums(rate[ind, , drop = FALSE] * added) >= v[ind]
-  }
+  added <- .sim_cumhaz_matrix(baselines, rep(max_cens, n)) -
+    .sim_cumhaz_matrix(baselines, t_now)
 
   increment <- max_cens - t_now
-  ind <- which(reached(rep(max_cens, n), seq_len(n)))
-  lo <- t_now[ind]
-  hi <- rep(max_cens, length(ind))
+  ind <- which(rowSums(rate * added) >= v)
+  increment[ind] <- .sim_bisect_cumhaz(
+    t_now[ind],
+    rep(max_cens, length(ind)),
+    rate[ind, , drop = FALSE],
+    baselines,
+    v[ind]
+  ) -
+    t_now[ind]
+  increment
+}
+
+# Solves sum_k rate[, k] * (H_k(x) - H_k(lo)) = target for x in [lo, hi], per
+# row, by bisection (the left-hand side is increasing in x).
+.sim_bisect_cumhaz <- function(lo, hi, rate, baselines, target) {
+  base_lo <- .sim_cumhaz_matrix(baselines, lo)
   for (i in seq_len(60)) {
     mid <- (lo + hi) / 2
-    above <- reached(mid, ind)
+    added <- .sim_cumhaz_matrix(baselines, mid) - base_lo
+    above <- rowSums(rate * added) >= target
     hi[above] <- mid[above]
     lo[!above] <- mid[!above]
   }
-  increment[ind] <- (lo + hi) / 2 - t_now[ind]
-  increment
+  (lo + hi) / 2
 }
 
 # Samples the time increment to each alive individual's next event, for one
 # iteration of the simulation loop: the closed-form vectorized path when
 # every process shares one Weibull shape/scale (same_params), else the
 # per-individual numerical inverse (inverseScHazCpp()).
-sample_next_event_times <- function(
+.sim_sample_next_event_times <- function(
   t_now,
   phi_alive,
   risk_alive,
   eta,
   nu,
   same_params,
-  lower,
-  upper
+  lower = 1e-25,
+  upper = 1e8
 ) {
   v <- -log(stats::runif(length(t_now)))
 
@@ -358,8 +367,8 @@ sample_next_event_times <- function(
 # each individual's Exp(1) draw, and the event time is then solved for
 # exactly within that step. Returns the new absolute event times (max_cens
 # for anyone not reaching an event before it) and the multipliers in force
-# at those times (for sample_event_types()).
-sample_next_event_times_td <- function(
+# at those times (for .sim_sample_event_types()).
+.sim_sample_next_event_times_td <- function(
   t_now,
   covariates,
   event_counts,
@@ -372,7 +381,7 @@ sample_next_event_times_td <- function(
   history,
   max_cens,
   time_step,
-  upper,
+  upper = 1e8,
   max_points = 1e6
 ) {
   n <- length(t_now)
@@ -406,7 +415,7 @@ sample_next_event_times_td <- function(
     # Multipliers at every step midpoint, one row per (individual, step) in
     # rep(searching, times = b) order.
     point_ind <- rep(searching, times = b)
-    phi_pts <- process_hazard_multipliers(
+    phi_pts <- .sim_process_hazard_multipliers(
       effects,
       lapply(covariates, `[`, point_ind),
       lapply(event_counts, `[`, point_ind),
@@ -482,8 +491,7 @@ sample_next_event_times_td <- function(
 
 # Solves sum_k rate[, k] * (H_k(x) - H_k(left)) = remaining for x in
 # [left, right], per row: closed form when every process is Weibull with one
-# shared shape nu, otherwise bisection (the left-hand side is increasing in
-# x).
+# shared shape nu, otherwise bisection.
 .sim_solve_in_step <- function(
   left,
   right,
@@ -496,17 +504,7 @@ sample_next_event_times_td <- function(
     x <- (remaining / rowSums(rate) + left^nu[1])^(1 / nu[1])
     return(pmin(pmax(x, left), right))
   }
-  lo <- left
-  hi <- right
-  base_left <- .sim_cumhaz_matrix(baselines, left)
-  for (i in seq_len(60)) {
-    mid <- (lo + hi) / 2
-    added <- .sim_cumhaz_matrix(baselines, mid) - base_left
-    above <- rowSums(rate * added) >= remaining
-    hi[above] <- mid[above]
-    lo[!above] <- mid[!above]
-  }
-  (lo + hi) / 2
+  .sim_bisect_cumhaz(left, right, rate, baselines, remaining)
 }
 
 # Samples which process fires next for each alive individual, given their
@@ -514,7 +512,7 @@ sample_next_event_times_td <- function(
 # then sampleEventsCpp() draws one event type per individual. Anyone who has
 # reached max_cens gets "max_cens" instead of a process. Returns a character
 # vector of process names (names(eta)).
-sample_event_types <- function(
+.sim_sample_event_types <- function(
   t_alive,
   phi_alive,
   risk_alive,
@@ -587,16 +585,14 @@ sample_event_types <- function(
 # Top-level driver, called by sim_events(): draws baseline covariates,
 # then repeatedly samples a next-event time and type for everyone still
 # alive until all individuals have hit a censoring/terminal event.
-run_sim <- function(
+.sim_run <- function(
   model,
   n,
-  intervene = list(),
-  cens = 1,
-  max_cens = Inf,
-  max_events = 50,
-  lower = 1e-25,
-  upper = 1e8,
-  time_step = 0.01
+  intervene,
+  cens,
+  max_cens,
+  max_events,
+  time_step
 ) {
   process_names <- names(model$processes)
   types <- vapply(model$processes, `[[`, character(1), "type")
@@ -606,8 +602,8 @@ run_sim <- function(
   )
   transient_names <- process_names[types == "transient"]
 
-  intervened <- apply_intervention(model, intervene)
-  covariates <- draw_baseline_covariates(intervened$covs, n)
+  intervened <- .sim_apply_intervention(model, intervene)
+  covariates <- .sim_draw_baseline_covariates(intervened$covs, n)
   is_mark <- vapply(model$covariates, inherits, logical(1), "sim_mark")
   # Each mark's baseline value is also output, as <mark>_0 right after it,
   # since redraws overwrite it.
@@ -676,7 +672,7 @@ run_sim <- function(
     risk_alive <- at_risk_fn(event_counts_alive)
 
     if (uses_time) {
-      draw <- sample_next_event_times_td(
+      draw <- .sim_sample_next_event_times_td(
         t_k[alive],
         covariates_alive,
         event_counts_alive,
@@ -688,13 +684,12 @@ run_sim <- function(
         process_names,
         history = .sim_history_cols(history, alive),
         max_cens = max_cens,
-        time_step = time_step,
-        upper = upper
+        time_step = time_step
       )
       t_k[alive] <- draw$time
       phi_alive <- draw$phi
     } else {
-      phi_alive <- process_hazard_multipliers(
+      phi_alive <- .sim_process_hazard_multipliers(
         process_effects,
         covariates_alive,
         event_counts_alive,
@@ -703,18 +698,16 @@ run_sim <- function(
         history = .sim_history_cols(history, alive)
       )
       w <- if (weibull_only) {
-        sample_next_event_times(
+        .sim_sample_next_event_times(
           t_k[alive],
           phi_alive,
           risk_alive,
           eta,
           nu,
-          same_params,
-          lower,
-          upper
+          same_params
         )
       } else {
-        sample_next_event_times_general(
+        .sim_sample_next_event_times_general(
           t_k[alive],
           phi_alive,
           risk_alive,
@@ -728,7 +721,7 @@ run_sim <- function(
     t_k[t_k > max_cens] <- max_cens
     t_alive <- t_k[alive]
 
-    events <- sample_event_types(
+    events <- .sim_sample_event_types(
       t_alive,
       phi_alive,
       risk_alive,
