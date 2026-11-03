@@ -656,22 +656,26 @@
   )
 
   # Full per-individual history, so sim_effect() expressions can use
-  # event_time() and nodes as functions of time. Only the marks called as
-  # functions of time need their values logged.
+  # event_time() and processes/marks as functions of time. Only kept if some
+  # effect does (NULL otherwise), and only the marks called as functions of
+  # time need their values logged.
   called <- unique(unlist(lapply(model$effects, function(eff) {
     .sim_called(eff$expr)
   })))
   timed_marks <- intersect(called, names(marks))
-  history <- .sim_history(
-    time = matrix(0, nrow = max_events, ncol = n),
-    type = matrix(NA_character_, nrow = max_events, ncol = n),
-    n = 0,
-    marks = lapply(covariates[timed_marks], function(value) {
-      log <- matrix(NA_real_, nrow = max_events + 1, ncol = n)
-      log[1, ] <- value
-      log
-    })
-  )
+  needs_history <- any(c("event_time", process_names, timed_marks) %in% called)
+  history <- if (needs_history) {
+    .sim_history(
+      time = matrix(0, nrow = max_events, ncol = n),
+      type = matrix(NA_character_, nrow = max_events, ncol = n),
+      n = 0,
+      marks = lapply(covariates[timed_marks], function(value) {
+        log <- matrix(NA_real_, nrow = max_events + 1, ncol = n)
+        log[1, ] <- value
+        log
+      })
+    )
+  }
 
   t_k <- rep(0, n)
   alive <- seq_len(n)
@@ -748,11 +752,13 @@
       hit <- alive[events == nm]
       event_counts[[nm]][hit] <- event_counts[[nm]][hit] + 1
     }
-    history$time[idx, ] <- t_k
-    history$type[idx, alive] <- events
-    history$n <- idx
-    for (nm in timed_marks) {
-      history$marks[[nm]][idx + 1, alive] <- covariates[[nm]][alive]
+    if (needs_history) {
+      history$time[idx, ] <- t_k
+      history$type[idx, alive] <- events
+      history$n <- idx
+      for (nm in timed_marks) {
+        history$marks[[nm]][idx + 1, alive] <- covariates[[nm]][alive]
+      }
     }
 
     for (nm in names(marks)) {
