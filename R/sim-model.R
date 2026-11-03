@@ -179,7 +179,7 @@ sim_mark <- function(init, update, draw) {
 #'       recur (e.g. relapse).}
 #'   }
 #' @param eta Numeric. Weibull scale parameter.
-#' @param nu Numeric. Weibull shape parameter: `nu > 1` gives an increasing
+#' @param nu Positive numeric. Weibull shape parameter: `nu > 1` gives an increasing
 #'   hazard, `nu < 1` a decreasing one, `nu = 1` a constant one.
 #' @param limit Integer or `Inf`. Maximum number of events of a
 #'   `"transient"` process. Default `Inf`.
@@ -219,6 +219,9 @@ sim_process <- function(
   if (is.null(cumhaz)) {
     checkmate::assert_number(eta, lower = 0, finite = TRUE)
     checkmate::assert_number(nu, lower = 0, finite = TRUE)
+    if (nu == 0) {
+      stop("sim_process()'s nu must be positive.")
+    }
   } else {
     if (!missing(eta) || !missing(nu)) {
       stop("sim_process() takes either eta and nu, or cumhaz, not both.")

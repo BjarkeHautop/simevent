@@ -111,3 +111,26 @@ test_that("interval_format_data lags a mark, from its baseline value", {
     "bp_0"
   )
 })
+
+test_that("interval_format_data makes no zero-length interval when t_prime is an event time", {
+  model <- sim_model(
+    relapse = sim_process("transient", eta = 0.5, nu = 1),
+    death = sim_process("terminal", eta = 0.2, nu = 1)
+  )
+  data <- sim_events(model, n = 50, max_cens = 3, seed = 2)
+  t_prime <- data$time[data$event == "relapse"][1]
+
+  data_int <- interval_format_data(data, t_prime = t_prime)
+  expect_true(all(data_int$tstart < data_int$tstop))
+  expect_equal(
+    nrow(data_int),
+    nrow(interval_format_data(data)) +
+      sum(data_int$event == "none")
+  )
+})
+
+test_that("interval_format_data checks proc_cols exist", {
+  model <- sim_model(death = sim_process("terminal", eta = 0.2, nu = 1))
+  data <- sim_events(model, n = 5, seed = 1)
+  expect_error(interval_format_data(data, proc_cols = "nope"), "nope")
+})

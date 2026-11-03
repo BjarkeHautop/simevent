@@ -188,7 +188,7 @@ test_that(".sim_process_hazard_multipliers is all-ones with no effects", {
   expect_equal(phi, matrix(1, 2, 2, dimnames = list(NULL, c("a", "b"))))
 })
 
-test_that(".sim_sample_next_event_times: same_params closed form matches a hand solve", {
+test_that(".sim_sample_next_event_times: shared_nu closed form matches a hand solve", {
   withr::local_seed(1)
   t_now <- c(0, 2)
   phi_alive <- matrix(1, nrow = 2, ncol = 1, dimnames = list(NULL, "d"))
@@ -203,7 +203,7 @@ test_that(".sim_sample_next_event_times: same_params closed form matches a hand 
     risk_alive,
     eta,
     nu,
-    same_params = TRUE,
+    shared_nu = TRUE,
     lower = 1e-25,
     upper = 1e8
   )
@@ -215,7 +215,7 @@ test_that(".sim_sample_next_event_times: same_params closed form matches a hand 
   expect_equal(w, expected)
 })
 
-test_that(".sim_sample_next_event_times: same_params and per-individual paths agree when params match", {
+test_that(".sim_sample_next_event_times: shared_nu and per-individual paths agree when params match", {
   t_now <- c(0, 1.5, 3)
   phi_alive <- matrix(
     c(1, 2, 0.5, 1, 1, 1),
@@ -239,7 +239,7 @@ test_that(".sim_sample_next_event_times: same_params and per-individual paths ag
     risk_alive,
     eta,
     nu,
-    same_params = TRUE,
+    shared_nu = TRUE,
     lower = 1e-25,
     upper = 1e8
   )
@@ -251,9 +251,48 @@ test_that(".sim_sample_next_event_times: same_params and per-individual paths ag
     risk_alive,
     eta,
     nu,
-    same_params = FALSE,
+    shared_nu = FALSE,
     lower = 1e-25,
     upper = 1e8
+  )
+
+  expect_equal(w_fast, w_slow, tolerance = 1e-6)
+})
+
+test_that(".sim_sample_next_event_times: shared_nu closed form handles differing eta", {
+  t_now <- c(0, 1.5, 3)
+  phi_alive <- matrix(
+    c(1, 2, 0.5, 1, 1, 1),
+    nrow = 3,
+    ncol = 2,
+    dimnames = list(NULL, c("a", "b"))
+  )
+  risk_alive <- matrix(
+    1,
+    nrow = 2,
+    ncol = 3,
+    dimnames = list(c("a", "b"), NULL)
+  )
+  eta <- c(a = 0.1, b = 0.4)
+  nu <- c(a = 1.4, b = 1.4)
+
+  withr::local_seed(7)
+  w_fast <- .sim_sample_next_event_times(
+    t_now,
+    phi_alive,
+    risk_alive,
+    eta,
+    nu,
+    shared_nu = TRUE
+  )
+  withr::local_seed(7)
+  w_slow <- .sim_sample_next_event_times(
+    t_now,
+    phi_alive,
+    risk_alive,
+    eta,
+    nu,
+    shared_nu = FALSE
   )
 
   expect_equal(w_fast, w_slow, tolerance = 1e-6)

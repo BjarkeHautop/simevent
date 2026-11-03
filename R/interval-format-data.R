@@ -64,7 +64,13 @@ interval_format_data <- function(
   checkmate::assert_character(mark_cols, any.missing = FALSE)
   checkmate::assert_names(
     names(data),
-    must.include = c(mark_cols, sprintf("%s_0", mark_cols))
+    must.include = c(
+      "id",
+      "time",
+      proc_cols,
+      mark_cols,
+      sprintf("%s_0", mark_cols)
+    )
   )
   checkmate::assert_number(t_prime, finite = TRUE, null.ok = TRUE)
   data <- data.table::copy(data.table::as.data.table(data))
@@ -97,7 +103,7 @@ interval_format_data <- function(
     if (is.factor(res$event)) {
       levels(res$event) <- union(levels(res$event), "none")
     }
-    rows_to_split <- res[tstart <= t_prime & tstop > t_prime]
+    rows_to_split <- res[tstart < t_prime & tstop > t_prime]
 
     data1 <- data.table::copy(rows_to_split)[, `:=`(
       tstop = t_prime,
@@ -106,7 +112,7 @@ interval_format_data <- function(
     )]
     data2 <- data.table::copy(rows_to_split)[, `:=`(tstart = t_prime)]
 
-    data_new <- res[!(tstart <= t_prime & tstop > t_prime)]
+    data_new <- res[!(tstart < t_prime & tstop > t_prime)]
     res <- rbind(data_new, data1, data2)
 
     res[, t_group := (1 + (time > t_prime))]

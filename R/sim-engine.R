@@ -308,21 +308,21 @@
 
 # Samples the time increment to each alive individual's next event, for one
 # iteration of the simulation loop: the closed-form vectorized path when
-# every process shares one Weibull shape/scale (same_params), else the
-# per-individual numerical inverse (inverseScHazCpp()).
+# every process shares one Weibull shape nu (shared_nu; eta may differ),
+# else the per-individual numerical inverse (inverseScHazCpp()).
 .sim_sample_next_event_times <- function(
   t_now,
   phi_alive,
   risk_alive,
   eta,
   nu,
-  same_params,
+  shared_nu,
   lower = 1e-25,
   upper = 1e8
 ) {
   v <- -log(stats::runif(length(t_now)))
 
-  if (same_params) {
+  if (shared_nu) {
     denom <- colSums(risk_alive * eta * t(phi_alive))
     (v / denom + t_now^nu[1])^(1 / nu[1]) - t_now
   } else {
@@ -630,9 +630,22 @@
   eta <- intervened$eta
   nu <- vapply(model$processes, `[[`, numeric(1), "nu")
   weibull_only <- !anyNA(nu)
-  same_params <- weibull_only && all(nu[1] == nu) && all(eta[1] == eta)
+  shared_nu <- weibull_only && all(nu[1] == nu)
   baselines <- .sim_baselines(model$processes)
   max_cens <- min(max_cens, .sim_cumhaz_end(model$processes))
+  # Effects only multiply hazards by exp(.) > 0, so follow-up can only end
+  # if some censoring/terminal process has a positive baseline.
+  ending_rate <- eta[types == "terminal"]
+  if (cens > 0) {
+    ending_rate <- c(ending_rate, eta[types == "censoring"])
+  }
+  if (is.infinite(max_cens) && all(ending_rate == 0)) {
+    stop(
+      "Follow-up never ends: every censoring/terminal process has a zero ",
+      "hazard (eta = 0, after any intervene/cens). Give one a positive ",
+      "hazard, or set a finite max_cens."
+    )
+  }
 
   at_risk_fn <- .sim_at_risk(model, cens)
   uses_time <- .sim_uses_time(process_effects)
@@ -704,7 +717,7 @@
           risk_alive,
           eta,
           nu,
-          same_params
+          shared_nu
         )
       } else {
         .sim_sample_next_event_times_general(

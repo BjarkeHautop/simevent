@@ -23,7 +23,7 @@ recur (e.g. relapse).}
 
 \item{eta}{Numeric. Weibull scale parameter.}
 
-\item{nu}{Numeric. Weibull shape parameter: \code{nu > 1} gives an increasing
+\item{nu}{Positive numeric. Weibull shape parameter: \code{nu > 1} gives an increasing
 hazard, \code{nu < 1} a decreasing one, \code{nu = 1} a constant one.}
 
 \item{limit}{Integer or \code{Inf}. Maximum number of events of a

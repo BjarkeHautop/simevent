@@ -1275,3 +1275,23 @@ test_that("nodes and models print as short summaries", {
     fixed = TRUE
   )
 })
+
+test_that("sim_process rejects nu = 0", {
+  expect_error(sim_process("terminal", eta = 1, nu = 0), "nu must be positive")
+})
+
+test_that("sim_events errors when follow-up can never end", {
+  model <- sim_model(
+    censoring = sim_process("censoring", eta = 0.1, nu = 1),
+    death = sim_process("terminal", eta = 0, nu = 1)
+  )
+  expect_error(sim_events(model, n = 5, cens = 0), "Follow-up never ends")
+  expect_error(
+    sim_events(model, n = 5, intervene = list(censoring = 0)),
+    "Follow-up never ends"
+  )
+  # Fine with censoring on, or a finite max_cens.
+  expect_no_error(sim_events(model, n = 5, seed = 1))
+  data <- sim_events(model, n = 5, cens = 0, max_cens = 2, seed = 1)
+  expect_true(all(data$event == "max_cens"))
+})
