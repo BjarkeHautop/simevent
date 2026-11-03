@@ -23,9 +23,12 @@ status](https://www.r-pkg.org/badges/version/simevent)](https://CRAN.R-project.o
 coverage](https://codecov.io/gh/BjarkeHautop/simevent/graph/badge.svg)](https://app.codecov.io/gh/BjarkeHautop/simevent)
 <!-- badges: end -->
 
-The `simevent` package provides tools for simulating and analyzing complex
-continuous-time health care data. The simulated data includes variables that can
-be interpreted as treatment decisions, disease progression, and health factors.
+The simevent package simulates continuous-time event history data, such as
+treatment decisions, disease progression and death, from a model of baseline
+covariates, time-varying covariates and event processes linked by Cox-type
+effects. Models can be specified by hand or built from fitted Cox models, and
+interventions on covariates and processes can be simulated and their effect on
+event risks evaluated.
 
 ## Installation
 

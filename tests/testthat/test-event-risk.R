@@ -105,3 +105,27 @@ test_that("event_risk rejects unknown processes and by-columns", {
   expect_error(event_risk(data, model, "nope", tau = 1))
   expect_error(event_risk(data, model, "death", tau = 1, by = "nope"))
 })
+
+test_that("event_risk rejects time-varying by-columns, but accepts <mark>_0", {
+  withr::local_seed(404)
+  draw <- function(N) rbinom(N, 1, 0.5)
+  model <- sim_model(
+    L = sim_mark(draw, "visit", draw),
+    death = sim_process("terminal", eta = 0.5, nu = 1),
+    visit = sim_process("transient", eta = 1, nu = 1)
+  )
+  data <- sim_events(model, n = 200)
+  expect_error(
+    event_risk(data, model, "death", tau = 1, by = "L"),
+    "Use its baseline value 'L_0'"
+  )
+  expect_error(
+    event_risk(data, model, "death", tau = 1, by = "visit"),
+    "process event count"
+  )
+
+  res <- event_risk(data, model, "death", tau = 1, by = "L_0")
+  last <- data[!duplicated(data$id, fromLast = TRUE), ]
+  expected <- tapply(last$event == "death" & last$time <= 1, last$L_0, mean)
+  expect_equal(res$risk, unname(as.vector(expected[as.character(res$L_0)])))
+})

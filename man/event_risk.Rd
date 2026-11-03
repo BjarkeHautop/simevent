@@ -24,7 +24,9 @@ event_risk(
 
 \item{type}{\code{"risk"} (default) or \code{"time_lost"}.}
 
-\item{by}{Character vector. Columns of \code{data} to summarise within.}
+\item{by}{Character vector. Baseline columns of \code{data} to summarise
+within. A \code{\link[=sim_mark]{sim_mark()}} changes over follow-up, so group by its baseline
+value \verb{<mark>_0} instead; transient process counts can't be used.}
 }
 \value{
 A \code{data.table} with the \code{by} columns, \code{process}, and the estimate
@@ -64,6 +66,18 @@ event_risk(intervened, model, c("death", "disease"), tau = 5)
 
 # Years lost before tau, separately for A0 = 0 and A0 = 1:
 event_risk(intervened, model, "death", tau = 5, type = "time_lost", by = "A0")
+
+# Group by a sim_mark()'s baseline value, <mark>_0 (the mark itself changes
+# over follow-up, so by = "L" is an error):
+draw_l <- function(N) rbinom(N, 1, 0.5)
+model_l <- sim_model(
+  L = sim_mark(draw_l, "visit", draw_l),
+  visit = sim_process("transient", eta = 0.5, nu = 1),
+  death = sim_process("terminal", eta = 0.1, nu = 1.1),
+  effects = list(sim_effect(death ~ L, coef = 1))
+)
+data_l <- sim_events(model_l, n = 2000)
+event_risk(data_l, model_l, "death", tau = 5, by = "L_0")
 }
 \seealso{
 \code{\link[=sim_events]{sim_events()}}

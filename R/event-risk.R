@@ -17,7 +17,9 @@
 #' @param process Character vector. Process(es) to summarise.
 #' @param tau Numeric. Time horizon.
 #' @param type `"risk"` (default) or `"time_lost"`.
-#' @param by Character vector. Columns of `data` to summarise within.
+#' @param by Character vector. Baseline columns of `data` to summarise
+#'   within. A [sim_mark()] changes over follow-up, so group by its baseline
+#'   value `<mark>_0` instead; transient process counts can't be used.
 #'
 #' @return A `data.table` with the `by` columns, `process`, and the estimate
 #'   (column named after `type`).
@@ -43,6 +45,18 @@
 #'
 #' # Years lost before tau, separately for A0 = 0 and A0 = 1:
 #' event_risk(intervened, model, "death", tau = 5, type = "time_lost", by = "A0")
+#'
+#' # Group by a sim_mark()'s baseline value, <mark>_0 (the mark itself changes
+#' # over follow-up, so by = "L" is an error):
+#' draw_l <- function(N) rbinom(N, 1, 0.5)
+#' model_l <- sim_model(
+#'   L = sim_mark(draw_l, "visit", draw_l),
+#'   visit = sim_process("transient", eta = 0.5, nu = 1),
+#'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
+#'   effects = list(sim_effect(death ~ L, coef = 1))
+#' )
+#' data_l <- sim_events(model_l, n = 2000)
+#' event_risk(data_l, model_l, "death", tau = 5, by = "L_0")
 #' @export
 event_risk <- function(
   data,
@@ -62,6 +76,25 @@ event_risk <- function(
   type <- match.arg(type)
   checkmate::assert_character(by, unique = TRUE)
   checkmate::assert_subset(by, setdiff(names(data), c("id", "time", "event")))
+  is_mark <- vapply(model$covariates, inherits, logical(1), "sim_mark")
+  marks_in_by <- intersect(by, names(model$covariates)[is_mark])
+  if (length(marks_in_by) > 0) {
+    stop(
+      "by must be baseline columns, but ",
+      paste0("'", marks_in_by, "'", collapse = ", "),
+      " is a sim_mark() that changes over follow-up. Use its baseline value ",
+      paste0("'", marks_in_by, "_0'", collapse = ", "),
+      " instead."
+    )
+  }
+  counts_in_by <- intersect(by, names(model$processes))
+  if (length(counts_in_by) > 0) {
+    stop(
+      "by must be baseline columns, but ",
+      paste0("'", counts_in_by, "'", collapse = ", "),
+      " is a process event count that changes over follow-up."
+    )
+  }
 
   data <- data.table::as.data.table(data)
   types <- vapply(model$processes, `[[`, character(1), "type")
@@ -74,8 +107,8 @@ event_risk <- function(
     )
   }
 
-  # One row per individual (with its by-columns, constant within id); by
-  # columns are baseline covariates, so the first row's value is the value.
+  # One row per individual (with its by-columns); by columns are baseline
+  # covariates (marks and counts are rejected above), so constant within id.
   individuals <- unique(data[, c("id", by), with = FALSE], by = "id")
 
   estimate <- if (type == "risk") {

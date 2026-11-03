@@ -1,7 +1,7 @@
 ---
-title: "Migrating to sim_events()"
+title: "Simulating Event History Data"
 vignette: >
-  %\VignetteIndexEntry{Migrating to sim_events()}
+  %\VignetteIndexEntry{Simulating Event History Data}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
@@ -25,10 +25,13 @@ library(survival)
 
 # Introduction
 
-simevent 0.1.1's functions (`simEventData()`, the preset wrappers such as
-`simSurvData()`, `sim.generic()`, `sim.from.data()`, `alphaSim()`, ...) have
-been removed in favour of the `sim_model()`/`sim_events()` API. This vignette
-introduces it and shows how to translate code using the old functions.
+simevent simulates event history data in two steps: `sim_model()` describes
+baseline covariates, event processes and the Cox-type effects between them, and
+`sim_events()` simulates individuals from it. This vignette introduces the model
+interface, shows how to simulate and evaluate interventions with `event_risk()`,
+and how to build a model from Cox models fitted to observed data with
+`sim_model_from_fits()`. Time-varying markers and effects of event history are
+covered in more depth in `vignette("event-times-and-markers")`.
 
 # The `sim_model()` Interface
 
@@ -59,9 +62,8 @@ data <- sim_events(model, n = 100)
 head(data)
 ```
 
-`sim_events()`'s `intervene` argument replaces `sim.generic()`'s
-`alpha.intervention`/`baseline.intervention` pair with a single named list: give
-a process name to scale its `eta`, or a covariate name to fix it to a constant.
+`sim_events()`'s `intervene` argument takes a named list: give a process name to
+scale its `eta`, or a covariate name to fix it to a constant.
 
 ```{r}
 #| label: sim-model-intervention
@@ -166,214 +168,20 @@ head(checkup_data)
 The `checkup > 0 &` keeps the effect off before the first checkup, when
 `event_time(checkup, -1)` is `0`.
 
-# Translating the Preset Wrappers
-
-## `simSurvData()`
-
-`simSurvData()`'s default (`beta = NULL`, i.e. no covariate effects) is two
-terminal processes, censoring and death, both with `eta = 0.1`, `nu = 1.1`. The
-old call
-
-```{r}
-#| label: simsurvdata-old
-#| eval: false
-
-simSurvData(200)
-```
-
-becomes
-
-```{r}
-#| label: simsurvdata-equivalence
-
-model <- sim_model(
-  L0 = sim_covariate(function(N) runif(N)),
-  A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
-  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
-  death = sim_process("terminal", eta = 0.1, nu = 1.1)
-)
-model_data <- sim_events(model, n = 200)
-```
-
-The old functions coded events as integers in `Delta`; `sim_events()` returns
-the process name in `event`, and `id`/`time` in place of `ID`/`Time`.
-
-## `simCRdata()`
-
-`simCRdata()` adds a third terminal process (a second competing cause):
-
-```{r}
-#| label: simcrdata-old
-#| eval: false
-
-beta <- matrix(c(0.5, -1, -0.5, 0.5, 0, 0.5), ncol = 3, nrow = 2)
-simCRdata(N = 200, beta = beta)
-```
-
-becomes
-
-```{r}
-#| label: simcrdata-equivalence
-
-model <- sim_model(
-  L0 = sim_covariate(function(N) runif(N)),
-  A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
-  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
-  cause1 = sim_process("terminal", eta = 0.1, nu = 1.1),
-  cause2 = sim_process("terminal", eta = 0.1, nu = 1.1),
-  effects = list(
-    sim_effect(censoring ~ L0 + A0, coef = c(0.5, -1)),
-    sim_effect(cause1 ~ L0 + A0, coef = c(-0.5, 0.5)),
-    sim_effect(cause2 ~ A0, coef = 0.5)
-  )
-)
-model_data <- sim_events(model, n = 200)
-```
-
-## `simDisease()`
-
-`simDisease()` has a censoring process, a terminal death process, and a
-covariate process `L` that can happen at most once and can itself affect death;
-a `"transient"` process with `limit = 1`:
-
-```{r}
-#| label: simdisease-old
-#| eval: false
-
-simDisease(
-  N = 5000,
-  cens = 1,
-  eta = c(0.1, 0.3, 0.1),
-  nu = c(1.1, 1.3, 1.1),
-  beta_L0_L = 1,
-  beta_A0_L = -1.1,
-  beta_L_D = 1,
-  beta_L0_D = 0
-)
-```
-
-becomes
-
-```{r}
-#| label: simdisease-equivalence
-
-model <- sim_model(
-  L0 = sim_covariate(function(N) runif(N)),
-  A0 = sim_covariate(function(N, L0) rbinom(N, 1, 0.5)),
-  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
-  death = sim_process("terminal", eta = 0.3, nu = 1.3),
-  L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
-  effects = list(
-    sim_effect(L ~ L0, 1),
-    sim_effect(L ~ A0, -1.1),
-    sim_effect(death ~ L, 1)
-  )
-)
-model_data <- sim_events(model, n = 5000)
-```
-
-## `simTreatment()`
-
-`simTreatment()` (with `op = 1`, the default) adds a second `"transient"`
-process, treatment (`A`), which can itself affect and be affected by the
-covariate process `L`. `simTreatment()` doesn't declare its own `A0`, so its
-translation skips it too: `sim_model()` has no default covariates.
-
-```{r}
-#| label: simtreatment-old
-#| eval: false
-
-simTreatment(
-  N = 5000,
-  beta_L_A = 1,
-  beta_L_D = 1,
-  beta_A_D = -1,
-  beta_A_L = -0.5,
-  beta_L0_A = 1,
-  eta = rep(0.1, 4),
-  nu = rep(1.1, 4),
-  cens = 1,
-  op = 1
-)
-```
-
-becomes
-
-```{r}
-#| label: simtreatment-equivalence
-
-model <- sim_model(
-  L0 = sim_covariate(function(N) runif(N)),
-  censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
-  death = sim_process("terminal", eta = 0.1, nu = 1.1),
-  A = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
-  L = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
-  effects = list(
-    sim_effect(death ~ L0, 1),
-    sim_effect(A ~ L0, 1),
-    sim_effect(L ~ L0, 1),
-    sim_effect(death ~ A, -1),
-    sim_effect(L ~ A, -0.5),
-    sim_effect(death ~ L, 1),
-    sim_effect(A ~ L, 1)
-  )
-)
-model_data <- sim_events(model, n = 5000)
-```
-
-## `simStatinData()`
-
-`simStatinData()` mainly demonstrates non-default baseline covariate generators.
-`sim_covariate()` reproduces this directly, with no forced covariate names to
-work around:
-
-```{r}
-#| label: simstatindata-equivalence
-
-set.seed(1405)
-model <- sim_model(
-  L0 = sim_covariate(function(N) rbinom(N, 1, 0.4)),
-  A0 = sim_covariate(function(N, L0) pmin(rexp(N, 0.3) + 70, 100)),
-  censoring = sim_process("censoring", eta = 0.025, nu = 1.1),
-  death = sim_process("terminal", eta = 0.025, nu = 1.1)
-)
-model_data <- sim_events(model, n = 200)
-summary(model_data$A0)
-```
-
 # Estimating Intervention Effects
 
-`alphaSim()` and `intEffectAlpha()` simulate one of the preset settings with the
-shape parameter `eta` of one process multiplied by `alpha`, and summarise the
-result as the proportion of individuals experiencing death and the intervened
-process by time $\tau$ (or the years lost to them before $\tau$). With the model
-API this splits into two general steps, which work for any process in any model:
+The effect of an intervention on a process is estimated in two steps, which work
+for any process in any model:
 
-1. Simulate under the intervention with `sim_events()`'s `intervene` argument:
-   `intervene = list(<process> = alpha)` multiplies that process's `eta` by
-   `alpha`.
-2. Summarise with `event_risk()`: the risk $P(T \le \tau)$ of each process's
-   first event, or (`type = "time_lost"`) the expected time lost to it before
-   $\tau$, $E[\tau - \min(T, \tau)]$.
+1. Simulate with and without the intervention, using `sim_events()`'s
+   `intervene` argument: `intervene = list(<process> = alpha)` multiplies that
+   process's `eta` by `alpha`.
+2. Summarise each run with `event_risk()`: the risk $P(T \le \tau)$ of each
+   process's first event, or (`type = "time_lost"`) the expected time lost to it
+   before $\tau$, $E[\tau - \min(T, \tau)]$.
 
-Take `alphaSim()`'s `"Disease"` setting with `alpha = 0.5`, which halves the
-hazard of the disease process `L`:
-
-```{r}
-#| label: alphasim-old
-#| eval: false
-
-alphaSim(
-  N = 5000,
-  eta = rep(0.1, 3),
-  nu = rep(1.1, 3),
-  alpha = 0.5,
-  tau = 5,
-  setting = "Disease"
-)
-```
-
-The same model with `sim_model()`:
+Take a model where a disease process `L` raises the death hazard, and consider
+halving the hazard of disease:
 
 ```{r}
 #| label: intervention-model
@@ -392,8 +200,9 @@ disease_model <- sim_model(
 )
 ```
 
-`alphaSim()` switches censoring off by default (`cens = 0`). Simulating both
-with and without the intervention gives the effect directly:
+Censoring before $\tau$ biases `event_risk()`'s estimates, so switch it off with
+`cens = 0`. Simulating both with and without the intervention gives the effect
+directly:
 
 ```{r}
 #| label: intervention-risk
@@ -424,9 +233,8 @@ cbind(
 Halving the disease hazard lowers the risk of disease, and, since disease raises
 the death hazard (`sim_effect(death ~ L, 1)`), the risk of death too.
 
-`alphaSim()`/`intEffectAlpha()`'s `years_lost = TRUE` corresponds to
-`type = "time_lost"`, and their `a0` argument (summarise only individuals with
-`A0 == a0`) to `by = "A0"`, which summarises every group at once:
+`type = "time_lost"` gives the years lost instead, and `by` summarises within
+groups of baseline covariates:
 
 ```{r}
 #| label: intervention-time-lost
@@ -441,12 +249,12 @@ event_risk(
 )
 ```
 
-`by` conditions on the observed value of `A0`. For a `do()`-style contrast,
-where everyone's `A0` is set to a value, fix it with `intervene` instead, e.g.
-`intervene = list(L = 0.5, A0 = 1)`.
+`by` conditions on the observed value of `A0`. It only takes baseline columns;
+for a `sim_mark()`, group by its baseline value `<mark>_0`. For a `do()`-style
+contrast, where everyone's `A0` is set to a value, fix it with `intervene`
+instead, e.g. `intervene = list(L = 0.5, A0 = 1)`.
 
-Finally, `intEffectAlpha()`'s `plot = TRUE` is `plot_event_data()` on the
-intervened data:
+`plot_event_data()` shows the individual event histories under the intervention:
 
 ```{r}
 #| label: intervention-plot
@@ -534,16 +342,11 @@ of `uniroot()`.
 
 # Building a `sim_model()` from Fitted Cox Models
 
-`sim_model_from_fits()` is the model-native replacement for `sim.from.data()`:
-instead of user-specified effects, it builds a `sim_model()` from a set of
-fitted `coxph()` models (one per process) and the data they were fit to, so
-simulated data mimics an observed dataset's distribution.
-
-Unlike `sim.from.data()`, which requires building a `sim.parameters` list,
-including a `baseline.summary` computed by hand from `mean()`/
-`sd()`/`min()`/`max()`, `sim_model_from_fits()` resamples whole rows of baseline
-covariates from the data itself, keeping each covariate's distribution and the
-relationships between them.
+Instead of user-specified effects, `sim_model_from_fits()` builds a
+`sim_model()` from a set of fitted `coxph()` models (one per process) and the
+data they were fit to, so simulated data mimics an observed dataset's
+distribution. Baseline covariates are generated by resampling whole rows of the
+data, keeping each covariate's distribution and the relationships between them.
 
 ```{r}
 #| label: sim-model-from-fits-setup
@@ -606,8 +409,7 @@ A categorical baseline covariate must be a factor column in `data`, referenced
 directly in the `coxph()` formula (not wrapped in `factor()` there).
 `sim_model_from_fits()` regenerates it as its integer level codes, plus one
 `sim_derived()` dummy per non-reference level, named to match `coxph()`'s own
-coefficient names (`"<variable><level>"`). The model-native replacement for
-`sim.from.data()`'s `"(region==2)"`-style expression matching.
+coefficient names (`"<variable><level>"`).
 
 ```{r}
 #| label: sim-model-from-fits-categorical
