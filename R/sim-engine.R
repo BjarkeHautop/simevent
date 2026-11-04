@@ -120,12 +120,26 @@
       nm <- nm
       function(s) {
         s <- rep_len(s, n_points)
-        if (nm %in% process_names) {
-          return(.sim_events_by(history, s, nm))
-        }
         mark <- history$marks[[nm]]
-        if (is.null(mark)) {
+        is_process <- nm %in% process_names
+        if (!is_process && is.null(mark)) {
           return(covariates[[nm]])
+        }
+        if (any(s > t)) {
+          stop(
+            "sim_effect() expressions can't use ",
+            nm,
+            "(s) with s later than the current time, as in ",
+            nm,
+            "(",
+            format(s[s > t][1]),
+            ") at time ",
+            format(t[s > t][1]),
+            "."
+          )
+        }
+        if (is_process) {
+          return(.sim_events_by(history, s, nm))
         }
         cols <- rep_len(seq_len(ncol(mark)), n_points)
         mark[cbind(.sim_events_by(history, s) + 1, cols)]

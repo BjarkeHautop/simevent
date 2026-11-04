@@ -1093,7 +1093,7 @@ test_that("simulate_events: event_time(proc, -k) is the k-th latest event", {
     covariates = list(nth = 0),
     event_counts = list(visit = 0, other = 0, death = 0),
     process_names = c("visit", "other", "death"),
-    t = 0,
+    t = 4,
     history = .sim_history(
       time = matrix(c(1, 2, 3, 4), ncol = 1),
       type = matrix(c("visit", "other", "visit", "visit"), ncol = 1),
@@ -1134,6 +1134,67 @@ test_that("simulate_events: a mark's value at an event time", {
   tv <- tmerge(tv, op, id = id, bp_op = tdc(time, bp, 0))
   fit <- coxph(Surv(tstart, tstop, death) ~ bp_op, data = tv)
   expect_ci_covers(fit, 1)
+})
+
+test_that("simulate_events: a mark or process at a future time errors", {
+  nodes <- list(
+    visit = sim_process("transient", eta = 1, nu = 1),
+    bp = sim_mark(
+      init = function(N) rep(100, N),
+      update = "visit",
+      draw = function(N) rep(120, N)
+    ),
+    age = sim_covariate(function(N) rep(50, N)),
+    death = sim_process("terminal", eta = 0.5, nu = 1)
+  )
+  with_effect <- function(effect) {
+    do.call(sim_model, c(nodes, list(effects = list(effect))))
+  }
+
+  expect_error(
+    simulate_events(with_effect(sim_effect(death ~ bp(1), 0)), n = 5),
+    "bp\\(1\\) at time 0"
+  )
+  expect_error(
+    simulate_events(with_effect(sim_effect(death ~ visit(t + 1), 0)), n = 5),
+    "visit\\(s\\) with s later"
+  )
+  expect_error(
+    simulate_events(with_effect(sim_effect(bp ~ bp(t + 1), 0)), n = 5),
+    "bp\\(s\\) with s later"
+  )
+
+  # Values that exist already, or can't change.
+  for (effect in list(
+    sim_effect(death ~ bp(0), 0),
+    sim_effect(death ~ bp(t), 0),
+    sim_effect(death ~ visit(event_time(visit, -1)), 0),
+    sim_effect(death ~ age(1), 0)
+  )) {
+    expect_no_error(simulate_events(with_effect(effect), n = 5, seed = 1))
+  }
+})
+
+test_that("simulate_events: pmin() gives the latest value until a fixed time", {
+  seen <- new.env()
+  record <- function(at_1) {
+    seen$at_1 <- at_1
+    at_1
+  }
+  model <- sim_model(
+    visit = sim_process("transient", eta = 2, nu = 1),
+    bp = sim_mark(
+      init = function(N) rep(100, N),
+      update = "visit",
+      draw = function(N) rnorm(N, 130, 10)
+    ),
+    death = sim_process("terminal", eta = 0.3, nu = 1),
+    effects = list(sim_effect(death ~ record(bp(pmin(t, 1))), 0))
+  )
+  data <- simulate_events(model, n = 1, max_events = 500, seed = 3)
+
+  at_1 <- if (any(data$time <= 1)) data$bp[max(which(data$time <= 1))] else 100
+  expect_equal(unique(seen$at_1), at_1)
 })
 
 test_that("simulate_events: an effect on event_time() applies only after the event", {
