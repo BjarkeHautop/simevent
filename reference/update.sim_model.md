@@ -7,7 +7,7 @@ and rebuilds it through
 so all of its checks run again. Useful for sensitivity analyses and
 scenario grids built from one base model; for fixing a covariate or
 scaling a hazard in a single simulation, see
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)'s
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)'s
 `intervene` instead.
 
 ## Usage

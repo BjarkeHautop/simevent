@@ -7,17 +7,18 @@
 - Removed the old engine and everything built on it in favour of
   [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
   and
-  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md):
+  [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md):
   `simEventData()`, `simEventDataTdPhi()`, `simEventTV()`,
   `simSurvData()`, `simCRdata()`, `simDisease()`, `simTreatment()`,
   `simDropIn()`, `simStatinData()`, `sim.generic()` (use
   [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)),
   `simEventCox()`, `simEventObj()`, `sim.from.data()` (use
   [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md)),
-  `alphaSim()`, `intEffectAlpha()` (use `sim_events(intervene = )` with
+  `alphaSim()`, `intEffectAlpha()` (use `simulate_events(intervene = )`
+  with
   [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md)),
   `IntFormatData()` (use
-  [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md))
+  [`format_interval_data()`](https://github.com/BjarkeHautop/simevent/reference/format_interval_data.md))
   and `plotEventData()` (use
   [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md)).
 
@@ -31,10 +32,10 @@
   [`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md),
   [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md),
   [`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md),
-  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md),
+  [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md),
   [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md),
   [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md),
-  [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)
+  [`format_interval_data()`](https://github.com/BjarkeHautop/simevent/reference/format_interval_data.md)
   and
   [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md).
 

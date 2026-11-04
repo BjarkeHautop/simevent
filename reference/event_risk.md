@@ -12,7 +12,7 @@ if none):
   \\E\[\tau - \min(T, \tau)\]\\, the restricted mean time lost.
 
 Compare runs with and without
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)'s
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)'s
 `intervene` to estimate an intervention's effect. Estimates are biased
 if anyone is censored before `tau` (a warning is given); simulate with
 `cens = 0` to avoid this.
@@ -35,7 +35,7 @@ event_risk(
 - data:
 
   Output of
-  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md).
+  [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md).
 
 - model:
 
@@ -69,7 +69,7 @@ A `data.table` with the `by` columns, `process`, and the estimate
 
 ## See also
 
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
 
 ## Examples
 
@@ -86,8 +86,12 @@ model <- sim_model(
 
 # Halve the disease hazard and compare against no intervention:
 set.seed(1)
-observed <- sim_events(model, n = 2000)
-intervened <- sim_events(model, n = 2000, intervene = list(disease = 0.5))
+observed <- simulate_events(model, n = 2000)
+intervened <- simulate_events(
+  model,
+  n = 2000,
+  intervene = list(disease = 0.5)
+)
 
 event_risk(observed, model, c("death", "disease"), tau = 5)
 #>    process   risk
@@ -116,7 +120,7 @@ model_l <- sim_model(
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(sim_effect(death ~ L, coef = 1))
 )
-data_l <- sim_events(model_l, n = 2000)
+data_l <- simulate_events(model_l, n = 2000)
 event_risk(data_l, model_l, "death", tau = 5, by = "L_0")
 #>      L_0 process      risk
 #>    <int>  <char>     <num>

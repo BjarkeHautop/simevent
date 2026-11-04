@@ -10,22 +10,22 @@ library(simevent)
 simevent 0.1.1’s functions (`simEventData()`, the preset wrappers such
 as `simSurvData()`, `sim.generic()`, `sim.from.data()`, `alphaSim()`, …)
 have been removed in favour of the
-[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)/[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+[`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)/[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
 API. This vignette shows how to translate code using the old functions.
 See
-[`vignette("sim-events")`](https://github.com/BjarkeHautop/simevent/articles/sim-events.md)
+[`vignette("simevent")`](https://github.com/BjarkeHautop/simevent/articles/simevent.md)
 for an introduction to the new API itself.
 
 | simevent 0.1.1 | Replacement |
 |----|----|
-| `simEventData()`, `simSurvData()`, `simCRdata()`, `simDisease()`, `simTreatment()`, `simStatinData()`, `sim.generic()`, … | [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md) + [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md) |
-| `alphaSim()`, `intEffectAlpha()` | `sim_events(intervene = )` + [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md) |
+| `simEventData()`, `simSurvData()`, `simCRdata()`, `simDisease()`, `simTreatment()`, `simStatinData()`, `sim.generic()`, … | [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md) + [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md) |
+| `alphaSim()`, `intEffectAlpha()` | `simulate_events(intervene = )` + [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md) |
 | `sim.from.data()` | [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md) |
-| `IntFormatData()` | [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md) |
+| `IntFormatData()` | [`format_interval_data()`](https://github.com/BjarkeHautop/simevent/reference/format_interval_data.md) |
 | `plotEventData()` | [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md) |
 
 The old functions coded events as integers in `Delta`;
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
 returns the process name in `event`, and `id`/`time` in place of
 `ID`/`Time`.
 
@@ -52,7 +52,7 @@ model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
-model_data <- sim_events(model, n = 200)
+model_data <- simulate_events(model, n = 200)
 ```
 
 ### `simCRdata()`
@@ -81,7 +81,7 @@ model <- sim_model(
     sim_effect(cause2 ~ A0, coef = 0.5)
   )
 )
-model_data <- sim_events(model, n = 200)
+model_data <- simulate_events(model, n = 200)
 ```
 
 ### `simDisease()`
@@ -120,7 +120,7 @@ model <- sim_model(
     sim_effect(death ~ L, 1)
   )
 )
-model_data <- sim_events(model, n = 5000)
+model_data <- simulate_events(model, n = 5000)
 ```
 
 ### `simTreatment()`
@@ -168,7 +168,7 @@ model <- sim_model(
     sim_effect(A ~ L, 1)
   )
 )
-model_data <- sim_events(model, n = 5000)
+model_data <- simulate_events(model, n = 5000)
 ```
 
 ### `simStatinData()`
@@ -187,7 +187,7 @@ model <- sim_model(
   censoring = sim_process("censoring", eta = 0.025, nu = 1.1),
   death = sim_process("terminal", eta = 0.025, nu = 1.1)
 )
-model_data <- sim_events(model, n = 200)
+model_data <- simulate_events(model, n = 200)
 summary(model_data$A0)
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #>   70.00   70.82   71.96   73.14   74.18   85.01
@@ -197,10 +197,10 @@ summary(model_data$A0)
 
 `sim.generic()`’s `alpha.intervention`/`baseline.intervention` pair is
 replaced by
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)’s
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)’s
 single `intervene` list: give a process name to scale its `eta`, or a
 covariate name to fix it to a constant, as in
-`sim_events(model, n, intervene = list(death = 0.2, L0 = 1))`.
+`simulate_events(model, n, intervene = list(death = 0.2, L0 = 1))`.
 
 ## `alphaSim()` and `intEffectAlpha()`
 
@@ -244,7 +244,12 @@ model <- sim_model(
   )
 )
 set.seed(1405)
-intervened <- sim_events(model, n = 5000, cens = 0, intervene = list(L = 0.5))
+intervened <- simulate_events(
+  model,
+  n = 5000,
+  cens = 0,
+  intervene = list(L = 0.5)
+)
 event_risk(intervened, model, c("death", "L"), tau = 5)
 #>    process   risk
 #>     <char>  <num>
@@ -262,7 +267,7 @@ The remaining arguments map as follows:
   on the intervened data.
 
 See “Estimating Intervention Effects” in
-[`vignette("sim-events")`](https://github.com/BjarkeHautop/simevent/articles/sim-events.md)
+[`vignette("simevent")`](https://github.com/BjarkeHautop/simevent/articles/simevent.md)
 for comparing against the run without intervention.
 
 ## `sim.from.data()`
@@ -290,5 +295,5 @@ there’s no `sim.parameters` list to build:
 See “Building a
 [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 from Fitted Cox Models” in
-[`vignette("sim-events")`](https://github.com/BjarkeHautop/simevent/articles/sim-events.md)
+[`vignette("simevent")`](https://github.com/BjarkeHautop/simevent/articles/simevent.md)
 for a worked example.

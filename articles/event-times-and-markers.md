@@ -71,7 +71,7 @@ operation_model <- sim_model(
   )
 )
 
-operation_data <- sim_events(
+operation_data <- simulate_events(
   operation_model,
   n = 5000,
   max_cens = 10,
@@ -175,6 +175,12 @@ before the update, and see the triggering event as having happened.
 The marker can also be used in
 [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
 like any other covariate, and the hazards always use its current value.
+For its value at another time, call it as a function of time: `bp(0)` is
+the baseline value and `bp(event_time(visit, 1))` the value after the
+first visit. Since
+[`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md)
+is `0` before the event, the latter is also the baseline value until the
+first visit.
 
 ### Example: Blood Pressure and Stroke
 
@@ -240,7 +246,7 @@ summary(bp_model)
 #> 
 #> mark[k]: value after the mark's k-th update (k = 0: init)
 
-bp_data <- sim_events(bp_model, n = 3000, max_cens = 10, seed = 1)
+bp_data <- simulate_events(bp_model, n = 3000, max_cens = 10, seed = 1)
 head(bp_data, 8)
 #> Key: <id>
 #>       id     time  event      age       bp     bp_0 visit treatment
@@ -291,13 +297,13 @@ with each row as an interval from the previous event to this one. Each
 row stores the values *after* its event, so the values during the
 interval are those of the previous row, or the baseline values for a
 patient’s first row.
-[`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)
+[`format_interval_data()`](https://github.com/BjarkeHautop/simevent/reference/format_interval_data.md)
 does this shift, for marker columns (`mark_cols`) and process counts
 (`proc_cols`):
 
 ``` r
 
-bp_int <- interval_format_data(
+bp_int <- format_interval_data(
   bp_data,
   proc_cols = "treatment",
   mark_cols = "bp"

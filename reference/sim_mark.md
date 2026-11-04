@@ -3,11 +3,14 @@
 `sim_mark` builds a covariate, such as a lab value measured at visits,
 that is drawn at baseline and redrawn whenever one of the `update`
 processes fires. It stays constant between those events. In
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
 output, each row holds its value after that row's event, and a
 `<name>_0` column holds its baseline value;
-[`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)'s
+[`format_interval_data()`](https://github.com/BjarkeHautop/simevent/reference/format_interval_data.md)'s
 `mark_cols` turns these into the value in force during each interval.
+Inside a
+[`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
+formula, the baseline value is `<name>(0)`.
 
 ## Usage
 
@@ -102,18 +105,18 @@ summary(model)
 #>    treatment    stroke -0.20
 #> 
 #> mark[k]: value after the mark's k-th update (k = 0: init)
-head(sim_events(model, n = 5, max_cens = 5), 10)
+head(simulate_events(model, n = 5, max_cens = 5), 10)
 #> Key: <id>
-#>        id      time    event      age        bp      bp_0 visit treatment
-#>     <int>     <num>   <fctr>    <num>     <num>     <num> <num>     <num>
-#>  1:     1 0.3037166    visit 31.18068  98.55770  99.25769     1         0
-#>  2:     1 0.6515051    visit 31.18068  92.33461  99.25769     2         0
-#>  3:     1 5.0000000 max_cens 31.18068  92.33461  99.25769     2         0
-#>  4:     2 0.3155901    visit 56.37583 133.45297 130.93255     1         0
-#>  5:     2 0.4578069    visit 56.37583 138.06937 130.93255     2         0
-#>  6:     2 0.6632448    visit 56.37583 145.81857 130.93255     3         0
-#>  7:     2 1.8898443    visit 56.37583 146.11087 130.93255     4         0
-#>  8:     2 2.4535662    visit 56.37583 134.36555 130.93255     5         0
-#>  9:     2 4.3551730    visit 56.37583 135.45889 130.93255     6         0
-#> 10:     2 5.0000000 max_cens 56.37583 135.45889 130.93255     6         0
+#>        id      time     event      age       bp     bp_0 visit treatment
+#>     <int>     <num>    <fctr>    <num>    <num>    <num> <num>     <num>
+#>  1:     1 0.5588560     visit 57.04180 123.2764 127.4741     1         0
+#>  2:     1 1.2045683     visit 57.04180 121.2282 127.4741     2         0
+#>  3:     1 1.9618207     visit 57.04180 134.1438 127.4741     3         0
+#>  4:     1 2.0084166     visit 57.04180 125.8041 127.4741     4         0
+#>  5:     1 3.7267018     visit 57.04180 129.4679 127.4741     5         0
+#>  6:     1 4.1736801     visit 57.04180 134.9647 127.4741     6         0
+#>  7:     1 4.4557553     visit 57.04180 119.6530 127.4741     7         0
+#>  8:     1 5.0000000  max_cens 57.04180 119.6530 127.4741     7         0
+#>  9:     2 0.3967493     visit 78.11898 156.1985 158.9130     1         0
+#> 10:     2 1.9714521 treatment 78.11898 156.1985 158.9130     1         1
 ```

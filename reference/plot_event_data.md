@@ -13,7 +13,7 @@ plot_event_data(data, title = "Event Data")
 - data:
 
   Output of
-  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md).
+  [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md).
 
 - title:
 
@@ -25,7 +25,7 @@ A `ggplot` object. Requires the ggplot2 package.
 
 ## See also
 
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
 
 ## Examples
 
@@ -34,7 +34,7 @@ model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
-data <- sim_events(model, n = 10)
+data <- simulate_events(model, n = 10)
 plot_event_data(data)
 
 

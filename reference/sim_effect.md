@@ -24,7 +24,7 @@ sim_effect(formula, coef)
   `t`
 
   :   The current time (see
-      [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)'s
+      [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)'s
       `time_step`).
 
   [`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md)
@@ -34,7 +34,8 @@ sim_effect(formula, coef)
   `<name>(s)`
 
   :   The value of covariate, mark or process count `name` at time `s`,
-      after any update at `s`, e.g. `bp(event_time(operation, 1))`.
+      after any update at `s`, e.g. `bp(0)` for a mark's baseline value
+      or `bp(event_time(operation, 1))`.
 
 - coef:
 
@@ -66,4 +67,6 @@ sim_effect(death ~ checkup > 0 & t - event_time(checkup, -1) < 1, coef = 0.5)
 #> <sim_effect> death ~ 0.5 * (checkup > 0 & t - event_time(checkup, -1) < 1)
 sim_effect(death ~ operation * bp(event_time(operation, 1)), coef = 0.02)
 #> <sim_effect> death ~ 0.02 * (operation * bp(event_time(operation, 1)))
+sim_effect(death ~ bp - bp(0), coef = 0.02)
+#> <sim_effect> death ~ 0.02 * (bp - bp(0))
 ```

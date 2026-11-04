@@ -59,7 +59,7 @@ sim_process(
   [`survival::basehaz()`](https://rdrr.io/pkg/survival/man/basehaz.html)
   with `centered = FALSE`. Used instead of `eta` and `nu`, and
   interpolated linearly. The hazard is unknown after the last `time`, so
-  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+  [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
   ends follow-up there, as for `max_cens`.
 
 ## Value

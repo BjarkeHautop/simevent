@@ -24,9 +24,9 @@ sim_model_from_fits(fits, data, types, limits = numeric())
 
   The `data.frame` the fits were estimated from. If it has an `id`
   column (e.g. from
-  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+  [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
   or
-  [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)),
+  [`format_interval_data()`](https://github.com/BjarkeHautop/simevent/reference/format_interval_data.md)),
   covariates are resampled from each id's first row.
 
 - types:
@@ -46,7 +46,7 @@ sim_model_from_fits(fits, data, types, limits = numeric())
 A
 [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md),
 ready for
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md).
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md).
 
 ## Details
 
@@ -66,11 +66,11 @@ A formula term naming another process (e.g. `relapse` in
 [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
 from that process. Its coefficient is only valid if that fit treated it
 as time-varying (e.g. using
-[`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)).
+[`format_interval_data()`](https://github.com/BjarkeHautop/simevent/reference/format_interval_data.md)).
 
 ## See also
 
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
 
 ## Examples
 
@@ -93,7 +93,7 @@ observed_model <- sim_model(
     sim_effect(cause2 ~ A0, coef = 0.5)
   )
 )
-observed_data <- sim_events(observed_model, n = 1000)
+observed_data <- simulate_events(observed_model, n = 1000)
 
 # Refit each process from that "observed" data, then rebuild a sim_model()
 # from the fits, as if observed_data came from an outside source and
@@ -109,7 +109,7 @@ fits <- list(
 types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 
 model <- sim_model_from_fits(fits, observed_data, types)
-new_data <- sim_events(model, n = 1000)
+new_data <- simulate_events(model, n = 1000)
 head(new_data)
 #> Key: <id>
 #>       id     time     event        L0    A0

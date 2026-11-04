@@ -17,7 +17,7 @@ between them, and simulate event history data from it.
   :
 
   Build a Simulation Model for
-  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+  [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
 
 - [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)
   :
@@ -52,7 +52,7 @@ between them, and simulate event history data from it.
 - [`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md)
   : Time of an Earlier Event
 
-- [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+- [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
   :
 
   Simulate Event History Data from a
@@ -81,9 +81,9 @@ between them, and simulate event history data from it.
 ## Treating simulated data
 
 Functions for formatting, plotting, and summarising data simulated with
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md).
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md).
 
-- [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)
+- [`format_interval_data()`](https://github.com/BjarkeHautop/simevent/reference/format_interval_data.md)
   : Convert Simulated Event Data to Start-Stop Format
 - [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md)
   : Plot Simulated Event History Data

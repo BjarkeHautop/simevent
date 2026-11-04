@@ -32,13 +32,13 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
     <li><a class="dropdown-item" href="../articles/migrating.html">Migrating from simevent 0.1.1</a></li>
-    <li><a class="dropdown-item" href="../articles/sim-events.html">Simulating Event History Data</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -77,7 +77,7 @@
 </div>
 <section class="section level2"><h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>simevent 0.1.1’s functions (<code>simEventData()</code>, the preset wrappers such as <code>simSurvData()</code>, <code>sim.generic()</code>, <code>sim.from.data()</code>, <code>alphaSim()</code>, …) have been removed in favour of the <code><a href="../reference/sim_model.html">sim_model()</a></code>/<code><a href="../reference/sim_events.html">sim_events()</a></code> API. This vignette shows how to translate code using the old functions. See <code><a href="../articles/sim-events.html">vignette("sim-events")</a></code> for an introduction to the new API itself.</p>
+<p>simevent 0.1.1’s functions (<code>simEventData()</code>, the preset wrappers such as <code>simSurvData()</code>, <code>sim.generic()</code>, <code>sim.from.data()</code>, <code>alphaSim()</code>, …) have been removed in favour of the <code><a href="../reference/sim_model.html">sim_model()</a></code>/<code><a href="../reference/simulate_events.html">simulate_events()</a></code> API. This vignette shows how to translate code using the old functions. See <code><a href="../articles/simevent.html">vignette("simevent")</a></code> for an introduction to the new API itself.</p>
 <table class="table caption-top">
 <colgroup>
 <col style="width: 50%">
@@ -92,7 +92,7 @@
 <td>
 <code>simEventData()</code>, <code>simSurvData()</code>, <code>simCRdata()</code>, <code>simDisease()</code>, <code>simTreatment()</code>, <code>simStatinData()</code>, <code>sim.generic()</code>, …</td>
 <td>
-<code><a href="../reference/sim_model.html">sim_model()</a></code> + <code><a href="../reference/sim_events.html">sim_events()</a></code>
+<code><a href="../reference/sim_model.html">sim_model()</a></code> + <code><a href="../reference/simulate_events.html">simulate_events()</a></code>
 </td>
 </tr>
 <tr class="even">
@@ -100,7 +100,7 @@
 <code>alphaSim()</code>, <code>intEffectAlpha()</code>
 </td>
 <td>
-<code>sim_events(intervene = )</code> + <code><a href="../reference/event_risk.html">event_risk()</a></code>
+<code>simulate_events(intervene = )</code> + <code><a href="../reference/event_risk.html">event_risk()</a></code>
 </td>
 </tr>
 <tr class="odd">
@@ -109,7 +109,7 @@
 </tr>
 <tr class="even">
 <td><code>IntFormatData()</code></td>
-<td><code><a href="../reference/interval_format_data.html">interval_format_data()</a></code></td>
+<td><code><a href="../reference/format_interval_data.html">format_interval_data()</a></code></td>
 </tr>
 <tr class="odd">
 <td><code>plotEventData()</code></td>
@@ -117,7 +117,7 @@
 </tr>
 </tbody>
 </table>
-<p>The old functions coded events as integers in <code>Delta</code>; <code><a href="../reference/sim_events.html">sim_events()</a></code> returns the process name in <code>event</code>, and <code>id</code>/<code>time</code> in place of <code>ID</code>/<code>Time</code>.</p>
+<p>The old functions coded events as integers in <code>Delta</code>; <code><a href="../reference/simulate_events.html">simulate_events()</a></code> returns the process name in <code>event</code>, and <code>id</code>/<code>time</code> in place of <code>ID</code>/<code>Time</code>.</p>
 </section><section class="section level2"><h2 id="translating-the-preset-wrappers">Translating the Preset Wrappers<a class="anchor" aria-label="anchor" href="#translating-the-preset-wrappers"></a>
 </h2>
 <section class="level2"><h3 id="simsurvdata">
@@ -137,7 +137,7 @@
 <span>  censoring <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span>
 <span>  death <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_events.html">simulate_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="simcrdata">
 <code>simCRdata()</code><a class="anchor" aria-label="anchor" href="#simcrdata"></a>
@@ -163,7 +163,7 @@
 <span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">cause2</span> <span class="op">~</span> <span class="va">A0</span>, coef <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_events.html">simulate_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="simdisease">
 <code>simDisease()</code><a class="anchor" aria-label="anchor" href="#simdisease"></a>
@@ -197,7 +197,7 @@
 <span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">L</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_events.html">simulate_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="simtreatment">
 <code>simTreatment()</code><a class="anchor" aria-label="anchor" href="#simtreatment"></a>
@@ -237,7 +237,7 @@
 <span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">A</span> <span class="op">~</span> <span class="va">L</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_events.html">simulate_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="simstatindata">
 <code>simStatinData()</code><a class="anchor" aria-label="anchor" href="#simstatindata"></a>
@@ -252,7 +252,7 @@
 <span>  censoring <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.025</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span>
 <span>  death <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.025</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
+<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_events.html">simulate_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">model_data</span><span class="op">$</span><span class="va">A0</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
 <span><span class="co">#&gt;   70.00   70.82   71.96   73.14   74.18   85.01</span></span></code></pre></div>
@@ -260,7 +260,7 @@
 </section></section><section class="section level2"><h2 id="sim-generic">
 <code>sim.generic()</code><a class="anchor" aria-label="anchor" href="#sim-generic"></a>
 </h2>
-<p><code>sim.generic()</code>’s <code>alpha.intervention</code>/<code>baseline.intervention</code> pair is replaced by <code><a href="../reference/sim_events.html">sim_events()</a></code>’s single <code>intervene</code> list: give a process name to scale its <code>eta</code>, or a covariate name to fix it to a constant, as in <code>sim_events(model, n, intervene = list(death = 0.2, L0 = 1))</code>.</p>
+<p><code>sim.generic()</code>’s <code>alpha.intervention</code>/<code>baseline.intervention</code> pair is replaced by <code><a href="../reference/simulate_events.html">simulate_events()</a></code>’s single <code>intervene</code> list: give a process name to scale its <code>eta</code>, or a covariate name to fix it to a constant, as in <code>simulate_events(model, n, intervene = list(death = 0.2, L0 = 1))</code>.</p>
 </section><section class="section level2"><h2 id="alphasim-and-inteffectalpha">
 <code>alphaSim()</code> and <code>intEffectAlpha()</code>
 <a class="anchor" aria-label="anchor" href="#alphasim-and-inteffectalpha"></a>
@@ -293,7 +293,12 @@
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1405</span><span class="op">)</span></span>
-<span><span class="va">intervened</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">5000</span>, cens <span class="op">=</span> <span class="fl">0</span>, intervene <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>L <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">intervened</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_events.html">simulate_events</a></span><span class="op">(</span></span>
+<span>  <span class="va">model</span>,</span>
+<span>  n <span class="op">=</span> <span class="fl">5000</span>,</span>
+<span>  cens <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  intervene <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>L <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/event_risk.html">event_risk</a></span><span class="op">(</span><span class="va">intervened</span>, <span class="va">model</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"death"</span>, <span class="st">"L"</span><span class="op">)</span>, tau <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    process   risk</span></span>
 <span><span class="co">#&gt;     &lt;char&gt;  &lt;num&gt;</span></span>
@@ -309,7 +314,7 @@
 <li>
 <code>intEffectAlpha()</code>’s <code>plot = TRUE</code> is <code><a href="../reference/plot_event_data.html">plot_event_data()</a></code> on the intervened data.</li>
 </ul>
-<p>See “Estimating Intervention Effects” in <code><a href="../articles/sim-events.html">vignette("sim-events")</a></code> for comparing against the run without intervention.</p>
+<p>See “Estimating Intervention Effects” in <code><a href="../articles/simevent.html">vignette("simevent")</a></code> for comparing against the run without intervention.</p>
 </section><section class="section level2"><h2 id="sim-from-data">
 <code>sim.from.data()</code><a class="anchor" aria-label="anchor" href="#sim-from-data"></a>
 </h2>
@@ -319,7 +324,7 @@
 <li>
 <code>"(region==2)"</code>-style expressions for categorical covariates are replaced by factor columns used directly in the <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph()</a></code> formula; dummies are named to match <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph()</a></code>’s own coefficient names (<code>"&lt;variable&gt;&lt;level&gt;"</code>).</li>
 </ul>
-<p>See “Building a <code><a href="../reference/sim_model.html">sim_model()</a></code> from Fitted Cox Models” in <code><a href="../articles/sim-events.html">vignette("sim-events")</a></code> for a worked example.</p>
+<p>See “Building a <code><a href="../reference/sim_model.html">sim_model()</a></code> from Fitted Cox Models” in <code><a href="../articles/simevent.html">vignette("simevent")</a></code> for a worked example.</p>
 </section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);

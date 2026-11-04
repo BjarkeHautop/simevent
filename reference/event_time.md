@@ -35,13 +35,24 @@ applies once the event has happened.
 ## Examples
 
 ``` r
+# Fades with time since the operation
 sim_effect(
   death ~ operation * exp(-(t - event_time(operation, 1))),
   coef = 2
 )
 #> <sim_effect> death ~ 2 * (operation * exp(-(t - event_time(operation, 1))))
-sim_effect(death ~ visit > 0 & t - event_time(visit, -1) < 1, coef = 0.5)
-#> <sim_effect> death ~ 0.5 * (visit > 0 & t - event_time(visit, -1) < 1)
-sim_effect(death ~ visit >= 3 & t - event_time(visit, -3) < 1, coef = 1)
-#> <sim_effect> death ~ 1 * (visit >= 3 & t - event_time(visit, -3) < 1)
+
+# On for one time unit after each visit
+sim_effect(
+  death ~ (visit > 0) * (t - event_time(visit, -1) < 1),
+  coef = 0.5
+)
+#> <sim_effect> death ~ 0.5 * ((visit > 0) * (t - event_time(visit, -1) < 1))
+
+# Blood pressure at the operation, ignoring later measurements
+sim_effect(
+  death ~ operation * bp(event_time(operation, 1)),
+  coef = 0.02
+)
+#> <sim_effect> death ~ 0.02 * (operation * bp(event_time(operation, 1)))
 ```

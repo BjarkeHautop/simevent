@@ -19,12 +19,12 @@ its draw if it's a sim_mark()."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
     <li><a class="dropdown-item" href="../articles/migrating.html">Migrating from simevent 0.1.1</a></li>
-    <li><a class="dropdown-item" href="../articles/sim-events.html">Simulating Event History Data</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -63,7 +63,7 @@ its <code>draw</code> if it's a <code><a href="sim_mark.html">sim_mark()</a></co
 is one or more terms separated by <code>+</code>; wrap a sum in parentheses to make
 it one term. A term is an R expression of covariates (their value) and
 processes (their number of events so far), which may also use:</p><dl><dt><code>t</code></dt>
-<dd><p>The current time (see <code><a href="sim_events.html">sim_events()</a></code>'s <code>time_step</code>).</p></dd>
+<dd><p>The current time (see <code><a href="simulate_events.html">simulate_events()</a></code>'s <code>time_step</code>).</p></dd>
 
 <dt><code><a href="event_time.html">event_time()</a></code></dt>
 <dd><p>Time of a process's <code>k</code>-th or <code>k</code>-th latest
@@ -71,8 +71,8 @@ event.</p></dd>
 
 <dt><code>&lt;name&gt;(s)</code></dt>
 <dd><p>The value of covariate, mark or process count
-<code>name</code> at time <code>s</code>, after any update at <code>s</code>, e.g.
-<code>bp(event_time(operation, 1))</code>.</p></dd>
+<code>name</code> at time <code>s</code>, after any update at <code>s</code>, e.g. <code>bp(0)</code> for a
+mark's baseline value or <code>bp(event_time(operation, 1))</code>.</p></dd>
 
 
 </dl></dd>
@@ -105,6 +105,8 @@ event.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_effect&gt; death ~ 0.5 * (checkup &gt; 0 &amp; t - event_time(checkup, -1) &lt; 1)</span>
 <span class="r-in"><span><span class="fu">sim_effect</span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">operation</span> <span class="op">*</span> <span class="fu">bp</span><span class="op">(</span><span class="fu"><a href="event_time.html">event_time</a></span><span class="op">(</span><span class="va">operation</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, coef <span class="op">=</span> <span class="fl">0.02</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_effect&gt; death ~ 0.02 * (operation * bp(event_time(operation, 1)))</span>
+<span class="r-in"><span><span class="fu">sim_effect</span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">bp</span> <span class="op">-</span> <span class="fu">bp</span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>, coef <span class="op">=</span> <span class="fl">0.02</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_effect&gt; death ~ 0.02 * (bp - bp(0))</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

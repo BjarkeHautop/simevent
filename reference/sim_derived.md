@@ -43,7 +43,7 @@ model <- sim_model(
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(sim_effect(death ~ statin, coef = -0.3))
 )
-head(sim_events(model, n = 5))
+head(simulate_events(model, n = 5))
 #> Key: <id>
 #>       id      time  event   weight   height      bmi statin
 #>    <int>     <num> <fctr>    <num>    <num>    <num>  <int>

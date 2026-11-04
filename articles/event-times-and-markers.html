@@ -32,13 +32,13 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
     <li><a class="dropdown-item" href="../articles/migrating.html">Migrating from simevent 0.1.1</a></li>
-    <li><a class="dropdown-item" href="../articles/sim-events.html">Simulating Event History Data</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -116,7 +116,7 @@
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">operation_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span></span>
+<span><span class="va">operation_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_events.html">simulate_events</a></span><span class="op">(</span></span>
 <span>  <span class="va">operation_model</span>,</span>
 <span>  n <span class="op">=</span> <span class="fl">5000</span>,</span>
 <span>  max_cens <span class="op">=</span> <span class="fl">10</span>,</span>
@@ -224,7 +224,7 @@
 <code>draw</code>: a function of <code>N</code> and <code>lp</code> giving the new values.</li>
 </ul>
 <p>What a new value depends on is specified with <code><a href="../reference/sim_effect.html">sim_effect()</a></code>s <em>into</em> the marker. At each update, their <code>coef * from</code> terms are summed into the linear predictor <code>lp</code>, which <code>draw</code> can then use, e.g. as the mean of <code><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm()</a></code>. These effects can use anything a hazard effect can, including the marker’s own value before the update, and see the triggering event as having happened.</p>
-<p>The marker can also be used in <code><a href="../reference/sim_effect.html">sim_effect()</a></code> like any other covariate, and the hazards always use its current value.</p>
+<p>The marker can also be used in <code><a href="../reference/sim_effect.html">sim_effect()</a></code> like any other covariate, and the hazards always use its current value. For its value at another time, call it as a function of time: <code>bp(0)</code> is the baseline value and <code>bp(event_time(visit, 1))</code> the value after the first visit. Since <code><a href="../reference/event_time.html">event_time()</a></code> is <code>0</code> before the event, the latter is also the baseline value until the first visit.</p>
 <section class="level2"><h3 id="example-blood-pressure-and-stroke">Example: Blood Pressure and Stroke<a class="anchor" aria-label="anchor" href="#example-blood-pressure-and-stroke"></a>
 </h3>
 <p>Suppose patients have blood pressure measured at visits. High blood pressure makes treatment initiation more likely, treatment lowers subsequent blood pressure, and both blood pressure and treatment affect the stroke hazard. Blood pressure is therefore a time-varying confounder of the effect of treatment on stroke.</p>
@@ -278,7 +278,7 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; mark[k]: value after the mark's k-th update (k = 0: init)</span></span>
 <span></span>
-<span><span class="va">bp_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">bp_model</span>, n <span class="op">=</span> <span class="fl">3000</span>, max_cens <span class="op">=</span> <span class="fl">10</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">bp_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_events.html">simulate_events</a></span><span class="op">(</span><span class="va">bp_model</span>, n <span class="op">=</span> <span class="fl">3000</span>, max_cens <span class="op">=</span> <span class="fl">10</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">bp_data</span>, <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;id&gt;</span></span>
 <span><span class="co">#&gt;       id     time  event      age       bp     bp_0 visit treatment</span></span>
@@ -320,10 +320,10 @@
 </div>
 </section><section class="level2"><h3 id="recovering-the-effects">Recovering the Effects<a class="anchor" aria-label="anchor" href="#recovering-the-effects"></a>
 </h3>
-<p>To check the simulation works correctly we fit a Cox model for stroke, with each row as an interval from the previous event to this one. Each row stores the values <em>after</em> its event, so the values during the interval are those of the previous row, or the baseline values for a patient’s first row. <code><a href="../reference/interval_format_data.html">interval_format_data()</a></code> does this shift, for marker columns (<code>mark_cols</code>) and process counts (<code>proc_cols</code>):</p>
+<p>To check the simulation works correctly we fit a Cox model for stroke, with each row as an interval from the previous event to this one. Each row stores the values <em>after</em> its event, so the values during the interval are those of the previous row, or the baseline values for a patient’s first row. <code><a href="../reference/format_interval_data.html">format_interval_data()</a></code> does this shift, for marker columns (<code>mark_cols</code>) and process counts (<code>proc_cols</code>):</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bp_int</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/interval_format_data.html">interval_format_data</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">bp_int</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/format_interval_data.html">format_interval_data</a></span><span class="op">(</span></span>
 <span>  <span class="va">bp_data</span>,</span>
 <span>  proc_cols <span class="op">=</span> <span class="st">"treatment"</span>,</span>
 <span>  mark_cols <span class="op">=</span> <span class="st">"bp"</span></span>

@@ -1,4 +1,4 @@
-# Build a Simulation Model for `sim_events()`
+# Build a Simulation Model for `simulate_events()`
 
 `sim_model` assembles a set of named
 [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md)/[`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md)/
@@ -6,7 +6,7 @@
 nodes and
 [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
 edges between them into a single specification, which
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
 can then simulate from.
 
 ## Usage
@@ -35,7 +35,7 @@ An object of class `sim_model`.
 
 ## See also
 
-[`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md),
+[`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md),
 [`sim_covariate()`](https://github.com/BjarkeHautop/simevent/reference/sim_covariate.md),
 [`sim_derived()`](https://github.com/BjarkeHautop/simevent/reference/sim_derived.md),
 [`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md),

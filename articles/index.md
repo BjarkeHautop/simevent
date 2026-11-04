@@ -7,4 +7,4 @@
 - [Migrating from simevent
   0.1.1](https://github.com/BjarkeHautop/simevent/articles/migrating.md):
 - [Simulating Event History
-  Data](https://github.com/BjarkeHautop/simevent/articles/sim-events.md):
+  Data](https://github.com/BjarkeHautop/simevent/articles/simevent.md):

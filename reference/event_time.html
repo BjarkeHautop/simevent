@@ -15,12 +15,12 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/simevent.html">Get started</a></li>
+<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
     <li><a class="dropdown-item" href="../articles/migrating.html">Migrating from simevent 0.1.1</a></li>
-    <li><a class="dropdown-item" href="../articles/sim-events.html">Simulating Event History Data</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -75,15 +75,26 @@ once the event has happened.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Fades with time since the operation</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="va">death</span> <span class="op">~</span> <span class="va">operation</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="op">(</span><span class="va">t</span> <span class="op">-</span> <span class="fu">event_time</span><span class="op">(</span><span class="va">operation</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  coef <span class="op">=</span> <span class="fl">2</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_effect&gt; death ~ 2 * (operation * exp(-(t - event_time(operation, 1))))</span>
-<span class="r-in"><span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">visit</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">t</span> <span class="op">-</span> <span class="fu">event_time</span><span class="op">(</span><span class="va">visit</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">1</span>, coef <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_effect&gt; death ~ 0.5 * (visit &gt; 0 &amp; t - event_time(visit, -1) &lt; 1)</span>
-<span class="r-in"><span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">visit</span> <span class="op">&gt;=</span> <span class="fl">3</span> <span class="op">&amp;</span> <span class="va">t</span> <span class="op">-</span> <span class="fu">event_time</span><span class="op">(</span><span class="va">visit</span>, <span class="op">-</span><span class="fl">3</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">1</span>, coef <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_effect&gt; death ~ 1 * (visit &gt;= 3 &amp; t - event_time(visit, -3) &lt; 1)</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># On for one time unit after each visit</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">death</span> <span class="op">~</span> <span class="op">(</span><span class="va">visit</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="va">t</span> <span class="op">-</span> <span class="fu">event_time</span><span class="op">(</span><span class="va">visit</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">1</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  coef <span class="op">=</span> <span class="fl">0.5</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_effect&gt; death ~ 0.5 * ((visit &gt; 0) * (t - event_time(visit, -1) &lt; 1))</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Blood pressure at the operation, ignoring later measurements</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">death</span> <span class="op">~</span> <span class="va">operation</span> <span class="op">*</span> <span class="fu">bp</span><span class="op">(</span><span class="fu">event_time</span><span class="op">(</span><span class="va">operation</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  coef <span class="op">=</span> <span class="fl">0.02</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_effect&gt; death ~ 0.02 * (operation * bp(event_time(operation, 1)))</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
