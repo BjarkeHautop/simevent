@@ -27,8 +27,8 @@ library(simevent)
 simevent 0.1.1's functions (`simEventData()`, the preset wrappers such as
 `simSurvData()`, `sim.generic()`, `sim.from.data()`, `alphaSim()`, ...) have
 been removed in favour of the `sim_model()`/`sim_events()` API. This vignette
-shows how to translate code using the old functions. See
-`vignette("sim-events")` for an introduction to the new API itself.
+shows how to translate code using the old functions. See `vignette("simevent")`
+for an introduction to the new API itself.
 
   | simevent 0.1.1                                                                                                              | Replacement                                 |
   | ----                                                                                                                        | ----                                        |
@@ -274,7 +274,7 @@ The remaining arguments map as follows:
 - `intEffectAlpha()`'s `plot = TRUE` is `plot_event_data()` on the intervened
   data.
 
-See "Estimating Intervention Effects" in `vignette("sim-events")` for comparing
+See "Estimating Intervention Effects" in `vignette("simevent")` for comparing
 against the run without intervention.
 
 # `sim.from.data()`
@@ -290,5 +290,5 @@ models (one per process) and the data they were fit to. Unlike
   factor columns used directly in the `coxph()` formula; dummies are named to
   match `coxph()`'s own coefficient names (`"<variable><level>"`).
 
-See "Building a `sim_model()` from Fitted Cox Models" in
-`vignette("sim-events")` for a worked example.
+See "Building a `sim_model()` from Fitted Cox Models" in `vignette("simevent")`
+for a worked example.

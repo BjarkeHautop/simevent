@@ -80,7 +80,7 @@ plot_event_data(data, title = "Survival Data")
 ```
 
 For a full walkthrough of the simulation framework and all of the functions
-above, see `vignette("sim-events")`.
+above, see `vignette("simevent")`.
 
 ## Contributing
 
