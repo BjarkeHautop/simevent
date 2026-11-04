@@ -16,8 +16,8 @@ processes (their number of events so far), which may also use:
 \item{\code{\link[=event_time]{event_time()}}}{Time of a process's \code{k}-th or \code{k}-th latest
 event.}
 \item{\verb{<name>(s)}}{The value of covariate, mark or process count
-\code{name} at time \code{s}, after any update at \code{s}, e.g.
-\code{bp(event_time(operation, 1))}.}
+\code{name} at time \code{s}, after any update at \code{s}, e.g. \code{bp(0)} for a
+mark's baseline value or \code{bp(event_time(operation, 1))}.}
 }}
 
 \item{coef}{Numeric vector, one coefficient per term of \code{from}.}
@@ -37,6 +37,7 @@ sim_effect(death ~ (age + bmi), coef = 0.02)
 sim_effect(death ~ (age - 60)^2 + (relapse == 3), coef = c(0.001, 1.2))
 sim_effect(death ~ checkup > 0 & t - event_time(checkup, -1) < 1, coef = 0.5)
 sim_effect(death ~ operation * bp(event_time(operation, 1)), coef = 0.02)
+sim_effect(death ~ bp - bp(0), coef = 0.02)
 }
 \seealso{
 \code{\link[=sim_model]{sim_model()}}, \code{\link[=event_time]{event_time()}}

@@ -88,6 +88,7 @@ sim_derived <- function(fn) {
 #' [simulate_events()] output, each row holds its value after that row's event,
 #' and a `<name>_0` column holds its baseline value; [format_interval_data()]'s
 #' `mark_cols` turns these into the value in force during each interval.
+#' Inside a [sim_effect()] formula, the baseline value is `<name>(0)`.
 #'
 #' What a new value depends on is given by [sim_effect()]s with the mark as
 #' `to`: at each update, their `coef * from` terms are summed into a linear
@@ -284,8 +285,8 @@ sim_process <- function(
 #'     \item{[event_time()]}{Time of a process's `k`-th or `k`-th latest
 #'       event.}
 #'     \item{`<name>(s)`}{The value of covariate, mark or process count
-#'       `name` at time `s`, after any update at `s`, e.g.
-#'       `bp(event_time(operation, 1))`.}
+#'       `name` at time `s`, after any update at `s`, e.g. `bp(0)` for a
+#'       mark's baseline value or `bp(event_time(operation, 1))`.}
 #'   }
 #' @param coef Numeric vector, one coefficient per term of `from`.
 #'
@@ -298,6 +299,7 @@ sim_process <- function(
 #' sim_effect(death ~ (age - 60)^2 + (relapse == 3), coef = c(0.001, 1.2))
 #' sim_effect(death ~ checkup > 0 & t - event_time(checkup, -1) < 1, coef = 0.5)
 #' sim_effect(death ~ operation * bp(event_time(operation, 1)), coef = 0.02)
+#' sim_effect(death ~ bp - bp(0), coef = 0.02)
 #' @export
 sim_effect <- function(formula, coef) {
   parsed <- .sim_parse_formula(formula)

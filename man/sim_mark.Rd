@@ -28,6 +28,7 @@ processes fires. It stays constant between those events. In
 \code{\link[=simulate_events]{simulate_events()}} output, each row holds its value after that row's event,
 and a \verb{<name>_0} column holds its baseline value; \code{\link[=format_interval_data]{format_interval_data()}}'s
 \code{mark_cols} turns these into the value in force during each interval.
+Inside a \code{\link[=sim_effect]{sim_effect()}} formula, the baseline value is \verb{<name>(0)}.
 }
 \details{
 What a new value depends on is given by \code{\link[=sim_effect]{sim_effect()}}s with the mark as

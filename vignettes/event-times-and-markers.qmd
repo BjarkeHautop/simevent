@@ -176,7 +176,9 @@ can use anything a hazard effect can, including the marker's own value before
 the update, and see the triggering event as having happened.
 
 The marker can also be used in `sim_effect()` like any other covariate, and the
-hazards always use its current value.
+hazards always use its current value. For its value at another time, call it as
+a function of time: `bp(0)` is the baseline value and `bp(event_time(visit, 1))`
+the value after the first visit.
 
 ## Example: Blood Pressure and Stroke
 
