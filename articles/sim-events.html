@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Migrating to sim_events() • simevent</title>
+<title>Simulating Event History Data • simevent</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
@@ -13,7 +13,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="sim-events_files/libs/quarto-html/popper.min.js"></script><script src="sim-events_files/libs/quarto-html/tippy.umd.min.js"></script><link href="sim-events_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="sim-events_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Migrating to sim_events()">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Simulating Event History Data">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -37,7 +37,8 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
-    <li><a class="dropdown-item" href="../articles/sim-events.html">Migrating to sim_events()</a></li>
+    <li><a class="dropdown-item" href="../articles/migrating.html">Migrating from simevent 0.1.1</a></li>
+    <li><a class="dropdown-item" href="../articles/sim-events.html">Simulating Event History Data</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -56,7 +57,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Migrating to sim_events()</h1>
+      <h1>Simulating Event History Data</h1>
 
 
 
@@ -77,7 +78,7 @@
 </div>
 <section class="section level2"><h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>simevent 0.1.1’s functions (<code>simEventData()</code>, the preset wrappers such as <code>simSurvData()</code>, <code>sim.generic()</code>, <code>sim.from.data()</code>, <code>alphaSim()</code>, …) have been removed in favour of the <code><a href="../reference/sim_model.html">sim_model()</a></code>/<code><a href="../reference/sim_events.html">sim_events()</a></code> API. This vignette introduces it and shows how to translate code using the old functions.</p>
+<p>simevent simulates event history data in two steps: <code><a href="../reference/sim_model.html">sim_model()</a></code> describes baseline covariates, event processes and the Cox-type effects between them, and <code><a href="../reference/sim_events.html">sim_events()</a></code> simulates individuals from it. This vignette introduces the model interface, shows how to simulate and evaluate interventions with <code><a href="../reference/event_risk.html">event_risk()</a></code>, and how to build a model from Cox models fitted to observed data with <code><a href="../reference/sim_model_from_fits.html">sim_model_from_fits()</a></code>. Time-varying markers and effects of event history are covered in more depth in <code><a href="../articles/event-times-and-markers.html">vignette("event-times-and-markers")</a></code>.</p>
 </section><section class="section level2"><h2 id="the-sim_model-interface">The <code>sim_model()</code> Interface<a class="anchor" aria-label="anchor" href="#the-sim_model-interface"></a>
 </h2>
 <p>A <code><a href="../reference/sim_model.html">sim_model()</a></code> call has three kinds of possible inputs:</p>
@@ -107,16 +108,16 @@
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;id&gt;</span></span>
-<span><span class="co">#&gt;       id     time     event    L0</span></span>
-<span><span class="co">#&gt;    &lt;int&gt;    &lt;num&gt;    &lt;fctr&gt; &lt;int&gt;</span></span>
-<span><span class="co">#&gt; 1:     1 4.601027 censoring     1</span></span>
-<span><span class="co">#&gt; 2:     2 1.826472     death     0</span></span>
-<span><span class="co">#&gt; 3:     3 1.265335     death     1</span></span>
-<span><span class="co">#&gt; 4:     4 1.407940     death     1</span></span>
-<span><span class="co">#&gt; 5:     5 5.401157     death     0</span></span>
-<span><span class="co">#&gt; 6:     6 0.104684     death     1</span></span></code></pre></div>
+<span><span class="co">#&gt;       id        time     event    L0</span></span>
+<span><span class="co">#&gt;    &lt;int&gt;       &lt;num&gt;    &lt;fctr&gt; &lt;int&gt;</span></span>
+<span><span class="co">#&gt; 1:     1 5.754243445     death     0</span></span>
+<span><span class="co">#&gt; 2:     2 0.222247849     death     1</span></span>
+<span><span class="co">#&gt; 3:     3 5.103899898     death     0</span></span>
+<span><span class="co">#&gt; 4:     4 1.370335546 censoring     0</span></span>
+<span><span class="co">#&gt; 5:     5 0.567566882     death     0</span></span>
+<span><span class="co">#&gt; 6:     6 0.002809244 censoring     1</span></span></code></pre></div>
 </div>
-<p><code><a href="../reference/sim_events.html">sim_events()</a></code>’s <code>intervene</code> argument replaces <code>sim.generic()</code>’s <code>alpha.intervention</code>/<code>baseline.intervention</code> pair with a single named list: give a process name to scale its <code>eta</code>, or a covariate name to fix it to a constant.</p>
+<p><code><a href="../reference/sim_events.html">sim_events()</a></code>’s <code>intervene</code> argument takes a named list: give a process name to scale its <code>eta</code>, or a covariate name to fix it to a constant.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_intervened</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span></span>
@@ -128,12 +129,12 @@
 <span><span class="co">#&gt; Key: &lt;id&gt;</span></span>
 <span><span class="co">#&gt;       id      time     event    L0</span></span>
 <span><span class="co">#&gt;    &lt;int&gt;     &lt;num&gt;    &lt;fctr&gt; &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:     1 5.2617802     death     1</span></span>
-<span><span class="co">#&gt; 2:     2 2.3162950     death     1</span></span>
-<span><span class="co">#&gt; 3:     3 0.2927028     death     1</span></span>
-<span><span class="co">#&gt; 4:     4 5.8674881 censoring     1</span></span>
-<span><span class="co">#&gt; 5:     5 1.5516597     death     1</span></span>
-<span><span class="co">#&gt; 6:     6 5.5676933     death     1</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:     1 0.1203153 censoring     1</span></span>
+<span><span class="co">#&gt; 2:     2 0.6737020 censoring     1</span></span>
+<span><span class="co">#&gt; 3:     3 0.1258056     death     1</span></span>
+<span><span class="co">#&gt; 4:     4 2.5491181 censoring     1</span></span>
+<span><span class="co">#&gt; 5:     5 2.5120989     death     1</span></span>
+<span><span class="co">#&gt; 6:     6 1.4579285 censoring     1</span></span></code></pre></div>
 </div>
 <section class="level2"><h3 id="non-linear-and-history-dependent-effects">Non-Linear and History-Dependent Effects<a class="anchor" aria-label="anchor" href="#non-linear-and-history-dependent-effects"></a>
 </h3>
@@ -215,168 +216,16 @@
 <span><span class="co">#&gt; 6:     2 14.4228692   checkup       3</span></span></code></pre></div>
 </div>
 <p>The <code>checkup &gt; 0 &amp;</code> keeps the effect off before the first checkup, when <code>event_time(checkup, -1)</code> is <code>0</code>.</p>
-</section></section><section class="section level2"><h2 id="translating-the-preset-wrappers">Translating the Preset Wrappers<a class="anchor" aria-label="anchor" href="#translating-the-preset-wrappers"></a>
-</h2>
-<section class="level2"><h3 id="simsurvdata">
-<code>simSurvData()</code><a class="anchor" aria-label="anchor" href="#simsurvdata"></a>
-</h3>
-<p><code>simSurvData()</code>’s default (<code>beta = NULL</code>, i.e. no covariate effects) is two terminal processes, censoring and death, both with <code>eta = 0.1</code>, <code>nu = 1.1</code>. The old call</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">simSurvData</span><span class="op">(</span><span class="fl">200</span><span class="op">)</span></span></code></pre></div>
-</div>
-<p>becomes</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
-<span>  L0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  A0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span>, <span class="va">L0</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  censoring <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span>
-<span>  death <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></code></pre></div>
-</div>
-<p>The old functions coded events as integers in <code>Delta</code>; <code><a href="../reference/sim_events.html">sim_events()</a></code> returns the process name in <code>event</code>, and <code>id</code>/<code>time</code> in place of <code>ID</code>/<code>Time</code>.</p>
-</section><section class="level2"><h3 id="simcrdata">
-<code>simCRdata()</code><a class="anchor" aria-label="anchor" href="#simcrdata"></a>
-</h3>
-<p><code>simCRdata()</code> adds a third terminal process (a second competing cause):</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">beta</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="op">-</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0</span>, <span class="fl">0.5</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">3</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="fu">simCRdata</span><span class="op">(</span>N <span class="op">=</span> <span class="fl">200</span>, beta <span class="op">=</span> <span class="va">beta</span><span class="op">)</span></span></code></pre></div>
-</div>
-<p>becomes</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
-<span>  L0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  A0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span>, <span class="va">L0</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  censoring <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span>
-<span>  cause1 <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span>
-<span>  cause2 <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span>
-<span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">censoring</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">A0</span>, coef <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">cause1</span> <span class="op">~</span> <span class="va">L0</span> <span class="op">+</span> <span class="va">A0</span>, coef <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">cause2</span> <span class="op">~</span> <span class="va">A0</span>, coef <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></code></pre></div>
-</div>
-</section><section class="level2"><h3 id="simdisease">
-<code>simDisease()</code><a class="anchor" aria-label="anchor" href="#simdisease"></a>
-</h3>
-<p><code>simDisease()</code> has a censoring process, a terminal death process, and a covariate process <code>L</code> that can happen at most once and can itself affect death; a <code>"transient"</code> process with <code>limit = 1</code>:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">simDisease</span><span class="op">(</span></span>
-<span>  N <span class="op">=</span> <span class="fl">5000</span>,</span>
-<span>  cens <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
-<span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.1</span>, <span class="fl">1.3</span>, <span class="fl">1.1</span><span class="op">)</span>,</span>
-<span>  beta_L0_L <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  beta_A0_L <span class="op">=</span> <span class="op">-</span><span class="fl">1.1</span>,</span>
-<span>  beta_L_D <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  beta_L0_D <span class="op">=</span> <span class="fl">0</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<p>becomes</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
-<span>  L0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  A0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span>, <span class="va">L0</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  censoring <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span>
-<span>  death <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.3</span>, nu <span class="op">=</span> <span class="fl">1.3</span><span class="op">)</span>,</span>
-<span>  L <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"transient"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span>, limit <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">L</span> <span class="op">~</span> <span class="va">L0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">L</span> <span class="op">~</span> <span class="va">A0</span>, <span class="op">-</span><span class="fl">1.1</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">L</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></span></code></pre></div>
-</div>
-</section><section class="level2"><h3 id="simtreatment">
-<code>simTreatment()</code><a class="anchor" aria-label="anchor" href="#simtreatment"></a>
-</h3>
-<p><code>simTreatment()</code> (with <code>op = 1</code>, the default) adds a second <code>"transient"</code> process, treatment (<code>A</code>), which can itself affect and be affected by the covariate process <code>L</code>. <code>simTreatment()</code> doesn’t declare its own <code>A0</code>, so its translation skips it too: <code><a href="../reference/sim_model.html">sim_model()</a></code> has no default covariates.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">simTreatment</span><span class="op">(</span></span>
-<span>  N <span class="op">=</span> <span class="fl">5000</span>,</span>
-<span>  beta_L_A <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  beta_L_D <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  beta_A_D <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>,</span>
-<span>  beta_A_L <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>,</span>
-<span>  beta_L0_A <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">4</span><span class="op">)</span>,</span>
-<span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1.1</span>, <span class="fl">4</span><span class="op">)</span>,</span>
-<span>  cens <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  op <span class="op">=</span> <span class="fl">1</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<p>becomes</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
-<span>  L0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  censoring <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span>
-<span>  death <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span>
-<span>  A <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"transient"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span>, limit <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  L <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"transient"</span>, eta <span class="op">=</span> <span class="fl">0.1</span>, nu <span class="op">=</span> <span class="fl">1.1</span>, limit <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">L0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">A</span> <span class="op">~</span> <span class="va">L0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">L</span> <span class="op">~</span> <span class="va">L0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">A</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">L</span> <span class="op">~</span> <span class="va">A</span>, <span class="op">-</span><span class="fl">0.5</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">death</span> <span class="op">~</span> <span class="va">L</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">A</span> <span class="op">~</span> <span class="va">L</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></span></code></pre></div>
-</div>
-</section><section class="level2"><h3 id="simstatindata">
-<code>simStatinData()</code><a class="anchor" aria-label="anchor" href="#simstatindata"></a>
-</h3>
-<p><code>simStatinData()</code> mainly demonstrates non-default baseline covariate generators. <code><a href="../reference/sim_covariate.html">sim_covariate()</a></code> reproduces this directly, with no forced covariate names to work around:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1405</span><span class="op">)</span></span>
-<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
-<span>  L0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">1</span>, <span class="fl">0.4</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  A0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span>, <span class="va">L0</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">pmin</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">0.3</span><span class="op">)</span> <span class="op">+</span> <span class="fl">70</span>, <span class="fl">100</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  censoring <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.025</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span>,</span>
-<span>  death <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.025</span>, nu <span class="op">=</span> <span class="fl">1.1</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">model_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">model_data</span><span class="op">$</span><span class="va">A0</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;   70.00   70.82   71.96   73.14   74.18   85.01</span></span></code></pre></div>
-</div>
 </section></section><section class="section level2"><h2 id="estimating-intervention-effects">Estimating Intervention Effects<a class="anchor" aria-label="anchor" href="#estimating-intervention-effects"></a>
 </h2>
-<p><code>alphaSim()</code> and <code>intEffectAlpha()</code> simulate one of the preset settings with the shape parameter <code>eta</code> of one process multiplied by <code>alpha</code>, and summarise the result as the proportion of individuals experiencing death and the intervened process by time <span class="math inline">\tau</span> (or the years lost to them before <span class="math inline">\tau</span>). With the model API this splits into two general steps, which work for any process in any model:</p>
+<p>The effect of an intervention on a process is estimated in two steps, which work for any process in any model:</p>
 <ol type="1">
-<li>Simulate under the intervention with <code><a href="../reference/sim_events.html">sim_events()</a></code>’s <code>intervene</code> argument: <code>intervene = list(&lt;process&gt; = alpha)</code> multiplies that process’s <code>eta</code> by <code>alpha</code>.</li>
-<li>Summarise with <code><a href="../reference/event_risk.html">event_risk()</a></code>: the risk <span class="math inline">P(T \le \tau)</span> of each process’s first event, or (<code>type = "time_lost"</code>) the expected time lost to it before <span class="math inline">\tau</span>, <span class="math inline">E[\tau - \min(T, \tau)]</span>.</li>
+<li>Simulate with and without the intervention, using <code><a href="../reference/sim_events.html">sim_events()</a></code>’s <code>intervene</code> argument: <code>intervene = list(&lt;process&gt; = alpha)</code> multiplies that process’s <code>eta</code> by <code>alpha</code>.</li>
+<li>Summarise each run with <code><a href="../reference/event_risk.html">event_risk()</a></code>: the risk <span class="math inline">P(T \le \tau)</span> of each process’s first event, or (<code>type = "time_lost"</code>) the expected time lost to it before <span class="math inline">\tau</span>, <span class="math inline">E[\tau - \min(T, \tau)]</span>.</li>
 </ol>
-<p>Take <code>alphaSim()</code>’s <code>"Disease"</code> setting with <code>alpha = 0.5</code>, which halves the hazard of the disease process <code>L</code>:</p>
+<p>Take a model where a disease process <code>L</code> raises the death hazard, and consider halving the hazard of disease:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">alphaSim</span><span class="op">(</span></span>
-<span>  N <span class="op">=</span> <span class="fl">5000</span>,</span>
-<span>  eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
-<span>  nu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1.1</span>, <span class="fl">3</span><span class="op">)</span>,</span>
-<span>  alpha <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  tau <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>  setting <span class="op">=</span> <span class="st">"Disease"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<p>The same model with <code><a href="../reference/sim_model.html">sim_model()</a></code>:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">disease_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
 <span>  L0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  A0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span>, <span class="va">L0</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -390,9 +239,9 @@
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
-<p><code>alphaSim()</code> switches censoring off by default (<code>cens = 0</code>). Simulating both with and without the intervention gives the effect directly:</p>
+<p>Censoring before <span class="math inline">\tau</span> biases <code><a href="../reference/event_risk.html">event_risk()</a></code>’s estimates, so switch it off with <code>cens = 0</code>. Simulating both with and without the intervention gives the effect directly:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1405</span><span class="op">)</span></span>
 <span><span class="va">observed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">disease_model</span>, n <span class="op">=</span> <span class="fl">5000</span>, cens <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span><span class="va">intervened</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span></span>
@@ -420,9 +269,9 @@
 <span><span class="co">#&gt; 2:       L   0.4240     0.2522</span></span></code></pre></div>
 </div>
 <p>Halving the disease hazard lowers the risk of disease, and, since disease raises the death hazard (<code>sim_effect(death ~ L, 1)</code>), the risk of death too.</p>
-<p><code>alphaSim()</code>/<code>intEffectAlpha()</code>’s <code>years_lost = TRUE</code> corresponds to <code>type = "time_lost"</code>, and their <code>a0</code> argument (summarise only individuals with <code>A0 == a0</code>) to <code>by = "A0"</code>, which summarises every group at once:</p>
+<p><code>type = "time_lost"</code> gives the years lost instead, and <code>by</code> summarises within groups of baseline covariates:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/event_risk.html">event_risk</a></span><span class="op">(</span></span>
 <span>  <span class="va">intervened</span>,</span>
 <span>  <span class="va">disease_model</span>,</span>
@@ -438,10 +287,10 @@
 <span><span class="co">#&gt; 3:     0       L 0.7580466</span></span>
 <span><span class="co">#&gt; 4:     1       L 0.7724950</span></span></code></pre></div>
 </div>
-<p><code>by</code> conditions on the observed value of <code>A0</code>. For a <code>do()</code>-style contrast, where everyone’s <code>A0</code> is set to a value, fix it with <code>intervene</code> instead, e.g. <code>intervene = list(L = 0.5, A0 = 1)</code>.</p>
-<p>Finally, <code>intEffectAlpha()</code>’s <code>plot = TRUE</code> is <code><a href="../reference/plot_event_data.html">plot_event_data()</a></code> on the intervened data:</p>
+<p><code>by</code> conditions on the observed value of <code>A0</code>. It only takes baseline columns; for a <code><a href="../reference/sim_mark.html">sim_mark()</a></code>, group by its baseline value <code>&lt;mark&gt;_0</code>. For a <code>do()</code>-style contrast, where everyone’s <code>A0</code> is set to a value, fix it with <code>intervene</code> instead, e.g. <code>intervene = list(L = 0.5, A0 = 1)</code>.</p>
+<p><code><a href="../reference/plot_event_data.html">plot_event_data()</a></code> shows the individual event histories under the intervention:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_event_data.html">plot_event_data</a></span><span class="op">(</span></span>
 <span>  <span class="va">intervened</span><span class="op">[</span><span class="va">intervened</span><span class="op">$</span><span class="va">id</span> <span class="op">&lt;=</span> <span class="fl">100</span>, <span class="op">]</span>,</span>
 <span>  title <span class="op">=</span> <span class="st">"Under Intervention"</span></span>
@@ -459,7 +308,7 @@
 <p>Use the same <code>n</code>/<code>tau</code> on every call, and the same random seed for the natural and intervened runs (common random numbers), so only the coefficient and the intervention vary, not independent Monte Carlo noise too. Otherwise the search target is too noisy for <code><a href="https://rdrr.io/r/stats/uniroot.html" class="external-link">uniroot()</a></code> to bracket a root.</p>
 <p>Take <code>disease_model</code> from above, but suppose disease’s effect on death (fixed at <code>1</code> there) is unknown, and the target is: halving the disease hazard should lower 5-year death risk by 5 percentage points.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">disease_effect_on_death</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">coef</span>, <span class="va">n</span> <span class="op">=</span> <span class="fl">3000</span>, <span class="va">tau</span> <span class="op">=</span> <span class="fl">5</span>, <span class="va">seed</span> <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
 <span>    L0 <span class="op">=</span> <span class="fu"><a href="../reference/sim_covariate.html">sim_covariate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">N</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -491,13 +340,13 @@
 </div>
 <p>Larger coefficients make disease matter more for death, so halving its hazard lowers death risk by more: <code>disease_effect_on_death()</code> is increasing in <code>coef</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span>, <span class="va">disease_effect_on_death</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] -0.003666667  0.046666667  0.077333333  0.086000000</span></span></code></pre></div>
 </div>
 <p><code><a href="https://rdrr.io/r/stats/uniroot.html" class="external-link">uniroot()</a></code> finds the coefficient giving a 5 percentage point reduction:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">calibrated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/uniroot.html" class="external-link">uniroot</a></span><span class="op">(</span></span>
 <span>  <span class="kw">function</span><span class="op">(</span><span class="va">coef</span><span class="op">)</span> <span class="fu">disease_effect_on_death</span><span class="op">(</span><span class="va">coef</span><span class="op">)</span> <span class="op">-</span> <span class="fl">0.05</span>,</span>
 <span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span><span class="op">)</span>,</span>
@@ -509,10 +358,9 @@
 <p>For several coefficients and targets at once, wrap the sum of squared deviations into one objective (still with common random numbers) and use <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> instead of <code><a href="https://rdrr.io/r/stats/uniroot.html" class="external-link">uniroot()</a></code>.</p>
 </section></section><section class="section level2"><h2 id="building-a-sim_model-from-fitted-cox-models">Building a <code>sim_model()</code> from Fitted Cox Models<a class="anchor" aria-label="anchor" href="#building-a-sim_model-from-fitted-cox-models"></a>
 </h2>
-<p><code><a href="../reference/sim_model_from_fits.html">sim_model_from_fits()</a></code> is the model-native replacement for <code>sim.from.data()</code>: instead of user-specified effects, it builds a <code><a href="../reference/sim_model.html">sim_model()</a></code> from a set of fitted <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph()</a></code> models (one per process) and the data they were fit to, so simulated data mimics an observed dataset’s distribution.</p>
-<p>Unlike <code>sim.from.data()</code>, which requires building a <code>sim.parameters</code> list, including a <code>baseline.summary</code> computed by hand from <code><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean()</a></code>/ <code><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd()</a></code>/<code><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min()</a></code>/<code><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max()</a></code>, <code><a href="../reference/sim_model_from_fits.html">sim_model_from_fits()</a></code> resamples whole rows of baseline covariates from the data itself, keeping each covariate’s distribution and the relationships between them.</p>
+<p>Instead of user-specified effects, <code><a href="../reference/sim_model_from_fits.html">sim_model_from_fits()</a></code> builds a <code><a href="../reference/sim_model.html">sim_model()</a></code> from a set of fitted <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph()</a></code> models (one per process) and the data they were fit to, so simulated data mimics an observed dataset’s distribution. Baseline covariates are generated by resampling whole rows of the data, keeping each covariate’s distribution and the relationships between them.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Some "observed" data, from a 3-cause competing-risks sim_model():</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1405</span><span class="op">)</span></span>
 <span><span class="va">observed_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
@@ -556,7 +404,7 @@
 </div>
 <p>Each process uses its <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph()</a></code> fit’s cumulative baseline hazard as-is, so the simulated event times follow its shape. The hazard is unknown beyond the last observed time, so simulated follow-up ends there (<code>event = "max_cens"</code>).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">new_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">new_data</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Key: &lt;id&gt;</span></span>
@@ -583,9 +431,9 @@
 </div>
 <section class="level2"><h3 id="categorical-baseline-covariates">Categorical Baseline Covariates<a class="anchor" aria-label="anchor" href="#categorical-baseline-covariates"></a>
 </h3>
-<p>A categorical baseline covariate must be a factor column in <code>data</code>, referenced directly in the <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph()</a></code> formula (not wrapped in <code><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor()</a></code> there). <code><a href="../reference/sim_model_from_fits.html">sim_model_from_fits()</a></code> regenerates it as its integer level codes, plus one <code><a href="../reference/sim_derived.html">sim_derived()</a></code> dummy per non-reference level, named to match <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph()</a></code>’s own coefficient names (<code>"&lt;variable&gt;&lt;level&gt;"</code>). The model-native replacement for <code>sim.from.data()</code>’s <code>"(region==2)"</code>-style expression matching.</p>
+<p>A categorical baseline covariate must be a factor column in <code>data</code>, referenced directly in the <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph()</a></code> formula (not wrapped in <code><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor()</a></code> there). <code><a href="../reference/sim_model_from_fits.html">sim_model_from_fits()</a></code> regenerates it as its integer level codes, plus one <code><a href="../reference/sim_derived.html">sim_derived()</a></code> dummy per non-reference level, named to match <code><a href="https://rdrr.io/pkg/survival/man/coxph.html" class="external-link">coxph()</a></code>’s own coefficient names (<code>"&lt;variable&gt;&lt;level&gt;"</code>).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">observed_data</span><span class="op">$</span><span class="va">region</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">observed_data</span><span class="op">)</span>,</span>

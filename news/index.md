@@ -30,9 +30,13 @@
   [`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md),
   [`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md),
   [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md),
-  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md)
+  [`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md),
+  [`sim_events()`](https://github.com/BjarkeHautop/simevent/reference/sim_events.md),
+  [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md),
+  [`event_risk()`](https://github.com/BjarkeHautop/simevent/reference/event_risk.md),
+  [`interval_format_data()`](https://github.com/BjarkeHautop/simevent/reference/interval_format_data.md)
   and
-  [`sim_model_from_fits()`](https://github.com/BjarkeHautop/simevent/reference/sim_model_from_fits.md).
+  [`plot_event_data()`](https://github.com/BjarkeHautop/simevent/reference/plot_event_data.md).
 
 ## simevent 0.1.1
 

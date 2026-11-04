@@ -21,7 +21,8 @@ coxph(Surv(tstart, tstop, ...))."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
-    <li><a class="dropdown-item" href="../articles/sim-events.html">Migrating to sim_events()</a></li>
+    <li><a class="dropdown-item" href="../articles/migrating.html">Migrating from simevent 0.1.1</a></li>
+    <li><a class="dropdown-item" href="../articles/sim-events.html">Simulating Event History Data</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -105,14 +106,14 @@ number).</p>
 <span class="r-in"><span><span class="va">data_int</span> <span class="op">&lt;-</span> <span class="fu">interval_format_data</span><span class="op">(</span><span class="va">data</span>, proc_cols <span class="op">=</span> <span class="st">"relapse"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data_int</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;id&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       id     time     event        L0 relapse     k   tstart    tstop</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;    &lt;num&gt;    &lt;fctr&gt;     &lt;num&gt;   &lt;num&gt; &lt;int&gt;    &lt;num&gt;    &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 2.582850     death 0.9409763       0     1 0.000000 2.582850</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     2 3.009249     death 0.6166710       0     1 0.000000 3.009249</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     3 5.325178   relapse 0.3195034       0     1 0.000000 5.325178</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     3 5.413429   relapse 0.3195034       1     2 5.325178 5.413429</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     3 5.470893   relapse 0.3195034       2     3 5.413429 5.470893</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     3 6.527107 censoring 0.3195034       3     4 5.470893 6.527107</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       id      time   event        L0 relapse     k   tstart     tstop</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;     &lt;num&gt;  &lt;fctr&gt;     &lt;num&gt;   &lt;num&gt; &lt;int&gt;    &lt;num&gt;     &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 1.8635429 relapse 0.2862210       0     1 0.000000 1.8635429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     1 2.8085723   death 0.2862210       1     2 1.863543 2.8085723</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     2 4.8449127 relapse 0.8720524       0     1 0.000000 4.8449127</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     2 5.0110369 relapse 0.8720524       1     2 4.844913 5.0110369</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     2 5.2628444   death 0.8720524       2     3 5.011037 5.2628444</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     3 0.6523381   death 0.4353905       0     1 0.000000 0.6523381</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># relapse is now the cumulative count *before* each row's event, so it can</span></span></span>
 <span class="r-in"><span><span class="co"># be used as a time-varying covariate:</span></span></span>
@@ -124,12 +125,12 @@ number).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> survival::coxph(formula = survival::Surv(tstart, tstop, event == </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     "death") ~ L0 + relapse, data = data_int)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>             coef exp(coef) se(coef)      z        p</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> L0      -0.31134   0.73246  0.19723 -1.579    0.114</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> relapse  0.47957   1.61537  0.08377  5.725 1.04e-08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>             coef exp(coef) se(coef)      z       p</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> L0      -0.00862   0.99142  0.20968 -0.041   0.967</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> relapse  0.40382   1.49754  0.06946  5.814 6.1e-09</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=33.55  on 2 df, p=5.174e-08</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> n= 804, number of events= 280 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=31.45  on 2 df, p=1.485e-07</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> n= 848, number of events= 302 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Splitting at t_prime tests whether an effect changes over time. Here L0</span></span></span>
 <span class="r-in"><span><span class="co"># raises the death hazard before time 2 only:</span></span></span>
@@ -150,12 +151,12 @@ number).</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> survival::coxph(formula = survival::Surv(tstart, tstop, event == </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     "death") ~ L0:strata(t_group), data = data_split)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                coef exp(coef) se(coef)      z      p</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> L0:strata(t_group)t_group=1 0.91187   2.48898  0.06693 13.624 &lt;2e-16</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> L0:strata(t_group)t_group=2 0.03978   1.04058  0.06651  0.598   0.55</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                 coef exp(coef) se(coef)      z      p</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> L0:strata(t_group)t_group=1  0.91827   2.50496  0.06552 14.014 &lt;2e-16</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> L0:strata(t_group)t_group=2 -0.08126   0.92196  0.06814 -1.192  0.233</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=200  on 2 df, p=&lt; 2.2e-16</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> n= 2979, number of events= 2000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Likelihood ratio test=209  on 2 df, p=&lt; 2.2e-16</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> n= 2974, number of events= 2000 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

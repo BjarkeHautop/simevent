@@ -44,8 +44,8 @@ sim_process(
 
 - nu:
 
-  Numeric. Weibull shape parameter: `nu > 1` gives an increasing hazard,
-  `nu < 1` a decreasing one, `nu = 1` a constant one.
+  Positive numeric. Weibull shape parameter: `nu > 1` gives an
+  increasing hazard, `nu < 1` a decreasing one, `nu = 1` a constant one.
 
 - limit:
 

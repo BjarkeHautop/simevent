@@ -57,7 +57,10 @@ event_risk(
 
 - by:
 
-  Character vector. Columns of `data` to summarise within.
+  Character vector. Baseline columns of `data` to summarise within. A
+  [`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md)
+  changes over follow-up, so group by its baseline value `<mark>_0`
+  instead; transient process counts can't be used.
 
 ## Value
 
@@ -103,4 +106,20 @@ event_risk(intervened, model, "death", tau = 5, type = "time_lost", by = "A0")
 #>    <int>  <char>     <num>
 #> 1:     0   death  1.286546
 #> 2:     1   death  1.821648
+
+# Group by a sim_mark()'s baseline value, <mark>_0 (the mark itself changes
+# over follow-up, so by = "L" is an error):
+draw_l <- function(N) rbinom(N, 1, 0.5)
+model_l <- sim_model(
+  L = sim_mark(draw_l, "visit", draw_l),
+  visit = sim_process("transient", eta = 0.5, nu = 1),
+  death = sim_process("terminal", eta = 0.1, nu = 1.1),
+  effects = list(sim_effect(death ~ L, coef = 1))
+)
+data_l <- sim_events(model_l, n = 2000)
+event_risk(data_l, model_l, "death", tau = 5, by = "L_0")
+#>      L_0 process      risk
+#>    <int>  <char>     <num>
+#> 1:     0   death 0.5836576
+#> 2:     1   death 0.7170782
 ```

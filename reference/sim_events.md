@@ -102,14 +102,14 @@ model <- sim_model(
 data <- sim_events(model, n = 100)
 head(data)
 #> Key: <id>
-#>       id      time   event      age treated illness checkup
-#>    <int>     <num>  <fctr>    <num>   <int>   <num>   <num>
-#> 1:     1 1.2430518 illness 34.61072       0       1       0
-#> 2:     1 1.3443156   death 34.61072       0       1       0
-#> 3:     2 0.7788992 checkup 40.88235       0       0       1
-#> 4:     2 0.9082643   death 40.88235       0       0       1
-#> 5:     3 0.9370485 checkup 39.63224       0       0       1
-#> 6:     3 1.6289826   death 39.63224       0       0       1
+#>       id       time     event      age treated illness checkup
+#>    <int>      <num>    <fctr>    <num>   <int>   <num>   <num>
+#> 1:     1 0.20700885   checkup 47.04180       1       0       1
+#> 2:     1 1.34353737 censoring 47.04180       1       0       1
+#> 3:     2 0.08574478     death 68.11898       0       0       0
+#> 4:     3 1.24193098     death 46.90377       0       0       0
+#> 5:     4 0.65822754   checkup 41.62570       0       0       1
+#> 6:     4 1.82935437     death 41.62570       0       0       1
 
 # illness has fired at most twice for everyone (limit = 2):
 all(data$illness <= 2)
@@ -127,10 +127,10 @@ head(data_intervened)
 #> Key: <id>
 #>       id      time     event      age treated illness checkup
 #>    <int>     <num>    <fctr>    <num>   <num>   <num>   <num>
-#> 1:     1 0.2197143   checkup 38.47061       1       0       1
-#> 2:     1 0.4107919     death 38.47061       1       0       1
-#> 3:     2 1.1348681     death 48.86712       1       0       0
-#> 4:     3 0.6083544   illness 70.51100       1       1       0
-#> 5:     3 0.7747750 censoring 70.51100       1       1       0
-#> 6:     4 4.0382119     death 53.69561       1       0       0
+#> 1:     1 0.5038067   checkup 57.69649       1       0       1
+#> 2:     1 2.8395612   illness 57.69649       1       1       1
+#> 3:     1 3.4014899 censoring 57.69649       1       1       1
+#> 4:     2 0.2444779   illness 73.56723       1       1       0
+#> 5:     2 0.5264845     death 73.56723       1       1       0
+#> 6:     3 0.1552247 censoring 57.89833       1       0       0
 ```

@@ -21,7 +21,8 @@ sim_model() specification."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
-    <li><a class="dropdown-item" href="../articles/sim-events.html">Migrating to sim_events()</a></li>
+    <li><a class="dropdown-item" href="../articles/migrating.html">Migrating from simevent 0.1.1</a></li>
+    <li><a class="dropdown-item" href="../articles/sim-events.html">Simulating Event History Data</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -139,14 +140,14 @@ Default <code>0.01</code>.</p></dd>
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu">sim_events</span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;id&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       id      time   event      age treated illness checkup</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;     &lt;num&gt;  &lt;fctr&gt;    &lt;num&gt;   &lt;int&gt;   &lt;num&gt;   &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 1.2430518 illness 34.61072       0       1       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     1 1.3443156   death 34.61072       0       1       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     2 0.7788992 checkup 40.88235       0       0       1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     2 0.9082643   death 40.88235       0       0       1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     3 0.9370485 checkup 39.63224       0       0       1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     3 1.6289826   death 39.63224       0       0       1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       id       time     event      age treated illness checkup</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;      &lt;num&gt;    &lt;fctr&gt;    &lt;num&gt;   &lt;int&gt;   &lt;num&gt;   &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 0.20700885   checkup 47.04180       1       0       1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     1 1.34353737 censoring 47.04180       1       0       1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     2 0.08574478     death 68.11898       0       0       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     3 1.24193098     death 46.90377       0       0       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     4 0.65822754   checkup 41.62570       0       0       1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     4 1.82935437     death 41.62570       0       0       1</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># illness has fired at most twice for everyone (limit = 2):</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">illness</span> <span class="op">&lt;=</span> <span class="fl">2</span><span class="op">)</span></span></span>
@@ -164,12 +165,12 @@ Default <code>0.01</code>.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;id&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       id      time     event      age treated illness checkup</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;     &lt;num&gt;    &lt;fctr&gt;    &lt;num&gt;   &lt;num&gt;   &lt;num&gt;   &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 0.2197143   checkup 38.47061       1       0       1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     1 0.4107919     death 38.47061       1       0       1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     2 1.1348681     death 48.86712       1       0       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     3 0.6083544   illness 70.51100       1       1       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     3 0.7747750 censoring 70.51100       1       1       0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     4 4.0382119     death 53.69561       1       0       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1 0.5038067   checkup 57.69649       1       0       1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     1 2.8395612   illness 57.69649       1       1       1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     1 3.4014899 censoring 57.69649       1       1       1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     2 0.2444779   illness 73.56723       1       1       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     2 0.5264845     death 73.56723       1       1       0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6:     3 0.1552247 censoring 57.89833       1       0       0</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

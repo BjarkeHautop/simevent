@@ -21,7 +21,8 @@ or more other covariates defined earlier in the same sim_model() call."></head><
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
-    <li><a class="dropdown-item" href="../articles/sim-events.html">Migrating to sim_events()</a></li>
+    <li><a class="dropdown-item" href="../articles/migrating.html">Migrating from simevent 0.1.1</a></li>
+    <li><a class="dropdown-item" href="../articles/sim-events.html">Simulating Event History Data</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -82,13 +83,13 @@ or more other covariates defined earlier in the same <code><a href="sim_model.ht
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="sim_events.html">sim_events</a></span><span class="op">(</span><span class="va">model</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Key: &lt;id&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       id        time  event   weight   height      bmi statin</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;       &lt;num&gt; &lt;fctr&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;  &lt;int&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1  4.88049827  death 98.74913 1.869041 28.26803      0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     2  0.07393583  death 91.53571 1.747146 29.98694      0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     3 39.87390394  death 89.13023 1.733519 29.65976      1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     4  2.44170836  death 93.23339 1.615706 35.71469      0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     5  1.75029058  death 83.93065 1.671902 30.02609      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       id      time  event   weight   height      bmi statin</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    &lt;int&gt;     &lt;num&gt; &lt;fctr&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;  &lt;int&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:     1  6.059204  death 63.82122 1.789165 19.93720      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:     2  7.448265  death 92.97880 1.738392 30.76722      1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:     3 10.260390  death 76.24258 1.756277 24.71789      0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:     4  5.360454  death 67.50888 1.750508 22.03092      1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:     5  4.939471  death 96.12874 1.832260 28.63382      0</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

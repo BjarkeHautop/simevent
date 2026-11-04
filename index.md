@@ -1,9 +1,11 @@
 # simevent
 
-The `simevent` package provides tools for simulating and analyzing
-complex continuous-time health care data. The simulated data includes
-variables that can be interpreted as treatment decisions, disease
-progression, and health factors.
+The `simevent` package simulates continuous-time event history data,
+such as treatment decisions, disease progression and death, from a model
+of baseline covariates, time-varying covariates and event processes
+linked by Cox-type effects. Models can be specified by hand or built
+from fitted Cox models, and interventions on covariates and processes
+can be simulated and their effect on event risks evaluated.
 
 ## Installation
 
@@ -69,6 +71,9 @@ plot_event_data(data, title = "Survival Data")
 For a full walkthrough of the simulation framework and all of the
 functions above, see
 [`vignette("sim-events")`](https://github.com/BjarkeHautop/simevent/articles/sim-events.md).
+Coming from simevent 0.1.1? See
+[`vignette("migrating")`](https://github.com/BjarkeHautop/simevent/articles/migrating.md)
+for how the removed functions map onto the new API.
 
 ## Contributing
 

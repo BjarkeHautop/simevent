@@ -63,14 +63,14 @@ data <- sim_events(model, n = 500)
 data_int <- interval_format_data(data, proc_cols = "relapse")
 head(data_int)
 #> Key: <id>
-#>       id     time     event        L0 relapse     k   tstart    tstop
-#>    <int>    <num>    <fctr>     <num>   <num> <int>    <num>    <num>
-#> 1:     1 2.582850     death 0.9409763       0     1 0.000000 2.582850
-#> 2:     2 3.009249     death 0.6166710       0     1 0.000000 3.009249
-#> 3:     3 5.325178   relapse 0.3195034       0     1 0.000000 5.325178
-#> 4:     3 5.413429   relapse 0.3195034       1     2 5.325178 5.413429
-#> 5:     3 5.470893   relapse 0.3195034       2     3 5.413429 5.470893
-#> 6:     3 6.527107 censoring 0.3195034       3     4 5.470893 6.527107
+#>       id      time   event        L0 relapse     k   tstart     tstop
+#>    <int>     <num>  <fctr>     <num>   <num> <int>    <num>     <num>
+#> 1:     1 1.8635429 relapse 0.2862210       0     1 0.000000 1.8635429
+#> 2:     1 2.8085723   death 0.2862210       1     2 1.863543 2.8085723
+#> 3:     2 4.8449127 relapse 0.8720524       0     1 0.000000 4.8449127
+#> 4:     2 5.0110369 relapse 0.8720524       1     2 4.844913 5.0110369
+#> 5:     2 5.2628444   death 0.8720524       2     3 5.011037 5.2628444
+#> 6:     3 0.6523381   death 0.4353905       0     1 0.000000 0.6523381
 
 # relapse is now the cumulative count *before* each row's event, so it can
 # be used as a time-varying covariate:
@@ -82,12 +82,12 @@ survival::coxph(
 #> survival::coxph(formula = survival::Surv(tstart, tstop, event == 
 #>     "death") ~ L0 + relapse, data = data_int)
 #> 
-#>             coef exp(coef) se(coef)      z        p
-#> L0      -0.31134   0.73246  0.19723 -1.579    0.114
-#> relapse  0.47957   1.61537  0.08377  5.725 1.04e-08
+#>             coef exp(coef) se(coef)      z       p
+#> L0      -0.00862   0.99142  0.20968 -0.041   0.967
+#> relapse  0.40382   1.49754  0.06946  5.814 6.1e-09
 #> 
-#> Likelihood ratio test=33.55  on 2 df, p=5.174e-08
-#> n= 804, number of events= 280 
+#> Likelihood ratio test=31.45  on 2 df, p=1.485e-07
+#> n= 848, number of events= 302 
 
 # Splitting at t_prime tests whether an effect changes over time. Here L0
 # raises the death hazard before time 2 only:
@@ -108,10 +108,10 @@ survival::coxph(
 #> survival::coxph(formula = survival::Surv(tstart, tstop, event == 
 #>     "death") ~ L0:strata(t_group), data = data_split)
 #> 
-#>                                coef exp(coef) se(coef)      z      p
-#> L0:strata(t_group)t_group=1 0.91187   2.48898  0.06693 13.624 <2e-16
-#> L0:strata(t_group)t_group=2 0.03978   1.04058  0.06651  0.598   0.55
+#>                                 coef exp(coef) se(coef)      z      p
+#> L0:strata(t_group)t_group=1  0.91827   2.50496  0.06552 14.014 <2e-16
+#> L0:strata(t_group)t_group=2 -0.08126   0.92196  0.06814 -1.192  0.233
 #> 
-#> Likelihood ratio test=200  on 2 df, p=< 2.2e-16
-#> n= 2979, number of events= 2000 
+#> Likelihood ratio test=209  on 2 df, p=< 2.2e-16
+#> n= 2974, number of events= 2000 
 ```
