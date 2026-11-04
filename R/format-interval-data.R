@@ -1,9 +1,9 @@
 #' Convert Simulated Event Data to Start-Stop Format
 #'
-#' Converts [sim_events()] output to start-stop format for
+#' Converts [simulate_events()] output to start-stop format for
 #' `coxph(Surv(tstart, tstop, ...))`.
 #'
-#' @param data Output of [sim_events()].
+#' @param data Output of [simulate_events()].
 #' @param proc_cols Character vector. `"transient"`-process columns to use
 #'   as time-varying covariates: each row then holds the count *before* its
 #'   event.
@@ -17,7 +17,7 @@
 #'
 #' @return `data` with added columns `tstart`, `tstop` and `k` (event
 #'   number).
-#' @seealso [sim_events()]
+#' @seealso [simulate_events()]
 #' @examples
 #' model <- sim_model(
 #'   L0 = sim_covariate(function(N) runif(N)),
@@ -26,8 +26,8 @@
 #'   relapse = sim_process("transient", eta = 0.2, nu = 1),
 #'   effects = list(sim_effect(death ~ relapse, coef = 0.5))
 #' )
-#' data <- sim_events(model, n = 500)
-#' data_int <- interval_format_data(data, proc_cols = "relapse")
+#' data <- simulate_events(model, n = 500)
+#' data_int <- format_interval_data(data, proc_cols = "relapse")
 #' head(data_int)
 #'
 #' # relapse is now the cumulative count *before* each row's event, so it can
@@ -44,8 +44,8 @@
 #'   death = sim_process("terminal", eta = 0.2, nu = 1),
 #'   effects = list(sim_effect(death ~ L0 * (t < 2), coef = 1))
 #' )
-#' data_tv <- sim_events(model_tv, n = 2000)
-#' data_split <- interval_format_data(data_tv, t_prime = 2)
+#' data_tv <- simulate_events(model_tv, n = 2000)
+#' data_split <- format_interval_data(data_tv, t_prime = 2)
 #'
 #' # One L0 coefficient per period: about 1 before t_prime, about 0 after.
 #' survival::coxph(
@@ -53,7 +53,7 @@
 #'   data = data_split
 #' )
 #' @export
-interval_format_data <- function(
+format_interval_data <- function(
   data,
   proc_cols = character(0),
   mark_cols = character(0),

@@ -22,7 +22,7 @@ reference:
   - sim_process
   - sim_effect
   - event_time
-  - sim_events
+  - simulate_events
   - sim_model_from_fits
   - summary.sim_model
   - update.sim_model
@@ -30,8 +30,8 @@ reference:
 - title: Treating simulated data
   desc: >
     Functions for formatting, plotting, and summarising data simulated with
-    `sim_events()`.
+    `simulate_events()`.
   contents:
-  - interval_format_data
+  - format_interval_data
   - plot_event_data
   - event_risk

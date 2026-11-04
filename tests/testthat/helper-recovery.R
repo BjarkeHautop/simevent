@@ -14,7 +14,7 @@ expect_ci_covers <- function(fit, truth) {
   )
 }
 
-# One row per id of sim_events() output: end of follow-up and whether it
+# One row per id of simulate_events() output: end of follow-up and whether it
 # ended in death, as a base for survival::tmerge().
 follow_up <- function(data) {
   last <- data[!duplicated(data$id, fromLast = TRUE), ]
@@ -39,5 +39,5 @@ sim_cr_data <- function(n) {
       sim_effect(cause2 ~ A0, coef = 0.5)
     )
   )
-  sim_events(model, n = n)
+  simulate_events(model, n = n)
 }

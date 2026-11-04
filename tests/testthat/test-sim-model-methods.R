@@ -120,7 +120,7 @@ test_that("update reruns sim_model()'s validation", {
 })
 
 test_that("update keeps a sim_model_from_fits() model simulable", {
-  observed <- sim_events(
+  observed <- simulate_events(
     sim_model(
       L0 = sim_covariate(function(N) runif(N)),
       censoring = sim_process("censoring", eta = 0.1, nu = 1),
@@ -147,5 +147,5 @@ test_that("update keeps a sim_model_from_fits() model simulable", {
   )
   updated <- update(fitted, effects = list(sim_effect(death ~ L0, 2)))
   expect_equal(summary(updated)$effects$coef, 2)
-  expect_s3_class(sim_events(updated, n = 20, seed = 1), "data.table")
+  expect_s3_class(simulate_events(updated, n = 20, seed = 1), "data.table")
 })

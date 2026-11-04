@@ -2,17 +2,17 @@
 #'
 #' One horizontal timeline per individual, with events marked by type.
 #'
-#' @param data Output of [sim_events()].
+#' @param data Output of [simulate_events()].
 #' @param title Character. Plot title. Default `"Event Data"`.
 #'
 #' @return A `ggplot` object. Requires the \pkg{ggplot2} package.
-#' @seealso [sim_events()]
+#' @seealso [simulate_events()]
 #' @examplesIf requireNamespace("ggplot2", quietly = TRUE)
 #' model <- sim_model(
 #'   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 #' )
-#' data <- sim_events(model, n = 10)
+#' data <- simulate_events(model, n = 10)
 #' plot_event_data(data)
 #'
 #' # Custom colors:

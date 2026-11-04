@@ -39,14 +39,14 @@ library(simevent)
 The package builds event history data from a *model*: baseline
 covariates, event processes (censoring, terminal, or transient, with
 Weibull or user-given intensities), and the Cox-type effects between
-them. `sim_model()` defines the model and `sim_events()` simulates from
+them. `sim_model()` defines the model and `simulate_events()` simulates from
 it. On top of this, the package provides:
 
 - `sim_model_from_fits()` for building a model from `coxph()` fits to
   observed data, to simulate new data resembling it.
-- `interval_format_data()` and `plot_event_data()` for reformatting and
+- `format_interval_data()` and `plot_event_data()` for reformatting and
   plotting simulated data.
-- The `intervene` argument of `sim_events()`, together with
+- The `intervene` argument of `simulate_events()`, together with
   `event_risk()`, for simulating and evaluating interventions on
   processes and covariates.
 
@@ -58,7 +58,7 @@ model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
-data <- sim_events(model, n = 100)
+data <- simulate_events(model, n = 100)
 plot_event_data(data, title = "Survival Data")
 ```
 

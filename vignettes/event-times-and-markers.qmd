@@ -87,7 +87,7 @@ operation_model <- sim_model(
   )
 )
 
-operation_data <- sim_events(
+operation_data <- simulate_events(
   operation_model,
   n = 5000,
   max_cens = 10,
@@ -222,7 +222,7 @@ bp_model <- sim_model(
 )
 summary(bp_model)
 
-bp_data <- sim_events(bp_model, n = 3000, max_cens = 10, seed = 1)
+bp_data <- simulate_events(bp_model, n = 3000, max_cens = 10, seed = 1)
 head(bp_data, 8)
 ```
 
@@ -260,13 +260,13 @@ To check the simulation works correctly we fit a Cox model for stroke, with each
 row as an interval from the previous event to this one. Each row stores the
 values *after* its event, so the values during the interval are those of the
 previous row, or the baseline values for a patient's first row.
-`interval_format_data()` does this shift, for marker columns (`mark_cols`) and
+`format_interval_data()` does this shift, for marker columns (`mark_cols`) and
 process counts (`proc_cols`):
 
 ```{r}
 #| label: bp-cox
 
-bp_int <- interval_format_data(
+bp_int <- format_interval_data(
   bp_data,
   proc_cols = "treatment",
   mark_cols = "bp"

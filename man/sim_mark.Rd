@@ -24,9 +24,9 @@ An object of class \code{sim_mark}, for use in \code{\link[=sim_model]{sim_model
 \description{
 \code{sim_mark} builds a covariate, such as a lab value measured at visits,
 that is drawn at baseline and redrawn whenever one of the \code{update}
-processes fires. It stays constant between those events. In \code{\link[=sim_events]{sim_events()}}
-output, each row holds its value after that row's event, and a
-\verb{<name>_0} column holds its baseline value; \code{\link[=interval_format_data]{interval_format_data()}}'s
+processes fires. It stays constant between those events. In
+\code{\link[=simulate_events]{simulate_events()}} output, each row holds its value after that row's event,
+and a \verb{<name>_0} column holds its baseline value; \code{\link[=format_interval_data]{format_interval_data()}}'s
 \code{mark_cols} turns these into the value in force during each interval.
 }
 \details{
@@ -60,7 +60,7 @@ model <- sim_model(
   )
 )
 summary(model)
-head(sim_events(model, n = 5, max_cens = 5), 10)
+head(simulate_events(model, n = 5, max_cens = 5), 10)
 }
 \seealso{
 \code{\link[=sim_model]{sim_model()}}, \code{\link[=sim_covariate]{sim_covariate()}}, \code{\link[=sim_effect]{sim_effect()}}

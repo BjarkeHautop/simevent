@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 ## The simulation API: node/edge constructors, sim_model(),
-## sim_events() and sim_model_from_fits(). The engine itself lives in
+## simulate_events() and sim_model_from_fits(). The engine itself lives in
 ## sim-engine.R.
 #----------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ sim_covariate <- function(generator) {
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
 #'   effects = list(sim_effect(death ~ statin, coef = -0.3))
 #' )
-#' head(sim_events(model, n = 5))
+#' head(simulate_events(model, n = 5))
 #' @export
 sim_derived <- function(fn) {
   checkmate::assert_function(fn)
@@ -84,9 +84,9 @@ sim_derived <- function(fn) {
 #'
 #' `sim_mark` builds a covariate, such as a lab value measured at visits,
 #' that is drawn at baseline and redrawn whenever one of the `update`
-#' processes fires. It stays constant between those events. In [sim_events()]
-#' output, each row holds its value after that row's event, and a
-#' `<name>_0` column holds its baseline value; [interval_format_data()]'s
+#' processes fires. It stays constant between those events. In
+#' [simulate_events()] output, each row holds its value after that row's event,
+#' and a `<name>_0` column holds its baseline value; [format_interval_data()]'s
 #' `mark_cols` turns these into the value in force during each interval.
 #'
 #' What a new value depends on is given by [sim_effect()]s with the mark as
@@ -130,7 +130,7 @@ sim_derived <- function(fn) {
 #'   )
 #' )
 #' summary(model)
-#' head(sim_events(model, n = 5, max_cens = 5), 10)
+#' head(simulate_events(model, n = 5, max_cens = 5), 10)
 #' @export
 sim_mark <- function(init, update, draw) {
   checkmate::assert_function(init)
@@ -187,7 +187,7 @@ sim_mark <- function(init, update, draw) {
 #'   giving the cumulative baseline hazard, e.g. from
 #'   [survival::basehaz()] with `centered = FALSE`. Used instead of `eta` and
 #'   `nu`, and interpolated linearly. The hazard is unknown after the last
-#'   `time`, so [sim_events()] ends follow-up there, as for `max_cens`.
+#'   `time`, so [simulate_events()] ends follow-up there, as for `max_cens`.
 #'
 #' @return An object of class `sim_process`, for use in [sim_model()].
 #' @seealso [sim_model()], [sim_covariate()]
@@ -280,7 +280,7 @@ sim_process <- function(
 #'   it one term. A term is an R expression of covariates (their value) and
 #'   processes (their number of events so far), which may also use:
 #'   \describe{
-#'     \item{`t`}{The current time (see [sim_events()]'s `time_step`).}
+#'     \item{`t`}{The current time (see [simulate_events()]'s `time_step`).}
 #'     \item{[event_time()]}{Time of a process's `k`-th or `k`-th latest
 #'       event.}
 #'     \item{`<name>(s)`}{The value of covariate, mark or process count
@@ -444,18 +444,18 @@ event_time <- function(proc, k) {
   paste(deparse(expr, width.cutoff = 500L), collapse = " ")
 }
 
-#' Build a Simulation Model for `sim_events()`
+#' Build a Simulation Model for `simulate_events()`
 #'
 #' `sim_model` assembles a set of named [sim_covariate()]/[sim_derived()]/
 #' [sim_mark()]/[sim_process()] nodes and [sim_effect()] edges between them into a single
-#' specification, which [sim_events()] can then simulate from.
+#' specification, which [simulate_events()] can then simulate from.
 #'
 #' @param ... Named [sim_covariate()]/[sim_derived()]/[sim_mark()]/
 #'   [sim_process()] objects. A covariate may only depend on covariates listed before it.
 #' @param effects List of [sim_effect()]s.
 #'
 #' @return An object of class `sim_model`.
-#' @seealso [sim_events()], [sim_covariate()], [sim_derived()],
+#' @seealso [simulate_events()], [sim_covariate()], [sim_derived()],
 #'   [sim_mark()], [sim_process()], [sim_effect()]
 #' @examples
 #' model <- sim_model(
@@ -492,7 +492,7 @@ sim_model <- function(..., effects = list()) {
     stop("sim_model() needs at least one sim_process().")
   }
 
-  # Names that would collide with sim_events()'s output columns, with
+  # Names that would collide with simulate_events()'s output columns, with
   # the non-process labels its `event` column can take, or with the
   # variables available inside a sim_effect() expression.
   reserved_names <- c(
@@ -520,7 +520,7 @@ sim_model <- function(..., effects = list()) {
   if (length(clash) > 0) {
     stop(
       "sim_model() node name(s) clash with a sim_mark()'s baseline-value ",
-      "column in sim_events() output: ",
+      "column in simulate_events() output: ",
       paste(clash, collapse = ", "),
       "."
     )
@@ -856,7 +856,7 @@ print.sim_process <- function(x, ...) {
 
 #' Simulate Event History Data from a `sim_model()`
 #'
-#' `sim_events` simulates multistate event history data from a
+#' `simulate_events` simulates multistate event history data from a
 #' [sim_model()] specification.
 #'
 #' @param model A [sim_model()].
@@ -900,7 +900,7 @@ print.sim_process <- function(x, ...) {
 #'     sim_effect(death ~ checkup, coef = 0.8)
 #'   )
 #' )
-#' data <- sim_events(model, n = 100)
+#' data <- simulate_events(model, n = 100)
 #' head(data)
 #'
 #' # illness has fired at most twice for everyone (limit = 2):
@@ -908,7 +908,7 @@ print.sim_process <- function(x, ...) {
 #'
 #' # Double the censoring rate (cens scales every "censoring"-type process),
 #' # halve the death hazard, and fix everyone's treatment status to 1:
-#' data_intervened <- sim_events(
+#' data_intervened <- simulate_events(
 #'   model,
 #'   n = 100,
 #'   cens = 2,
@@ -918,7 +918,7 @@ print.sim_process <- function(x, ...) {
 #'
 #' @seealso [sim_model()], [event_risk()]
 #' @export
-sim_events <- function(
+simulate_events <- function(
   model,
   n,
   intervene = list(),
@@ -1010,7 +1010,7 @@ sim_events <- function(
 
 # Name of the hidden covariate sim_model_from_fits() resamples observed rows
 # through. Covariates whose names start with "." are left out of
-# sim_events()'s output and print()/summary().
+# simulate_events()'s output and print()/summary().
 .sim_row_name <- ".row"
 
 .sim_hidden <- function(nms) startsWith(as.character(nms), ".")
@@ -1066,11 +1066,11 @@ sim_events <- function(
 #' A formula term naming another process (e.g. `relapse` in
 #' `~ L0 + relapse`) becomes a [sim_effect()] from that process. Its
 #' coefficient is only valid if that fit treated it as time-varying (e.g.
-#' using [interval_format_data()]).
+#' using [format_interval_data()]).
 #'
 #' @param fits Named list of [survival::coxph()] fits, one per process.
 #' @param data The `data.frame` the fits were estimated from. If it has an
-#'   `id` column (e.g. from [sim_events()] or [interval_format_data()]),
+#'   `id` column (e.g. from [simulate_events()] or [format_interval_data()]),
 #'   covariates are resampled from each id's first row.
 #' @param types Named character vector giving each process's
 #'   [sim_process()] `type` (`"censoring"`, `"terminal"`, or `"transient"`),
@@ -1078,8 +1078,8 @@ sim_events <- function(
 #' @param limits Named numeric vector giving `limit` for any `"transient"`
 #'   process not using the default (`limit = Inf`).
 #'
-#' @return A [sim_model()], ready for [sim_events()].
-#' @seealso [sim_events()]
+#' @return A [sim_model()], ready for [simulate_events()].
+#' @seealso [simulate_events()]
 #' @examples
 #' library(survival)
 #'
@@ -1099,7 +1099,7 @@ sim_events <- function(
 #'     sim_effect(cause2 ~ A0, coef = 0.5)
 #'   )
 #' )
-#' observed_data <- sim_events(observed_model, n = 1000)
+#' observed_data <- simulate_events(observed_model, n = 1000)
 #'
 #' # Refit each process from that "observed" data, then rebuild a sim_model()
 #' # from the fits, as if observed_data came from an outside source and
@@ -1115,7 +1115,7 @@ sim_events <- function(
 #' types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 #'
 #' model <- sim_model_from_fits(fits, observed_data, types)
-#' new_data <- sim_events(model, n = 1000)
+#' new_data <- simulate_events(model, n = 1000)
 #' head(new_data)
 #'
 #' # Event-type distribution should be comparable between the observed and

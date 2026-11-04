@@ -31,8 +31,8 @@ relapse and die, and then use the model to evaluate a new drug.
 
 Suppose we want to simulate how long patients survive, and that older patients
 die sooner. `sim_model()` describes this with an age covariate, two processes,
-and an effect of age on the death hazard. `sim_events()` then simulates patients
-from the model:
+and an effect of age on the death hazard. `simulate_events()` then simulates
+patients from the model:
 
 ```{r}
 #| label: survival-model
@@ -45,7 +45,7 @@ survival_model <- sim_model(
 )
 survival_model
 
-survival_data <- sim_events(survival_model, n = 2000, seed = 1)
+survival_data <- simulate_events(survival_model, n = 2000, seed = 1)
 head(survival_data)
 ```
 
@@ -109,7 +109,7 @@ relapse_model <- update(
   )
 )
 
-relapse_data <- sim_events(relapse_model, n = 2000, seed = 1)
+relapse_data <- simulate_events(relapse_model, n = 2000, seed = 1)
 head(relapse_data)
 ```
 
@@ -123,7 +123,7 @@ plot_event_data(relapse_data[relapse_data$id <= 100, ], title = "Relapse Data")
 
 ::: {.callout-note title="Reading the data"}
 The `relapse` column is the count *after* each row's event. For the values
-during each interval, as needed for a Cox model, use `interval_format_data()`.
+during each interval, as needed for a Cox model, use `format_interval_data()`.
 To cap the number of relapses, use `sim_process()`'s `limit`.
 :::
 
@@ -212,15 +212,15 @@ covariates that are re-measured over time.
 # Estimating Intervention Effects
 
 Suppose a new drug halves the relapse hazard. What would that do to mortality?
-`sim_events()`'s `intervene` argument multiplies a process's hazard, so simulate
-with and without the drug, with censoring off (`cens = 0`), and compare the runs
-with `event_risk()`:
+`simulate_events()`'s `intervene` argument multiplies a process's hazard, so
+simulate with and without the drug, with censoring off (`cens = 0`), and compare
+the runs with `event_risk()`:
 
 ```{r}
 #| label: drug-risk
 
-natural <- sim_events(history_model, n = 2000, cens = 0, seed = 1)
-drug <- sim_events(
+natural <- simulate_events(history_model, n = 2000, cens = 0, seed = 1)
+drug <- simulate_events(
   history_model,
   n = 2000,
   cens = 0,
@@ -255,14 +255,14 @@ population with no one treated, and with everyone treated:
 ```{r}
 #| label: treatment-contrast
 
-treat_none <- sim_events(
+treat_none <- simulate_events(
   history_model,
   n = 2000,
   cens = 0,
   intervene = list(treatment = 0),
   seed = 1
 )
-treat_all <- sim_events(
+treat_all <- simulate_events(
   history_model,
   n = 2000,
   cens = 0,
@@ -311,8 +311,8 @@ drug_effect <- function(coef, n = 3000, tau = 5, seed = 1) {
     effects = list(sim_effect(death ~ relapse, coef = coef))
   )
 
-  natural <- sim_events(model, n = n, cens = 0, seed = seed)
-  drug <- sim_events(
+  natural <- simulate_events(model, n = n, cens = 0, seed = seed)
+  drug <- simulate_events(
     model,
     n = n,
     cens = 0,
@@ -352,7 +352,7 @@ data:
 ```{r}
 #| label: fits-model
 
-observed <- interval_format_data(relapse_data, proc_cols = "relapse")
+observed <- format_interval_data(relapse_data, proc_cols = "relapse")
 
 fits <- list(
   censoring = coxph(
@@ -380,7 +380,7 @@ fitted model gives a similar mix of events:
 ```{r}
 #| label: fits-simulate
 
-new_data <- sim_events(fitted_model, n = 2000, seed = 2)
+new_data <- simulate_events(fitted_model, n = 2000, seed = 2)
 
 event_levels <- levels(new_data$event)
 rbind(

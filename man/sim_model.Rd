@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim-model.R
 \name{sim_model}
 \alias{sim_model}
-\title{Build a Simulation Model for \code{sim_events()}}
+\title{Build a Simulation Model for \code{simulate_events()}}
 \usage{
 sim_model(..., effects = list())
 }
@@ -18,7 +18,7 @@ An object of class \code{sim_model}.
 \description{
 \code{sim_model} assembles a set of named \code{\link[=sim_covariate]{sim_covariate()}}/\code{\link[=sim_derived]{sim_derived()}}/
 \code{\link[=sim_mark]{sim_mark()}}/\code{\link[=sim_process]{sim_process()}} nodes and \code{\link[=sim_effect]{sim_effect()}} edges between them into a single
-specification, which \code{\link[=sim_events]{sim_events()}} can then simulate from.
+specification, which \code{\link[=simulate_events]{simulate_events()}} can then simulate from.
 }
 \examples{
 model <- sim_model(
@@ -33,6 +33,6 @@ model <- sim_model(
 model
 }
 \seealso{
-\code{\link[=sim_events]{sim_events()}}, \code{\link[=sim_covariate]{sim_covariate()}}, \code{\link[=sim_derived]{sim_derived()}},
+\code{\link[=simulate_events]{simulate_events()}}, \code{\link[=sim_covariate]{sim_covariate()}}, \code{\link[=sim_derived]{sim_derived()}},
 \code{\link[=sim_mark]{sim_mark()}}, \code{\link[=sim_process]{sim_process()}}, \code{\link[=sim_effect]{sim_effect()}}
 }

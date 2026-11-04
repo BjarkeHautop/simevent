@@ -7,12 +7,12 @@
 #'   \item{`"time_lost"`}{\eqn{E[\tau - \min(T, \tau)]}, the restricted mean
 #'     time lost.}
 #' }
-#' Compare runs with and without [sim_events()]'s `intervene` to
+#' Compare runs with and without [simulate_events()]'s `intervene` to
 #' estimate an intervention's effect. Estimates are biased if anyone is
 #' censored before `tau` (a warning is given); simulate with `cens = 0` to
 #' avoid this.
 #'
-#' @param data Output of [sim_events()].
+#' @param data Output of [simulate_events()].
 #' @param model The [sim_model()] `data` was simulated from.
 #' @param process Character vector. Process(es) to summarise.
 #' @param tau Numeric. Time horizon.
@@ -23,7 +23,7 @@
 #'
 #' @return A `data.table` with the `by` columns, `process`, and the estimate
 #'   (column named after `type`).
-#' @seealso [sim_events()]
+#' @seealso [simulate_events()]
 #' @examples
 #' model <- sim_model(
 #'   A0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
@@ -37,8 +37,12 @@
 #'
 #' # Halve the disease hazard and compare against no intervention:
 #' set.seed(1)
-#' observed <- sim_events(model, n = 2000)
-#' intervened <- sim_events(model, n = 2000, intervene = list(disease = 0.5))
+#' observed <- simulate_events(model, n = 2000)
+#' intervened <- simulate_events(
+#'   model,
+#'   n = 2000,
+#'   intervene = list(disease = 0.5)
+#' )
 #'
 #' event_risk(observed, model, c("death", "disease"), tau = 5)
 #' event_risk(intervened, model, c("death", "disease"), tau = 5)
@@ -55,7 +59,7 @@
 #'   death = sim_process("terminal", eta = 0.1, nu = 1.1),
 #'   effects = list(sim_effect(death ~ L, coef = 1))
 #' )
-#' data_l <- sim_events(model_l, n = 2000)
+#' data_l <- simulate_events(model_l, n = 2000)
 #' event_risk(data_l, model_l, "death", tau = 5, by = "L_0")
 #' @export
 event_risk <- function(

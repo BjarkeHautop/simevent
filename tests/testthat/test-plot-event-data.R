@@ -1,11 +1,11 @@
 skip_if_not_installed("ggplot2")
 
-test_that("plot_event_data returns a ggplot object for sim_events() output", {
+test_that("plot_event_data returns a ggplot object for simulate_events() output", {
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.1, nu = 1.1)
   )
-  data <- sim_events(model, n = 20)
+  data <- simulate_events(model, n = 20)
 
   p <- plot_event_data(data)
   expect_s3_class(p, "ggplot")
@@ -18,7 +18,7 @@ test_that("plot_event_data respects a custom title", {
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     relapse = sim_process("transient", eta = 0.2, nu = 1)
   )
-  data <- sim_events(model, n = 15)
+  data <- simulate_events(model, n = 15)
 
   p <- plot_event_data(data, title = "My Title")
   expect_s3_class(p, "ggplot")
@@ -37,7 +37,7 @@ test_that("plot_event_data works with many event types (color scales, shape does
   )
   model <- do.call(sim_model, processes)
 
-  data <- sim_events(model, n = 30)
+  data <- simulate_events(model, n = 30)
   p <- plot_event_data(data)
   expect_s3_class(p, "ggplot")
   expect_warning(
@@ -51,7 +51,7 @@ test_that("plot_event_data lets the caller override the palette", {
     censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
     death = sim_process("terminal", eta = 0.1, nu = 1.1)
   )
-  data <- sim_events(model, n = 10)
+  data <- simulate_events(model, n = 10)
 
   p <- plot_event_data(data) +
     ggplot2::scale_color_manual(

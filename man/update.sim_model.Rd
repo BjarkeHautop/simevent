@@ -29,7 +29,7 @@ Changes nodes and effects of an existing \code{\link[=sim_model]{sim_model()}} a
 through \code{\link[=sim_model]{sim_model()}}, so all of its checks run again. Useful for
 sensitivity analyses and scenario grids built from one base model; for
 fixing a covariate or scaling a hazard in a single simulation, see
-\code{\link[=sim_events]{sim_events()}}'s \code{intervene} instead.
+\code{\link[=simulate_events]{simulate_events()}}'s \code{intervene} instead.
 }
 \examples{
 model <- sim_model(

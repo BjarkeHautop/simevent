@@ -10,7 +10,7 @@ sim_model_from_fits(fits, data, types, limits = numeric())
 \item{fits}{Named list of \code{\link[survival:coxph]{survival::coxph()}} fits, one per process.}
 
 \item{data}{The \code{data.frame} the fits were estimated from. If it has an
-\code{id} column (e.g. from \code{\link[=sim_events]{sim_events()}} or \code{\link[=interval_format_data]{interval_format_data()}}),
+\code{id} column (e.g. from \code{\link[=simulate_events]{simulate_events()}} or \code{\link[=format_interval_data]{format_interval_data()}}),
 covariates are resampled from each id's first row.}
 
 \item{types}{Named character vector giving each process's
@@ -21,7 +21,7 @@ with the same names as \code{fits}.}
 process not using the default (\code{limit = Inf}).}
 }
 \value{
-A \code{\link[=sim_model]{sim_model()}}, ready for \code{\link[=sim_events]{sim_events()}}.
+A \code{\link[=sim_model]{sim_model()}}, ready for \code{\link[=simulate_events]{simulate_events()}}.
 }
 \description{
 Builds a \code{\link[=sim_model]{sim_model()}} from one fitted \code{\link[survival:coxph]{survival::coxph()}} model per
@@ -40,7 +40,7 @@ follow-up ends at the last time in \code{data}.
 A formula term naming another process (e.g. \code{relapse} in
 \code{~ L0 + relapse}) becomes a \code{\link[=sim_effect]{sim_effect()}} from that process. Its
 coefficient is only valid if that fit treated it as time-varying (e.g.
-using \code{\link[=interval_format_data]{interval_format_data()}}).
+using \code{\link[=format_interval_data]{format_interval_data()}}).
 }
 \examples{
 library(survival)
@@ -61,7 +61,7 @@ observed_model <- sim_model(
     sim_effect(cause2 ~ A0, coef = 0.5)
   )
 )
-observed_data <- sim_events(observed_model, n = 1000)
+observed_data <- simulate_events(observed_model, n = 1000)
 
 # Refit each process from that "observed" data, then rebuild a sim_model()
 # from the fits, as if observed_data came from an outside source and
@@ -77,7 +77,7 @@ fits <- list(
 types <- c(censoring = "censoring", cause1 = "terminal", cause2 = "terminal")
 
 model <- sim_model_from_fits(fits, observed_data, types)
-new_data <- sim_events(model, n = 1000)
+new_data <- simulate_events(model, n = 1000)
 head(new_data)
 
 # Event-type distribution should be comparable between the observed and
@@ -90,5 +90,5 @@ rbind(
 )
 }
 \seealso{
-\code{\link[=sim_events]{sim_events()}}
+\code{\link[=simulate_events]{simulate_events()}}
 }

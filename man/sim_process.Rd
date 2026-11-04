@@ -33,7 +33,7 @@ hazard, \code{nu < 1} a decreasing one, \code{nu = 1} a constant one.}
 giving the cumulative baseline hazard, e.g. from
 \code{\link[survival:basehaz]{survival::basehaz()}} with \code{centered = FALSE}. Used instead of \code{eta} and
 \code{nu}, and interpolated linearly. The hazard is unknown after the last
-\code{time}, so \code{\link[=sim_events]{sim_events()}} ends follow-up there, as for \code{max_cens}.}
+\code{time}, so \code{\link[=simulate_events]{simulate_events()}} ends follow-up there, as for \code{max_cens}.}
 }
 \value{
 An object of class \code{sim_process}, for use in \code{\link[=sim_model]{sim_model()}}.

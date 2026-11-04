@@ -96,7 +96,7 @@ test_that("a mark is redrawn only at its update events, from current values", {
     death = sim_process("terminal", eta = 0.2, nu = 1),
     effects = list(sim_effect(bp ~ bp, coef = 1))
   )
-  data <- sim_events(model, n = 200, max_cens = 5, seed = 1)
+  data <- simulate_events(model, n = 200, max_cens = 5, seed = 1)
   expect_gt(sum(data$event == "other"), 0)
   expect_equal(data$bp, data$bp_0 + data$visit)
 })
@@ -117,7 +117,7 @@ test_that("a mark's lp sees t, counts and event times including the triggering e
       sim_effect(tm ~ event_time(visit, -1) == t, coef = 1000)
     )
   )
-  data <- sim_events(model, n = 200, max_cens = 5, seed = 1)
+  data <- simulate_events(model, n = 200, max_cens = 5, seed = 1)
   updated <- data$event %in% c("visit", "other")
   expect_equal(
     data$tm[updated],
@@ -137,7 +137,7 @@ test_that("a mark with no incoming effects gets lp = 0", {
     visit = sim_process("transient", eta = 1, nu = 1),
     death = sim_process("terminal", eta = 0.2, nu = 1)
   )
-  data <- sim_events(model, n = 100, max_cens = 5, seed = 1)
+  data <- simulate_events(model, n = 100, max_cens = 5, seed = 1)
   expect_equal(data$m, ifelse(data$visit > 0, 0, 1))
 })
 
@@ -157,8 +157,8 @@ test_that("effects into a mark don't change any hazard", {
     c(base, list(effects = list(sim_effect(m ~ t, coef = 1))))
   )
   expect_equal(
-    sim_events(with, n = 100, max_cens = 5, seed = 1),
-    sim_events(without, n = 100, max_cens = 5, seed = 1)
+    simulate_events(with, n = 100, max_cens = 5, seed = 1),
+    simulate_events(without, n = 100, max_cens = 5, seed = 1)
   )
 })
 
@@ -173,11 +173,11 @@ test_that("intervening on a mark fixes it for all time", {
     death = sim_process("terminal", eta = 0.2, nu = 1),
     effects = list(sim_effect(bp ~ bp, coef = 1))
   )
-  data <- sim_events(model, n = 100, intervene = list(bp = 3), seed = 1)
+  data <- simulate_events(model, n = 100, intervene = list(bp = 3), seed = 1)
   expect_in(data$bp, 3)
 })
 
-test_that("sim_events outputs each mark's baseline value after it", {
+test_that("simulate_events outputs each mark's baseline value after it", {
   model <- sim_model(
     bp = sim_mark(
       init = function(N) rnorm(N),
@@ -193,7 +193,7 @@ test_that("sim_events outputs each mark's baseline value after it", {
     visit = sim_process("transient", eta = 1, nu = 1),
     death = sim_process("terminal", eta = 0.2, nu = 1)
   )
-  data <- sim_events(model, n = 100, max_cens = 5, seed = 1)
+  data <- simulate_events(model, n = 100, max_cens = 5, seed = 1)
   expect_equal(
     names(data),
     c("id", "time", "event", "bp", "bp_0", "age", "visit")
@@ -202,7 +202,7 @@ test_that("sim_events outputs each mark's baseline value after it", {
   expect_in(data[, data.table::uniqueN(bp_0), by = id]$V1, 1)
   expect_equal(data$bp_0[data$visit == 0], data$bp[data$visit == 0])
 
-  fixed <- sim_events(model, n = 10, intervene = list(bp = 3), seed = 1)
+  fixed <- simulate_events(model, n = 10, intervene = list(bp = 3), seed = 1)
   expect_in(fixed$bp_0, 3)
 })
 
@@ -229,7 +229,7 @@ test_that("a mark's draw must return a numeric vector of length N", {
     death = sim_process("terminal", eta = 0.1, nu = 1)
   )
   expect_error(
-    sim_events(model, n = 50, seed = 1),
+    simulate_events(model, n = 50, seed = 1),
     "length N"
   )
 })
@@ -245,11 +245,11 @@ test_that("hazards use the mark's current value", {
     death = sim_process("terminal", eta = 0.2, nu = 1),
     effects = list(sim_effect(death ~ bp, coef = 0.7))
   )
-  data <- sim_events(model, n = 3000, max_cens = 5, seed = 1)
+  data <- simulate_events(model, n = 3000, max_cens = 5, seed = 1)
 
   fit <- survival::coxph(
     survival::Surv(tstart, tstop, event == "death") ~ bp,
-    data = interval_format_data(data, mark_cols = "bp")
+    data = format_interval_data(data, mark_cols = "bp")
   )
   expect_equal(unname(stats::coef(fit)), 0.7, tolerance = 0.1)
 })
@@ -270,10 +270,10 @@ test_that("effects into a mark are recovered by regressing its new values", {
       sim_effect(bp ~ t, 0.1)
     )
   )
-  data <- sim_events(model, n = 1000, max_cens = 5, seed = 1)
+  data <- simulate_events(model, n = 1000, max_cens = 5, seed = 1)
 
   # Each visit's new bp against the value before it and the visit time.
-  data_int <- interval_format_data(data, mark_cols = "bp")
+  data_int <- format_interval_data(data, mark_cols = "bp")
   visits <- data_int[data_int$event == "visit", ]
   visits$bp_new <- data$bp[data$event == "visit"]
   fit <- stats::lm(bp_new ~ 0 + L0 + bp + time, data = visits)

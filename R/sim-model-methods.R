@@ -121,7 +121,7 @@ print.summary.sim_model <- function(x, ...) {
 #' through [sim_model()], so all of its checks run again. Useful for
 #' sensitivity analyses and scenario grids built from one base model; for
 #' fixing a covariate or scaling a hazard in a single simulation, see
-#' [sim_events()]'s `intervene` instead.
+#' [simulate_events()]'s `intervene` instead.
 #'
 #' @param object A [sim_model()].
 #' @param ... Named [sim_covariate()]/[sim_derived()]/[sim_mark()]/

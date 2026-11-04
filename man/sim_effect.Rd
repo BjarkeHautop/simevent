@@ -12,7 +12,7 @@ is one or more terms separated by \code{+}; wrap a sum in parentheses to make
 it one term. A term is an R expression of covariates (their value) and
 processes (their number of events so far), which may also use:
 \describe{
-\item{\code{t}}{The current time (see \code{\link[=sim_events]{sim_events()}}'s \code{time_step}).}
+\item{\code{t}}{The current time (see \code{\link[=simulate_events]{simulate_events()}}'s \code{time_step}).}
 \item{\code{\link[=event_time]{event_time()}}}{Time of a process's \code{k}-th or \code{k}-th latest
 event.}
 \item{\verb{<name>(s)}}{The value of covariate, mark or process count

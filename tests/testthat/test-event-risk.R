@@ -3,7 +3,7 @@ test_that("event_risk recovers a single terminal process's Weibull risk", {
   model <- sim_model(
     death = sim_process("terminal", eta = 0.1, nu = 1.1)
   )
-  data <- sim_events(model, n = 20000)
+  data <- simulate_events(model, n = 20000)
   tau <- 5
 
   # Cumulative hazard eta * t^nu, so P(T <= tau) = 1 - exp(-eta * tau^nu),
@@ -30,7 +30,7 @@ test_that("event_risk counts only the first event of a transient process", {
     death = sim_process("terminal", eta = 0.3, nu = 1),
     relapse = sim_process("transient", eta = 0.5, nu = 1)
   )
-  data <- sim_events(model, n = 500)
+  data <- simulate_events(model, n = 500)
   tau <- 3
 
   expected <- mean(vapply(
@@ -51,7 +51,7 @@ test_that("event_risk summarises several processes and within by-groups", {
     disease = sim_process("transient", eta = 0.1, nu = 1.1, limit = 1),
     effects = list(sim_effect(death ~ A0, coef = 1))
   )
-  data <- sim_events(model, n = 4000)
+  data <- simulate_events(model, n = 4000)
 
   res <- event_risk(data, model, c("death", "disease"), tau = 5, by = "A0")
   expect_equal(names(res), c("A0", "process", "risk"))
@@ -60,14 +60,14 @@ test_that("event_risk summarises several processes and within by-groups", {
   expect_gt(death$risk[death$A0 == 1], death$risk[death$A0 == 0])
 })
 
-test_that("event_risk detects the effect of a sim_events() intervention", {
+test_that("event_risk detects the effect of a simulate_events() intervention", {
   withr::local_seed(403)
   model <- sim_model(
     death = sim_process("terminal", eta = 0.1, nu = 1.1),
     disease = sim_process("transient", eta = 0.2, nu = 1.1, limit = 1)
   )
-  observed <- sim_events(model, n = 5000)
-  intervened <- sim_events(
+  observed <- simulate_events(model, n = 5000)
+  intervened <- simulate_events(
     model,
     n = 5000,
     intervene = list(disease = 0.5)
@@ -86,12 +86,12 @@ test_that("event_risk warns when individuals are censored before tau", {
     death = sim_process("terminal", eta = 0.1, nu = 1)
   )
   expect_warning(
-    event_risk(sim_events(model, n = 200), model, "death", tau = 5),
+    event_risk(simulate_events(model, n = 200), model, "death", tau = 5),
     "censored before tau"
   )
   expect_no_warning(
     event_risk(
-      sim_events(model, n = 200, cens = 0),
+      simulate_events(model, n = 200, cens = 0),
       model,
       "death",
       tau = 5
@@ -101,7 +101,7 @@ test_that("event_risk warns when individuals are censored before tau", {
 
 test_that("event_risk rejects unknown processes and by-columns", {
   model <- sim_model(death = sim_process("terminal", eta = 0.1, nu = 1))
-  data <- sim_events(model, n = 10)
+  data <- simulate_events(model, n = 10)
   expect_error(event_risk(data, model, "nope", tau = 1))
   expect_error(event_risk(data, model, "death", tau = 1, by = "nope"))
 })
@@ -114,7 +114,7 @@ test_that("event_risk rejects time-varying by-columns, but accepts <mark>_0", {
     death = sim_process("terminal", eta = 0.5, nu = 1),
     visit = sim_process("transient", eta = 1, nu = 1)
   )
-  data <- sim_events(model, n = 200)
+  data <- simulate_events(model, n = 200)
   expect_error(
     event_risk(data, model, "death", tau = 1, by = "L"),
     "Use its baseline value 'L_0'"

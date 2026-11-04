@@ -11,7 +11,7 @@
   drawn
 }
 
-# Applies a sim_events() `intervene` list to a model: fixes an
+# Applies a simulate_events() `intervene` list to a model: fixes an
 # intervened covariate/sim_derived() to a constant generator, and scales an
 # intervened process's baseline eta.
 .sim_apply_intervention <- function(model, intervene) {
@@ -582,7 +582,7 @@
   value
 }
 
-# Top-level driver, called by sim_events(): draws baseline covariates,
+# Top-level driver, called by simulate_events(): draws baseline covariates,
 # then repeatedly samples a next-event time and type for everyone still
 # alive until all individuals have hit a censoring/terminal event.
 .sim_run <- function(

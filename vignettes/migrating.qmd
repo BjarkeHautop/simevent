@@ -26,20 +26,20 @@ library(simevent)
 
 simevent 0.1.1's functions (`simEventData()`, the preset wrappers such as
 `simSurvData()`, `sim.generic()`, `sim.from.data()`, `alphaSim()`, ...) have
-been removed in favour of the `sim_model()`/`sim_events()` API. This vignette
-shows how to translate code using the old functions. See `vignette("simevent")`
-for an introduction to the new API itself.
+been removed in favour of the `sim_model()`/`simulate_events()` API. This
+vignette shows how to translate code using the old functions. See
+`vignette("simevent")` for an introduction to the new API itself.
 
-  | simevent 0.1.1                                                                                                              | Replacement                                 |
-  | ----                                                                                                                        | ----                                        |
-  | `simEventData()`, `simSurvData()`, `simCRdata()`, `simDisease()`, `simTreatment()`, `simStatinData()`, `sim.generic()`, ... | `sim_model()` + `sim_events()`              |
-  | `alphaSim()`, `intEffectAlpha()`                                                                                            | `sim_events(intervene = )` + `event_risk()` |
-  | `sim.from.data()`                                                                                                           | `sim_model_from_fits()`                     |
-  | `IntFormatData()`                                                                                                           | `interval_format_data()`                    |
-  | `plotEventData()`                                                                                                           | `plot_event_data()`                         |
+  | simevent 0.1.1                                                                                                              | Replacement                                      |
+  | ----                                                                                                                        | ----                                             |
+  | `simEventData()`, `simSurvData()`, `simCRdata()`, `simDisease()`, `simTreatment()`, `simStatinData()`, `sim.generic()`, ... | `sim_model()` + `simulate_events()`              |
+  | `alphaSim()`, `intEffectAlpha()`                                                                                            | `simulate_events(intervene = )` + `event_risk()` |
+  | `sim.from.data()`                                                                                                           | `sim_model_from_fits()`                          |
+  | `IntFormatData()`                                                                                                           | `format_interval_data()`                         |
+  | `plotEventData()`                                                                                                           | `plot_event_data()`                              |
 
-The old functions coded events as integers in `Delta`; `sim_events()` returns
-the process name in `event`, and `id`/`time` in place of `ID`/`Time`.
+The old functions coded events as integers in `Delta`; `simulate_events()`
+returns the process name in `event`, and `id`/`time` in place of `ID`/`Time`.
 
 # Translating the Preset Wrappers
 
@@ -67,7 +67,7 @@ model <- sim_model(
   censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
-model_data <- sim_events(model, n = 200)
+model_data <- simulate_events(model, n = 200)
 ```
 
 ## `simCRdata()`
@@ -99,7 +99,7 @@ model <- sim_model(
     sim_effect(cause2 ~ A0, coef = 0.5)
   )
 )
-model_data <- sim_events(model, n = 200)
+model_data <- simulate_events(model, n = 200)
 ```
 
 ## `simDisease()`
@@ -141,7 +141,7 @@ model <- sim_model(
     sim_effect(death ~ L, 1)
   )
 )
-model_data <- sim_events(model, n = 5000)
+model_data <- simulate_events(model, n = 5000)
 ```
 
 ## `simTreatment()`
@@ -190,7 +190,7 @@ model <- sim_model(
     sim_effect(A ~ L, 1)
   )
 )
-model_data <- sim_events(model, n = 5000)
+model_data <- simulate_events(model, n = 5000)
 ```
 
 ## `simStatinData()`
@@ -209,16 +209,16 @@ model <- sim_model(
   censoring = sim_process("censoring", eta = 0.025, nu = 1.1),
   death = sim_process("terminal", eta = 0.025, nu = 1.1)
 )
-model_data <- sim_events(model, n = 200)
+model_data <- simulate_events(model, n = 200)
 summary(model_data$A0)
 ```
 
 # `sim.generic()`
 
 `sim.generic()`'s `alpha.intervention`/`baseline.intervention` pair is replaced
-by `sim_events()`'s single `intervene` list: give a process name to scale its
-`eta`, or a covariate name to fix it to a constant, as in
-`sim_events(model, n, intervene = list(death = 0.2, L0 = 1))`.
+by `simulate_events()`'s single `intervene` list: give a process name to scale
+its `eta`, or a covariate name to fix it to a constant, as in
+`simulate_events(model, n, intervene = list(death = 0.2, L0 = 1))`.
 
 # `alphaSim()` and `intEffectAlpha()`
 
@@ -262,7 +262,12 @@ model <- sim_model(
   )
 )
 set.seed(1405)
-intervened <- sim_events(model, n = 5000, cens = 0, intervene = list(L = 0.5))
+intervened <- simulate_events(
+  model,
+  n = 5000,
+  cens = 0,
+  intervene = list(L = 0.5)
+)
 event_risk(intervened, model, c("death", "L"), tau = 5)
 ```
 

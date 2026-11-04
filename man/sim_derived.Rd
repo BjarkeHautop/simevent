@@ -28,7 +28,7 @@ model <- sim_model(
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(sim_effect(death ~ statin, coef = -0.3))
 )
-head(sim_events(model, n = 5))
+head(simulate_events(model, n = 5))
 }
 \seealso{
 \code{\link[=sim_model]{sim_model()}}, \code{\link[=sim_covariate]{sim_covariate()}}, \code{\link[=sim_effect]{sim_effect()}}

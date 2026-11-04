@@ -14,7 +14,7 @@ event_risk(
 )
 }
 \arguments{
-\item{data}{Output of \code{\link[=sim_events]{sim_events()}}.}
+\item{data}{Output of \code{\link[=simulate_events]{simulate_events()}}.}
 
 \item{model}{The \code{\link[=sim_model]{sim_model()}} \code{data} was simulated from.}
 
@@ -40,7 +40,7 @@ if none):
 \item{\code{"time_lost"}}{\eqn{E[\tau - \min(T, \tau)]}, the restricted mean
 time lost.}
 }
-Compare runs with and without \code{\link[=sim_events]{sim_events()}}'s \code{intervene} to
+Compare runs with and without \code{\link[=simulate_events]{simulate_events()}}'s \code{intervene} to
 estimate an intervention's effect. Estimates are biased if anyone is
 censored before \code{tau} (a warning is given); simulate with \code{cens = 0} to
 avoid this.
@@ -58,8 +58,12 @@ model <- sim_model(
 
 # Halve the disease hazard and compare against no intervention:
 set.seed(1)
-observed <- sim_events(model, n = 2000)
-intervened <- sim_events(model, n = 2000, intervene = list(disease = 0.5))
+observed <- simulate_events(model, n = 2000)
+intervened <- simulate_events(
+  model,
+  n = 2000,
+  intervene = list(disease = 0.5)
+)
 
 event_risk(observed, model, c("death", "disease"), tau = 5)
 event_risk(intervened, model, c("death", "disease"), tau = 5)
@@ -76,9 +80,9 @@ model_l <- sim_model(
   death = sim_process("terminal", eta = 0.1, nu = 1.1),
   effects = list(sim_effect(death ~ L, coef = 1))
 )
-data_l <- sim_events(model_l, n = 2000)
+data_l <- simulate_events(model_l, n = 2000)
 event_risk(data_l, model_l, "death", tau = 5, by = "L_0")
 }
 \seealso{
-\code{\link[=sim_events]{sim_events()}}
+\code{\link[=simulate_events]{simulate_events()}}
 }
