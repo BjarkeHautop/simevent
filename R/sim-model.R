@@ -430,12 +430,23 @@ print.sim_effect <- function(x, ...) {
 #'   once the event has happened.
 #' @seealso [sim_effect()]
 #' @examples
+#' # Fades with time since the operation
 #' sim_effect(
 #'   death ~ operation * exp(-(t - event_time(operation, 1))),
 #'   coef = 2
 #' )
-#' sim_effect(death ~ visit > 0 & t - event_time(visit, -1) < 1, coef = 0.5)
-#' sim_effect(death ~ visit >= 3 & t - event_time(visit, -3) < 1, coef = 1)
+#'
+#' # On for one time unit after each visit
+#' sim_effect(
+#'   death ~ (visit > 0) * (t - event_time(visit, -1) < 1),
+#'   coef = 0.5
+#' )
+#'
+#' # Blood pressure at the operation, ignoring later measurements
+#' sim_effect(
+#'   death ~ operation * bp(event_time(operation, 1)),
+#'   coef = 0.02
+#' )
 #' @export
 event_time <- function(proc, k) {
   stop("event_time() only works inside a sim_effect() formula.")

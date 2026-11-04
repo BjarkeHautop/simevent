@@ -22,12 +22,23 @@ once the event has happened.
 For use only inside a \code{\link[=sim_effect]{sim_effect()}} formula.
 }
 \examples{
+# Fades with time since the operation
 sim_effect(
   death ~ operation * exp(-(t - event_time(operation, 1))),
   coef = 2
 )
-sim_effect(death ~ visit > 0 & t - event_time(visit, -1) < 1, coef = 0.5)
-sim_effect(death ~ visit >= 3 & t - event_time(visit, -3) < 1, coef = 1)
+
+# On for one time unit after each visit
+sim_effect(
+  death ~ (visit > 0) * (t - event_time(visit, -1) < 1),
+  coef = 0.5
+)
+
+# Blood pressure at the operation, ignoring later measurements
+sim_effect(
+  death ~ operation * bp(event_time(operation, 1)),
+  coef = 0.02
+)
 }
 \seealso{
 \code{\link[=sim_effect]{sim_effect()}}
