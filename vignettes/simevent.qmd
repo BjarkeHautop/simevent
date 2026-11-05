@@ -31,8 +31,9 @@ relapse and die, and then use the model to evaluate a new drug.
 
 Suppose we want to simulate how long patients survive, and that older patients
 die sooner. `sim_model()` describes this with an age covariate, two processes,
-and an effect of age on the death hazard. `simulate_events()` then simulates
-patients from the model:
+and an effect of age on the death hazard. The left side of a `sim_effect()`
+formula names the process whose hazard is affected, and `coef` is a log hazard
+ratio. `simulate_events()` then simulates patients from the model:
 
 ```{r}
 #| label: survival-model
@@ -184,7 +185,8 @@ relapses_so_far <- findInterval(time, relapse_times)
 latest_relapse <- c(0, relapse_times)[relapses_so_far + 1]
 
 relative_hazard <- exp(
-  0.5 * relapses_so_far +
+  0.5 *
+    relapses_so_far +
     (relapses_so_far >= 3) +
     1.5 * (relapses_so_far > 0) * exp(-(time - latest_relapse))
 )
