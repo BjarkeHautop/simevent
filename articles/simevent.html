@@ -79,7 +79,7 @@
 <p>simevent simulates event histories from a model of covariates, event processes and the effects between them. As a running example, we simulate patients who may relapse and die, and then use the model to evaluate a new drug.</p>
 <section class="section level2"><h2 id="starting-simple-survival">Starting Simple: Survival<a class="anchor" aria-label="anchor" href="#starting-simple-survival"></a>
 </h2>
-<p>Suppose we want to simulate how long patients survive, and that older patients die sooner. <code><a href="../reference/sim_model.html">sim_model()</a></code> describes this with an age covariate, two processes, and an effect of age on the death hazard. <code><a href="../reference/simulate_events.html">simulate_events()</a></code> then simulates patients from the model:</p>
+<p>Suppose we want to simulate how long patients survive, and that older patients die sooner. <code><a href="../reference/sim_model.html">sim_model()</a></code> describes this with an age covariate, two processes, and an effect of age on the death hazard. The left side of a <code><a href="../reference/sim_effect.html">sim_effect()</a></code> formula names the process whose hazard is affected, and <code>coef</code> is a log hazard ratio. <code><a href="../reference/simulate_events.html">simulate_events()</a></code> then simulates patients from the model:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">survival_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_model.html">sim_model</a></span><span class="op">(</span></span>
@@ -240,7 +240,8 @@
 <span><span class="va">latest_relapse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">relapse_times</span><span class="op">)</span><span class="op">[</span><span class="va">relapses_so_far</span> <span class="op">+</span> <span class="fl">1</span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">relative_hazard</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span></span>
-<span>  <span class="fl">0.5</span> <span class="op">*</span> <span class="va">relapses_so_far</span> <span class="op">+</span></span>
+<span>  <span class="fl">0.5</span> <span class="op">*</span></span>
+<span>    <span class="va">relapses_so_far</span> <span class="op">+</span></span>
 <span>    <span class="op">(</span><span class="va">relapses_so_far</span> <span class="op">&gt;=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fl">1.5</span> <span class="op">*</span> <span class="op">(</span><span class="va">relapses_so_far</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="op">(</span><span class="va">time</span> <span class="op">-</span> <span class="va">latest_relapse</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>

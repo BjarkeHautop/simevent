@@ -17,7 +17,10 @@ Suppose we want to simulate how long patients survive, and that older
 patients die sooner.
 [`sim_model()`](https://github.com/BjarkeHautop/simevent/reference/sim_model.md)
 describes this with an age covariate, two processes, and an effect of
-age on the death hazard.
+age on the death hazard. The left side of a
+[`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
+formula names the process whose hazard is affected, and `coef` is a log
+hazard ratio.
 [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md)
 then simulates patients from the model:
 
@@ -194,7 +197,8 @@ relapses_so_far <- findInterval(time, relapse_times)
 latest_relapse <- c(0, relapse_times)[relapses_so_far + 1]
 
 relative_hazard <- exp(
-  0.5 * relapses_so_far +
+  0.5 *
+    relapses_so_far +
     (relapses_so_far >= 3) +
     1.5 * (relapses_so_far > 0) * exp(-(time - latest_relapse))
 )
