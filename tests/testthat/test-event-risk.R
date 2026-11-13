@@ -79,6 +79,35 @@ test_that("event_risk detects the effect of a simulate_events() intervention", {
   )
 })
 
+test_that("event_risk gives zero risk, without warning, for a process with no events", {
+  withr::local_seed(1405)
+  model <- sim_model(
+    death = sim_process("terminal", eta = 0.1, nu = 1.1),
+    disease = sim_process("transient", eta = 0.2, nu = 1.1, limit = 1)
+  )
+  removed <- simulate_events(
+    model,
+    n = 200,
+    cens = 0,
+    intervene = list(disease = 0)
+  )
+
+  expect_no_warning(
+    res <- event_risk(removed, model, c("disease", "death"), tau = 5)
+  )
+  expect_equal(res$risk[res$process == "disease"], 0)
+  expect_equal(
+    event_risk(
+      removed,
+      model,
+      "disease",
+      tau = 5,
+      type = "time_lost"
+    )$time_lost,
+    0
+  )
+})
+
 test_that("event_risk warns when individuals are censored before tau", {
   withr::local_seed(404)
   model <- sim_model(

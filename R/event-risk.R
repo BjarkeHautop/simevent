@@ -121,11 +121,11 @@ event_risk <- function(
     function(first_time) mean(tau - pmin(first_time, tau))
   }
   res <- lapply(process, function(proc) {
-    first <- data[
-      event == proc,
-      list(first_time = min(time)),
-      by = id
-    ]
+    # First event time per id. Not min(time) by id, which data.table evaluates
+    # once on an empty group, and warns, when proc has no events at all.
+    first <- data[event == proc, list(id, first_time = time)]
+    data.table::setorder(first, id, first_time)
+    first <- unique(first, by = "id")
     ind <- merge(individuals, first, by = "id", all.x = TRUE)
     ind[is.na(first_time), first_time := Inf]
     out <- ind[, list(estimate = estimate(first_time)), keyby = by]
