@@ -119,7 +119,7 @@ Each row is now an event, and `plot_event_data()` shows the histories:
 ```{r}
 #| label: relapse-plot
 
-plot_event_data(relapse_data[relapse_data$id <= 100, ], title = "Relapse Data")
+plot_event_data(relapse_data[relapse_data$id <= 100, ])
 ```
 
 ::: {.callout-note title="Reading the data"}

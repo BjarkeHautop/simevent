@@ -76,7 +76,7 @@ model <- sim_model(
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
 data <- simulate_events(model, n = 100)
-plot_event_data(data, title = "Survival Data")
+plot_event_data(data)
 ```
 
 For a full walkthrough of the simulation framework and all of the functions

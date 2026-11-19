@@ -9,20 +9,6 @@ test_that("plot_event_data returns a ggplot object for simulate_events() output"
 
   p <- plot_event_data(data)
   expect_s3_class(p, "ggplot")
-  expect_equal(p$labels$title, "Event Data")
-})
-
-test_that("plot_event_data respects a custom title", {
-  model <- sim_model(
-    censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
-    death = sim_process("terminal", eta = 0.1, nu = 1.1),
-    relapse = sim_process("transient", eta = 0.2, nu = 1)
-  )
-  data <- simulate_events(model, n = 15)
-
-  p <- plot_event_data(data, title = "My Title")
-  expect_s3_class(p, "ggplot")
-  expect_equal(p$labels$title, "My Title")
 })
 
 test_that("plot_event_data works with many event types (color scales, shape doesn't)", {

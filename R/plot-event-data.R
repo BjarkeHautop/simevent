@@ -3,7 +3,6 @@
 #' One horizontal timeline per individual, with events marked by type.
 #'
 #' @param data Output of [simulate_events()].
-#' @param title Character. Plot title. Default `"Event Data"`.
 #'
 #' @return A `ggplot` object. Requires the \pkg{ggplot2} package.
 #' @seealso [simulate_events()]
@@ -21,7 +20,7 @@
 #'     values = c(start = "grey", censoring = "blue", death = "red")
 #'   )
 #' @export
-plot_event_data <- function(data, title = "Event Data") {
+plot_event_data <- function(data) {
   .sim_check_ggplot2("plot_event_data()")
   time <- id <- event <- max_time <- NULL
 
@@ -58,7 +57,6 @@ plot_event_data <- function(data, title = "Event Data") {
     ) +
     ggplot2::theme_minimal(base_size = 15) +
     ggplot2::labs(
-      title = title,
       x = "Time",
       y = "Individual",
       shape = "Event Type",

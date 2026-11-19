@@ -4,12 +4,10 @@
 \alias{plot_event_data}
 \title{Plot Simulated Event History Data}
 \usage{
-plot_event_data(data, title = "Event Data")
+plot_event_data(data)
 }
 \arguments{
 \item{data}{Output of \code{\link[=simulate_events]{simulate_events()}}.}
-
-\item{title}{Character. Plot title. Default \code{"Event Data"}.}
 }
 \value{
 A \code{ggplot} object. Requires the \pkg{ggplot2} package.

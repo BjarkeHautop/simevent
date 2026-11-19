@@ -11,8 +11,9 @@
 #'   time-varying covariates: each row then holds the value *before* its
 #'   event, i.e. the one in force during its interval, taken from the
 #'   `<name>_0` baseline column for the first row.
-#' @param t_prime Numeric. Optional time to split intervals at. Adds a `t_group` column (1 before,
-#'   2 after), so an effect can differ between the periods (see Examples).
+#' @param split_at Numeric. Optional time to split intervals at. Adds a
+#'   `t_group` column (1 before, 2 after), so an effect can differ between
+#'   the periods (see Examples).
 #'   The first half of a split interval has `event = "none"`.
 #'
 #' @return `data` with added columns `tstart`, `tstop` and `k` (event
@@ -37,7 +38,7 @@
 #'   data = data_int
 #' )
 #'
-#' # Splitting at t_prime tests whether an effect changes over time. Here L0
+#' # Splitting at a time tests whether an effect changes over time. Here L0
 #' # raises the death hazard before time 2 only:
 #' model_tv <- sim_model(
 #'   L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
@@ -45,9 +46,9 @@
 #'   effects = list(sim_effect(death ~ L0 * (t < 2), coef = 1))
 #' )
 #' data_tv <- simulate_events(model_tv, n = 2000)
-#' data_split <- format_interval_data(data_tv, t_prime = 2)
+#' data_split <- format_interval_data(data_tv, split_at = 2)
 #'
-#' # One L0 coefficient per period: about 1 before t_prime, about 0 after.
+#' # One L0 coefficient per period: about 1 before split_at, about 0 after.
 #' survival::coxph(
 #'   survival::Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
 #'   data = data_split
@@ -57,7 +58,7 @@ format_interval_data <- function(
   data,
   proc_cols = character(0),
   mark_cols = character(0),
-  t_prime = NULL
+  split_at = NULL
 ) {
   id <- k <- tstart <- tstop <- time <- t_group <- event <- NULL
   checkmate::assert_character(proc_cols, any.missing = FALSE)
@@ -72,7 +73,7 @@ format_interval_data <- function(
       sprintf("%s_0", mark_cols)
     )
   )
-  checkmate::assert_number(t_prime, finite = TRUE, null.ok = TRUE)
+  checkmate::assert_number(split_at, finite = TRUE, null.ok = TRUE)
   data <- data.table::copy(data.table::as.data.table(data))
 
   if (length(proc_cols) > 0) {
@@ -99,23 +100,23 @@ format_interval_data <- function(
   data[, tstop := time]
   res <- data
 
-  if (!is.null(t_prime)) {
+  if (!is.null(split_at)) {
     if (is.factor(res$event)) {
       levels(res$event) <- union(levels(res$event), "none")
     }
-    rows_to_split <- res[tstart < t_prime & tstop > t_prime]
+    rows_to_split <- res[tstart < split_at & tstop > split_at]
 
     data1 <- data.table::copy(rows_to_split)[, `:=`(
-      tstop = t_prime,
-      time = t_prime,
+      tstop = split_at,
+      time = split_at,
       event = "none"
     )]
-    data2 <- data.table::copy(rows_to_split)[, `:=`(tstart = t_prime)]
+    data2 <- data.table::copy(rows_to_split)[, `:=`(tstart = split_at)]
 
-    data_new <- res[!(tstart < t_prime & tstop > t_prime)]
+    data_new <- res[!(tstart < split_at & tstop > split_at)]
     res <- rbind(data_new, data1, data2)
 
-    res[, t_group := (1 + (time > t_prime))]
+    res[, t_group := (1 + (time > split_at))]
   }
 
   data.table::setorder(res, id, tstart)

@@ -4,13 +4,7 @@
 \alias{sim_process}
 \title{Define an Event Process for \code{sim_model()}}
 \usage{
-sim_process(
-  type = c("censoring", "terminal", "transient"),
-  eta,
-  nu,
-  limit = Inf,
-  cumhaz = NULL
-)
+sim_process(type, eta, nu, limit = Inf, cumhaz = NULL)
 }
 \arguments{
 \item{type}{One of:

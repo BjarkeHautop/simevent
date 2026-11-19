@@ -7,7 +7,7 @@ test_that("sim_covariate/sim_process/sim_effect validate their inputs", {
     "sim_covariate"
   )
 
-  expect_error(sim_process("bogus", eta = 0.1, nu = 1.1), "arg")
+  expect_error(sim_process("bogus", eta = 0.1, nu = 1.1), "type")
   expect_error(sim_process("terminal", eta = -1, nu = 1.1), ">= 0")
   expect_s3_class(sim_process("terminal", eta = 0.1, nu = 1.1), "sim_process")
 
@@ -204,7 +204,7 @@ test_that("simulate_events recovers an effect that changes with t", {
 
   fit <- coxph(
     Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
-    data = format_interval_data(data, t_prime = 2)
+    data = format_interval_data(data, split_at = 2)
   )
   expect_ci_covers(fit, c(1, 0))
 })
@@ -346,6 +346,10 @@ test_that("simulate_events intervene fixes covariates and scales process intensi
     simulate_events(model, n = 10, intervene = list(L0 = c(0, 1))),
     "intervene\\$L0"
   )
+})
+
+test_that("sim_process requires a valid type", {
+  expect_error(sim_process(eta = 0.1, nu = 1), "type")
 })
 
 test_that("simulate_events validates its numeric arguments", {
@@ -903,7 +907,7 @@ test_that("simulate_events: an effect using t switches off between events", {
     effects = list(sim_effect(death ~ L0 * (t < 2), coef = 1))
   )
   data <- simulate_events(model, n = 6000, seed = 11)
-  data_split <- format_interval_data(data, t_prime = 2)
+  data_split <- format_interval_data(data, split_at = 2)
 
   fit <- coxph(
     Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
@@ -1040,7 +1044,7 @@ test_that("a cumhaz process works with Weibull processes and time-varying effect
     effects = list(sim_effect(death ~ L0 * (t < 2), 1))
   )
   data <- simulate_events(model, n = 10000, seed = 1)
-  data_split <- format_interval_data(data, t_prime = 2)
+  data_split <- format_interval_data(data, split_at = 2)
   fit <- coxph(
     Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
     data = data_split

@@ -206,13 +206,13 @@ sim_mark <- function(init, update, draw) {
 #' )
 #' @export
 sim_process <- function(
-  type = c("censoring", "terminal", "transient"),
+  type,
   eta,
   nu,
   limit = Inf,
   cumhaz = NULL
 ) {
-  type <- match.arg(type)
+  checkmate::assert_choice(type, c("censoring", "terminal", "transient"))
   checkmate::assert(
     checkmate::check_count(limit, positive = TRUE),
     checkmate::check_choice(limit, Inf)

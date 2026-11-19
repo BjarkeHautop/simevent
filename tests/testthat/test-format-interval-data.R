@@ -41,23 +41,23 @@ test_that("format_interval_data lags a transient process's count by one row per 
   }
 })
 
-test_that("format_interval_data splits intervals at t_prime", {
+test_that("format_interval_data splits intervals at split_at", {
   withr::local_seed(302)
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1)
   )
   data <- simulate_events(model, n = 100)
-  t_prime <- stats::median(data$time)
+  split_at <- stats::median(data$time)
 
-  data_int <- format_interval_data(data, t_prime = t_prime)
+  data_int <- format_interval_data(data, split_at = split_at)
 
-  # No remaining interval should straddle t_prime once splitting is applied.
-  expect_false(any(data_int$tstart < t_prime & data_int$tstop > t_prime))
-  expect_true(any(data_int$tstop == t_prime))
+  # No remaining interval should straddle split_at once splitting is applied.
+  expect_false(any(data_int$tstart < split_at & data_int$tstop > split_at))
+  expect_true(any(data_int$tstop == split_at))
 })
 
-test_that("format_interval_data only splits intervals given t_prime", {
+test_that("format_interval_data only splits intervals given split_at", {
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1)
@@ -69,19 +69,19 @@ test_that("format_interval_data only splits intervals given t_prime", {
   expect_false("t_group" %in% names(data_int))
 })
 
-test_that("format_interval_data labels the pre-t_prime half of a split as \"none\"", {
+test_that("format_interval_data labels the pre-split_at half of a split as \"none\"", {
   model <- sim_model(
     censoring = sim_process("censoring", eta = 0.05, nu = 1),
     death = sim_process("terminal", eta = 0.05, nu = 1)
   )
   data <- simulate_events(model, n = 100, seed = 2)
-  t_prime <- stats::median(data$time)
+  split_at <- stats::median(data$time)
 
-  data_int <- format_interval_data(data, t_prime = t_prime)
+  data_int <- format_interval_data(data, split_at = split_at)
 
   split_rows <- data_int[data_int$event == "none", ]
   expect_gt(nrow(split_rows), 0)
-  expect_in(split_rows$tstop, t_prime)
+  expect_in(split_rows$tstop, split_at)
   expect_false(anyNA(data_int$event))
 })
 
@@ -112,15 +112,15 @@ test_that("format_interval_data lags a mark, from its baseline value", {
   )
 })
 
-test_that("format_interval_data makes no zero-length interval when t_prime is an event time", {
+test_that("format_interval_data makes no zero-length interval when split_at is an event time", {
   model <- sim_model(
     relapse = sim_process("transient", eta = 0.5, nu = 1),
     death = sim_process("terminal", eta = 0.2, nu = 1)
   )
   data <- simulate_events(model, n = 50, max_cens = 3, seed = 2)
-  t_prime <- data$time[data$event == "relapse"][1]
+  split_at <- data$time[data$event == "relapse"][1]
 
-  data_int <- format_interval_data(data, t_prime = t_prime)
+  data_int <- format_interval_data(data, split_at = split_at)
   expect_true(all(data_int$tstart < data_int$tstop))
   expect_equal(
     nrow(data_int),
