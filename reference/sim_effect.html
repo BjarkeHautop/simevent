@@ -23,7 +23,8 @@ its draw if it's a sim_mark()."></head><body>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/diabetes-screening.html">Case Study: Screening Visits in Diabetes</a></li>
+    <li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
     <li><a class="dropdown-item" href="../articles/migrating.html">Migrating from simevent 0.1.1</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -72,7 +73,9 @@ event.</p></dd>
 <dt><code>&lt;name&gt;(s)</code></dt>
 <dd><p>The value of covariate, mark or process count
 <code>name</code> at time <code>s</code>, after any update at <code>s</code>, e.g. <code>bp(0)</code> for a
-mark's baseline value or <code>bp(event_time(operation, 1))</code>.</p></dd>
+mark's baseline value or <code>bp(event_time(operation, 1))</code>. In an
+effect into a <code><a href="sim_mark.html">sim_mark()</a></code>, <code>name(t)</code> includes the triggering event;
+see <code><a href="sim_mark.html">sim_mark()</a></code>.</p></dd>
 
 
 </dl></dd>

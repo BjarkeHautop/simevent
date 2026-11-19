@@ -63,7 +63,7 @@ model <- sim_model(
   death = sim_process("terminal", eta = 0.1, nu = 1.1)
 )
 data <- simulate_events(model, n = 100)
-plot_event_data(data, title = "Survival Data")
+plot_event_data(data)
 ```
 
 ![](reference/figures/README-quick-example-1.png)

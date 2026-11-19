@@ -21,7 +21,8 @@ sim_model() specification."></head><body>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/diabetes-screening.html">Case Study: Screening Visits in Diabetes</a></li>
+    <li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
     <li><a class="dropdown-item" href="../articles/migrating.html">Migrating from simevent 0.1.1</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -54,7 +55,6 @@ sim_model() specification."></head><body>
 <span>  intervene <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  cens <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  max_cens <span class="op">=</span> <span class="cn">Inf</span>,</span>
-<span>  max_events <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  time_step <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -84,14 +84,11 @@ turns censoring off. Default 1.</p></dd>
 
 
 <dt id="arg-max-cens">max_cens<a class="anchor" aria-label="anchor" href="#arg-max-cens"></a></dt>
-<dd><p>Positive numeric. End of follow-up: anyone still followed is
-censored then, with <code>event = "max_cens"</code>. Default <code>Inf</code>. Follow-up also
-ends at the last <code>time</code> of any <code><a href="sim_process.html">sim_process()</a></code> <code>cumhaz</code> curve.</p></dd>
-
-
-<dt id="arg-max-events">max_events<a class="anchor" aria-label="anchor" href="#arg-max-events"></a></dt>
-<dd><p>Integer. Maximum number of events per individual.
-Default 50.</p></dd>
+<dd><p>Positive numeric, length 1 or <code>n</code>, or a function of
+baseline covariates (by name) giving one per individual. End of
+follow-up: anyone still followed is censored then, with
+<code>event = "max_cens"</code>. Default <code>Inf</code>. Follow-up also ends at the last
+<code>time</code> of any <code><a href="sim_process.html">sim_process()</a></code> <code>cumhaz</code> curve.</p></dd>
 
 
 <dt id="arg-time-step">time_step<a class="anchor" aria-label="anchor" href="#arg-time-step"></a></dt>

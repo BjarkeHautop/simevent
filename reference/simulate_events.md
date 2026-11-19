@@ -13,7 +13,6 @@ simulate_events(
   intervene = list(),
   cens = 1,
   max_cens = Inf,
-  max_events = 50,
   time_step = 0.01,
   seed = NULL
 )
@@ -43,15 +42,12 @@ simulate_events(
 
 - max_cens:
 
-  Positive numeric. End of follow-up: anyone still followed is censored
-  then, with `event = "max_cens"`. Default `Inf`. Follow-up also ends at
-  the last `time` of any
+  Positive numeric, length 1 or `n`, or a function of baseline
+  covariates (by name) giving one per individual. End of follow-up:
+  anyone still followed is censored then, with `event = "max_cens"`.
+  Default `Inf`. Follow-up also ends at the last `time` of any
   [`sim_process()`](https://github.com/BjarkeHautop/simevent/reference/sim_process.md)
   `cumhaz` curve.
-
-- max_events:
-
-  Integer. Maximum number of events per individual. Default 50.
 
 - time_step:
 

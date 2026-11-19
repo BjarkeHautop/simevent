@@ -11,13 +11,7 @@ into the process multiply this baseline by \\\exp(\text{coef} \times
 ## Usage
 
 ``` r
-sim_process(
-  type = c("censoring", "terminal", "transient"),
-  eta,
-  nu,
-  limit = Inf,
-  cumhaz = NULL
-)
+sim_process(type, eta, nu, limit = Inf, cumhaz = NULL)
 ```
 
 ## Arguments

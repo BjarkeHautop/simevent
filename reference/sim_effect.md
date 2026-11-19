@@ -35,7 +35,10 @@ sim_effect(formula, coef)
 
   :   The value of covariate, mark or process count `name` at time `s`,
       after any update at `s`, e.g. `bp(0)` for a mark's baseline value
-      or `bp(event_time(operation, 1))`.
+      or `bp(event_time(operation, 1))`. In an effect into a
+      [`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md),
+      `name(t)` includes the triggering event; see
+      [`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md).
 
 - coef:
 

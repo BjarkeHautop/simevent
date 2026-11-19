@@ -5,7 +5,7 @@ One horizontal timeline per individual, with events marked by type.
 ## Usage
 
 ``` r
-plot_event_data(data, title = "Event Data")
+plot_event_data(data)
 ```
 
 ## Arguments
@@ -14,10 +14,6 @@ plot_event_data(data, title = "Event Data")
 
   Output of
   [`simulate_events()`](https://github.com/BjarkeHautop/simevent/reference/simulate_events.md).
-
-- title:
-
-  Character. Plot title. Default `"Event Data"`.
 
 ## Value
 

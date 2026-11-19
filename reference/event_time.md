@@ -24,9 +24,11 @@ event_time(proc, k)
 ## Value
 
 The event's time, or `0` if there are fewer than `abs(k)` events so far.
-Multiply by the event count, as in
-`operation * f(t - event_time(operation, 1))`, so the effect only
-applies once the event has happened.
+In an effect into a
+[`sim_mark()`](https://github.com/BjarkeHautop/simevent/reference/sim_mark.md),
+the event triggering its redraw doesn't count yet. Multiply by the event
+count, as in `operation * f(t - event_time(operation, 1))`, so the
+effect only applies once the event has happened.
 
 ## See also
 

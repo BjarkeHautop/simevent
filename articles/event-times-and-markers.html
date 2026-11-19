@@ -36,7 +36,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
+<li><a class="dropdown-item" href="../articles/diabetes-screening.html">Case Study: Screening Visits in Diabetes</a></li>
+    <li><a class="dropdown-item" href="../articles/event-times-and-markers.html">Event Times and Time-Varying Markers</a></li>
     <li><a class="dropdown-item" href="../articles/migrating.html">Migrating from simevent 0.1.1</a></li>
   </ul>
 </li>
@@ -181,8 +182,8 @@
 <p>Other shapes follow the same pattern. The <code>from</code> expression times <code>coef</code> is added to the log-hazard, for example:</p>
 <table class="table caption-top">
 <colgroup>
-<col style="width: 47%">
-<col style="width: 52%">
+<col style="width: 46%">
+<col style="width: 53%">
 </colgroup>
 <thead><tr class="header">
 <th><code>from</code></th>
@@ -222,7 +223,41 @@
 <li>
 <code>draw</code>: a function of <code>N</code> and <code>lp</code> giving the new values.</li>
 </ul>
-<p>What a new value depends on is specified with <code><a href="../reference/sim_effect.html">sim_effect()</a></code>s <em>into</em> the marker. At each update, their <code>coef * from</code> terms are summed into the linear predictor <code>lp</code>, which <code>draw</code> can then use, e.g. as the mean of <code><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm()</a></code>. These effects can use anything a hazard effect can, including the marker’s own value before the update, and see the triggering event as having happened.</p>
+<p>What a new value depends on is specified with <code><a href="../reference/sim_effect.html">sim_effect()</a></code>s <em>into</em> the marker. At each update, their <code>coef * from</code> terms are summed into the linear predictor <code>lp</code>, which <code>draw</code> can then use, e.g. as the mean of <code><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm()</a></code>. These effects can use anything a hazard effect can, with <code>t</code> the time of the triggering event.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container"><i class="callout-icon"></i></div>
+<div class="callout-title-container flex-fill">Values at the triggering event</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In effects into a marker, a marker or count that changes at the triggering event, the marker itself included, can’t be written by its plain name, e.g. <code>bp</code>, since it would be unclear whether its value before or after the event is meant. Say which instead:</p>
+<table class="table caption-top">
+<colgroup>
+<col style="width: 32%">
+<col style="width: 67%">
+</colgroup>
+<thead><tr class="header">
+<th>Write</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>bp(event_time(visit, -1))</code></td>
+<td>Value at the previous visit (baseline at the first)</td>
+</tr>
+<tr class="even">
+<td><code>bp(t)</code></td>
+<td>Value just measured at this visit (another marker only)</td>
+</tr>
+<tr class="odd">
+<td><code>visit(t)</code></td>
+<td>Visit count including this visit</td>
+</tr>
+</tbody>
+</table>
+<p><code><a href="../reference/event_time.html">event_time()</a></code> doesn’t count the triggering event, so <code>event_time(visit, -1)</code> is the previous visit. For example, a treatment decided at the visit from the blood pressure just measured is <code>sim_effect(treated ~ bp(t) &gt; 140, coef = 3)</code>.</p>
+</div>
+</div>
 <p>The marker can also be used in <code><a href="../reference/sim_effect.html">sim_effect()</a></code> like any other covariate, and the hazards always use its current value. For its value at another time, call it as a function of time: <code>bp(0)</code> is the baseline value and <code>bp(event_time(visit, 1))</code> the value after the first visit. Since <code><a href="../reference/event_time.html">event_time()</a></code> is <code>0</code> before the event, the latter is also the baseline value until the first visit.</p>
 <section class="level2"><h3 id="example-blood-pressure-and-stroke">Example: Blood Pressure and Stroke<a class="anchor" aria-label="anchor" href="#example-blood-pressure-and-stroke"></a>
 </h3>
@@ -247,7 +282,7 @@
 <span>  censoring <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"censoring"</span>, eta <span class="op">=</span> <span class="fl">0.05</span>, nu <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  stroke <span class="op">=</span> <span class="fu"><a href="../reference/sim_process.html">sim_process</a></span><span class="op">(</span><span class="st">"terminal"</span>, eta <span class="op">=</span> <span class="fl">0.02</span>, nu <span class="op">=</span> <span class="fl">1.2</span><span class="op">)</span>,</span>
 <span>  effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">bp</span> <span class="op">~</span> <span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span>, coef <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">bp</span> <span class="op">~</span> <span class="fu">bp</span><span class="op">(</span><span class="fu"><a href="../reference/event_time.html">event_time</a></span><span class="op">(</span><span class="va">visit</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span> <span class="fl">130</span>, coef <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">bp</span> <span class="op">~</span> <span class="va">treatment</span>, coef <span class="op">=</span> <span class="op">-</span><span class="fl">2</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">treatment</span> <span class="op">~</span> <span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span>, coef <span class="op">=</span> <span class="fl">0.08</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">stroke</span> <span class="op">~</span> <span class="va">bp</span> <span class="op">-</span> <span class="fl">130</span>, coef <span class="op">=</span> <span class="fl">0.04</span><span class="op">)</span>,</span>
@@ -268,14 +303,12 @@
 <span><span class="co">#&gt;     stroke  terminal  weibull 0.02 1.2   Inf</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; &lt;sim_model&gt; effects</span></span>
-<span><span class="co">#&gt;         from        to  coef</span></span>
-<span><span class="co">#&gt;  bp[k] - 130   bp[k+1]  0.80</span></span>
-<span><span class="co">#&gt;    treatment   bp[k+1] -2.00</span></span>
-<span><span class="co">#&gt;     bp - 130 treatment  0.08</span></span>
-<span><span class="co">#&gt;     bp - 130    stroke  0.04</span></span>
-<span><span class="co">#&gt;    treatment    stroke -0.50</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; mark[k]: value after the mark's k-th update (k = 0: init)</span></span>
+<span><span class="co">#&gt;                             from        to  coef</span></span>
+<span><span class="co">#&gt;  bp(event_time(visit, -1)) - 130        bp  0.80</span></span>
+<span><span class="co">#&gt;                        treatment        bp -2.00</span></span>
+<span><span class="co">#&gt;                         bp - 130 treatment  0.08</span></span>
+<span><span class="co">#&gt;                         bp - 130    stroke  0.04</span></span>
+<span><span class="co">#&gt;                        treatment    stroke -0.50</span></span>
 <span></span>
 <span><span class="va">bp_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_events.html">simulate_events</a></span><span class="op">(</span><span class="va">bp_model</span>, n <span class="op">=</span> <span class="fl">3000</span>, max_cens <span class="op">=</span> <span class="fl">10</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">bp_data</span>, <span class="fl">8</span><span class="op">)</span></span>
@@ -291,7 +324,7 @@
 <span><span class="co">#&gt; 7:     1 7.116576  visit 53.73546 125.1255 135.7371     7         0</span></span>
 <span><span class="co">#&gt; 8:     1 7.236297  visit 53.73546 127.7269 135.7371     8         0</span></span></code></pre></div>
 </div>
-<p>The summary unrolls the effects into the marker over its updates: <code>bp[k+1]</code>, the value after the <code>k+1</code>-th visit, is drawn from <code>bp[k]</code> and the current treatment status. In the data, <code>bp</code> is the value after each row’s event, and <code>bp_0</code> the baseline value.</p>
+<p>In the data, <code>bp</code> is the value after each row’s event, and <code>bp_0</code> the baseline value.</p>
 <p>Let’s visualize the blood pressure for a few patients, with the treatment start marked:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">

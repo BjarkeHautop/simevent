@@ -49,11 +49,17 @@ What a new value depends on is given by
 [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)s
 with the mark as `to`: at each update, their `coef * from` terms are
 summed into a linear predictor `lp` and passed to `draw`, e.g. as the
-mean of [`stats::rnorm()`](https://rdrr.io/r/stats/Normal.html). Effects
-are evaluated just after the triggering event, so they see process
-counts and event times including it, `t` as its time, and the mark's own
-value before the update. Marks updated by the same event are redrawn in
-the order they are defined.
+mean of [`stats::rnorm()`](https://rdrr.io/r/stats/Normal.html). In
+these effects, `t` is the time of the triggering event. A mark or count
+that changes at that event, the mark itself included, can't be written
+by its plain name, e.g. `bp`, since it would be unclear whether its
+value before or after the event is meant. Instead, write e.g.
+`bp(event_time(visit, -1))` for its value at the previous visit
+([`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md)
+doesn't count the triggering event). For another mark redrawn at the
+same event, `bp(t)` is its value at this one, e.g. for a treatment
+decided from the blood pressure just measured. Likewise, `visit(t)`
+counts the current visit.
 
 ## See also
 
@@ -77,7 +83,7 @@ model <- sim_model(
   treatment = sim_process("transient", eta = 0.05, nu = 1, limit = 1),
   stroke = sim_process("terminal", eta = 0.01, nu = 1.2),
   effects = list(
-    sim_effect(bp ~ bp - 130, coef = 0.8),
+    sim_effect(bp ~ bp(event_time(visit, -1)) - 130, coef = 0.8),
     sim_effect(bp ~ treatment, coef = -2),
     sim_effect(treatment ~ bp - 130, coef = 0.08),
     sim_effect(stroke ~ bp - 130, coef = 0.03),
@@ -97,14 +103,12 @@ summary(model)
 #>     stroke  terminal  weibull 0.01 1.2   Inf
 #> 
 #> <sim_model> effects
-#>         from        to  coef
-#>  bp[k] - 130   bp[k+1]  0.80
-#>    treatment   bp[k+1] -2.00
-#>     bp - 130 treatment  0.08
-#>     bp - 130    stroke  0.03
-#>    treatment    stroke -0.20
-#> 
-#> mark[k]: value after the mark's k-th update (k = 0: init)
+#>                             from        to  coef
+#>  bp(event_time(visit, -1)) - 130        bp  0.80
+#>                        treatment        bp -2.00
+#>                         bp - 130 treatment  0.08
+#>                         bp - 130    stroke  0.03
+#>                        treatment    stroke -0.20
 head(simulate_events(model, n = 5, max_cens = 5), 10)
 #> Key: <id>
 #>        id      time     event      age       bp     bp_0 visit treatment

@@ -169,8 +169,27 @@ What a new value depends on is specified with
 *into* the marker. At each update, their `coef * from` terms are summed
 into the linear predictor `lp`, which `draw` can then use, e.g. as the
 mean of [`rnorm()`](https://rdrr.io/r/stats/Normal.html). These effects
-can use anything a hazard effect can, including the marker’s own value
-before the update, and see the triggering event as having happened.
+can use anything a hazard effect can, with `t` the time of the
+triggering event.
+
+Values at the triggering event
+
+In effects into a marker, a marker or count that changes at the
+triggering event, the marker itself included, can’t be written by its
+plain name, e.g. `bp`, since it would be unclear whether its value
+before or after the event is meant. Say which instead:
+
+| Write | Meaning |
+|----|----|
+| `bp(event_time(visit, -1))` | Value at the previous visit (baseline at the first) |
+| `bp(t)` | Value just measured at this visit (another marker only) |
+| `visit(t)` | Visit count including this visit |
+
+[`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md)
+doesn’t count the triggering event, so `event_time(visit, -1)` is the
+previous visit. For example, a treatment decided at the visit from the
+blood pressure just measured is
+`sim_effect(treated ~ bp(t) > 140, coef = 3)`.
 
 The marker can also be used in
 [`sim_effect()`](https://github.com/BjarkeHautop/simevent/reference/sim_effect.md)
@@ -216,7 +235,7 @@ bp_model <- sim_model(
   censoring = sim_process("censoring", eta = 0.05, nu = 1),
   stroke = sim_process("terminal", eta = 0.02, nu = 1.2),
   effects = list(
-    sim_effect(bp ~ bp - 130, coef = 0.8),
+    sim_effect(bp ~ bp(event_time(visit, -1)) - 130, coef = 0.8),
     sim_effect(bp ~ treatment, coef = -2),
     sim_effect(treatment ~ bp - 130, coef = 0.08),
     sim_effect(stroke ~ bp - 130, coef = 0.04),
@@ -237,14 +256,12 @@ summary(bp_model)
 #>     stroke  terminal  weibull 0.02 1.2   Inf
 #> 
 #> <sim_model> effects
-#>         from        to  coef
-#>  bp[k] - 130   bp[k+1]  0.80
-#>    treatment   bp[k+1] -2.00
-#>     bp - 130 treatment  0.08
-#>     bp - 130    stroke  0.04
-#>    treatment    stroke -0.50
-#> 
-#> mark[k]: value after the mark's k-th update (k = 0: init)
+#>                             from        to  coef
+#>  bp(event_time(visit, -1)) - 130        bp  0.80
+#>                        treatment        bp -2.00
+#>                         bp - 130 treatment  0.08
+#>                         bp - 130    stroke  0.04
+#>                        treatment    stroke -0.50
 
 bp_data <- simulate_events(bp_model, n = 3000, max_cens = 10, seed = 1)
 head(bp_data, 8)
@@ -261,10 +278,8 @@ head(bp_data, 8)
 #> 8:     1 7.236297  visit 53.73546 127.7269 135.7371     8         0
 ```
 
-The summary unrolls the effects into the marker over its updates:
-`bp[k+1]`, the value after the `k+1`-th visit, is drawn from `bp[k]` and
-the current treatment status. In the data, `bp` is the value after each
-row’s event, and `bp_0` the baseline value.
+In the data, `bp` is the value after each row’s event, and `bp_0` the
+baseline value.
 
 Let’s visualize the blood pressure for a few patients, with the
 treatment start marked:

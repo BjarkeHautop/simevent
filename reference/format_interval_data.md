@@ -11,7 +11,7 @@ format_interval_data(
   data,
   proc_cols = character(0),
   mark_cols = character(0),
-  t_prime = NULL
+  split_at = NULL
 )
 ```
 
@@ -35,7 +35,7 @@ format_interval_data(
   value *before* its event, i.e. the one in force during its interval,
   taken from the `<name>_0` baseline column for the first row.
 
-- t_prime:
+- split_at:
 
   Numeric. Optional time to split intervals at. Adds a `t_group` column
   (1 before, 2 after), so an effect can differ between the periods (see
@@ -89,7 +89,7 @@ survival::coxph(
 #> Likelihood ratio test=31.45  on 2 df, p=1.485e-07
 #> n= 848, number of events= 302 
 
-# Splitting at t_prime tests whether an effect changes over time. Here L0
+# Splitting at a time tests whether an effect changes over time. Here L0
 # raises the death hazard before time 2 only:
 model_tv <- sim_model(
   L0 = sim_covariate(function(N) rbinom(N, 1, 0.5)),
@@ -97,9 +97,9 @@ model_tv <- sim_model(
   effects = list(sim_effect(death ~ L0 * (t < 2), coef = 1))
 )
 data_tv <- simulate_events(model_tv, n = 2000)
-data_split <- format_interval_data(data_tv, t_prime = 2)
+data_split <- format_interval_data(data_tv, split_at = 2)
 
-# One L0 coefficient per period: about 1 before t_prime, about 0 after.
+# One L0 coefficient per period: about 1 before split_at, about 0 after.
 survival::coxph(
   survival::Surv(tstart, tstop, event == "death") ~ L0:strata(t_group),
   data = data_split

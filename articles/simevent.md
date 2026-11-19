@@ -135,7 +135,7 @@ shows the histories:
 
 ``` r
 
-plot_event_data(relapse_data[relapse_data$id <= 100, ], title = "Relapse Data")
+plot_event_data(relapse_data[relapse_data$id <= 100, ])
 ```
 
 ![](simevent_files/figure-html/relapse-plot-1.png)
