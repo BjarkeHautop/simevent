@@ -884,8 +884,6 @@ print.sim_process <- function(x, ...) {
 #'   follow-up: anyone still followed is censored then, with
 #'   `event = "max_cens"`. Default `Inf`. Follow-up also ends at the last
 #'   `time` of any [sim_process()] `cumhaz` curve.
-#' @param max_events Integer. Maximum number of events per individual.
-#'   Default 50.
 #' @param time_step Numeric. Grid step on which [sim_effect()]s using `t`
 #'   are evaluated; ignored if none do. Smaller is more accurate but slower.
 #'   Default `0.01`.
@@ -939,7 +937,6 @@ simulate_events <- function(
   intervene = list(),
   cens = 1,
   max_cens = Inf,
-  max_events = 50,
   time_step = 0.01,
   seed = NULL
 ) {
@@ -957,7 +954,6 @@ simulate_events <- function(
       stop("max_cens must be positive.")
     }
   }
-  checkmate::assert_count(max_events, positive = TRUE)
   checkmate::assert_number(time_step, lower = 0, finite = TRUE)
   if (time_step == 0) {
     stop("time_step must be positive.")
@@ -996,7 +992,6 @@ simulate_events <- function(
       intervene = intervene,
       cens = cens,
       max_cens = max_cens,
-      max_events = max_events,
       time_step = time_step
     )
   }

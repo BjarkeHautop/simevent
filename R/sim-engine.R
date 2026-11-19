@@ -45,6 +45,27 @@
   list(time = time, type = type, n = n, marks = marks)
 }
 
+# `history` with room for at least `rows` events (rows of time/type; marks
+# have one more row for the baseline value), doubling its capacity as needed
+# so appending events is amortized constant time.
+.sim_history_reserve <- function(history, rows) {
+  capacity <- nrow(history$time)
+  if (rows <= capacity) {
+    return(history)
+  }
+  extra <- max(rows, 2 * capacity) - capacity
+  n <- ncol(history$time)
+  history$time <- rbind(history$time, matrix(0, nrow = extra, ncol = n))
+  history$type <- rbind(
+    history$type,
+    matrix(NA_character_, nrow = extra, ncol = n)
+  )
+  history$marks <- lapply(history$marks, function(m) {
+    rbind(m, matrix(NA_real_, nrow = extra, ncol = n))
+  })
+  history
+}
+
 # `history` restricted to individuals (columns) `cols`.
 .sim_history_cols <- function(history, cols) {
   if (is.null(history)) {
@@ -640,7 +661,6 @@
   intervene,
   cens,
   max_cens,
-  max_events,
   time_step
 ) {
   process_names <- names(model$processes)
@@ -716,20 +736,16 @@
   needs_history <- any(c("event_time", process_names, timed_marks) %in% called)
   history <- if (needs_history) {
     .sim_history(
-      time = matrix(0, nrow = max_events, ncol = n),
-      type = matrix(NA_character_, nrow = max_events, ncol = n),
+      time = matrix(0, nrow = 0, ncol = n),
+      type = matrix(NA_character_, nrow = 0, ncol = n),
       n = 0,
-      marks = lapply(covariates[timed_marks], function(value) {
-        log <- matrix(NA_real_, nrow = max_events + 1, ncol = n)
-        log[1, ] <- value
-        log
-      })
+      marks = lapply(covariates[timed_marks], matrix, nrow = 1, ncol = n)
     )
   }
 
   t_k <- rep(0, n)
   alive <- seq_len(n)
-  res_list <- vector("list", max_events)
+  res_list <- list()
   idx <- 1
 
   while (length(alive) != 0) {
@@ -803,6 +819,7 @@
       event_counts[[nm]][hit] <- event_counts[[nm]][hit] + 1
     }
     if (needs_history) {
+      history <- .sim_history_reserve(history, idx)
       history$time[idx, ] <- t_k
       history$type[idx, alive] <- events
       history$n <- idx
@@ -843,15 +860,6 @@
 
     idx <- idx + 1
     alive <- alive[!events %in% ending_events]
-
-    if (length(alive) != 0 && idx > max_events) {
-      stop(
-        "max_events (",
-        max_events,
-        ") exceeded before follow-up ended for all individuals. Increase ",
-        "max_events, or make censoring/terminal events more likely."
-      )
-    }
   }
 
   event <- NULL

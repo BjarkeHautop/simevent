@@ -10,7 +10,6 @@ simulate_events(
   intervene = list(),
   cens = 1,
   max_cens = Inf,
-  max_events = 50,
   time_step = 0.01,
   seed = NULL
 )
@@ -32,9 +31,6 @@ baseline covariates (by name) giving one per individual. End of
 follow-up: anyone still followed is censored then, with
 \code{event = "max_cens"}. Default \code{Inf}. Follow-up also ends at the last
 \code{time} of any \code{\link[=sim_process]{sim_process()}} \code{cumhaz} curve.}
-
-\item{max_events}{Integer. Maximum number of events per individual.
-Default 50.}
 
 \item{time_step}{Numeric. Grid step on which \code{\link[=sim_effect]{sim_effect()}}s using \code{t}
 are evaluated; ignored if none do. Smaller is more accurate but slower.

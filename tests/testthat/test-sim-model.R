@@ -271,7 +271,7 @@ test_that("simulate_events: a threshold sim_effect() fires specifically on the k
     death = sim_process("terminal", eta = 0.01, nu = 1),
     effects = list(sim_effect(death ~ relapse == 3, coef = 8))
   )
-  data <- simulate_events(model, n = 2000, max_events = 40)
+  data <- simulate_events(model, n = 2000)
 
   deaths <- data[data$event == "death", ]
   expect_gt(nrow(deaths), 0)
@@ -357,8 +357,6 @@ test_that("simulate_events validates its numeric arguments", {
   expect_error(simulate_events(model, n = 10, cens = -1), "cens")
   expect_error(simulate_events(model, n = 10, max_cens = 0), "max_cens")
   expect_error(simulate_events(model, n = 10, max_cens = -1), "max_cens")
-  expect_error(simulate_events(model, n = 10, max_events = 0), "max_events")
-  expect_error(simulate_events(model, n = 10, max_events = 2.5), "max_events")
   expect_no_error(simulate_events(model, n = 10, cens = 0, max_cens = 5))
 })
 
@@ -591,7 +589,7 @@ test_that("sim_model_from_fits uses one row per id", {
     effects = list(sim_effect(relapse ~ L0, 1.5))
   )
   observed_data <- format_interval_data(
-    simulate_events(observed_model, n = 2000, max_events = 200),
+    simulate_events(observed_model, n = 2000),
     proc_cols = "relapse"
   )
   fits <- list(
@@ -611,7 +609,7 @@ test_that("sim_model_from_fits uses one row per id", {
   types <- c(censoring = "censoring", relapse = "transient", death = "terminal")
 
   model <- sim_model_from_fits(fits, observed_data, types)
-  new_data <- simulate_events(model, n = 2000, max_events = 200)
+  new_data <- simulate_events(model, n = 2000)
 
   expect_equal(
     mean(new_data$L0[!duplicated(new_data$id)]),
@@ -776,6 +774,38 @@ test_that("simulate_events labels administrative censoring as max_cens", {
 
   # Without max_cens, "max_cens" isn't a level at all.
   expect_equal(levels(simulate_events(model, n = 5, seed = 1)$event), "death")
+})
+
+test_that("simulate_events handles long histories", {
+  # Hundreds of events per individual, with event_time() and a mark as a
+  # function of time reading the whole history: nth counts visits, so at
+  # each visit nth at the third-latest visit is 2 less than nth now.
+  seen <- new.env()
+  record <- function(lag) {
+    seen$lag <- c(seen$lag, lag)
+    lag
+  }
+  model <- sim_model(
+    visit = sim_process("transient", eta = 30, nu = 1),
+    nth = sim_mark(
+      init = function(N) rep(0, N),
+      update = "visit",
+      draw = function(N, lp) lp
+    ),
+    death = sim_process("terminal", eta = 0.01, nu = 1),
+    effects = list(
+      sim_effect(nth ~ visit, 1),
+      sim_effect(
+        death ~ record(ifelse(visit >= 3, nth - nth(event_time(visit, -3)), 2)),
+        0
+      )
+    )
+  )
+  data <- simulate_events(model, n = 5, max_cens = 10, seed = 1)
+
+  expect_gt(max(data[, .N, by = id]$N), 200)
+  expect_equal(data$nth, data$visit)
+  expect_in(seen$lag, 2)
 })
 
 test_that("simulate_events takes a per-individual max_cens", {
@@ -1157,7 +1187,6 @@ test_that("simulate_events: event_time(proc, -k) is the k-th latest event", {
     model,
     n = 50,
     max_cens = 5,
-    max_events = 100,
     seed = 1
   )
 
@@ -1266,7 +1295,7 @@ test_that("simulate_events: pmin() gives the latest value until a fixed time", {
     death = sim_process("terminal", eta = 0.3, nu = 1),
     effects = list(sim_effect(death ~ record(bp(pmin(t, 1))), 0))
   )
-  data <- simulate_events(model, n = 1, max_events = 500, seed = 3)
+  data <- simulate_events(model, n = 1, seed = 3)
 
   at_1 <- if (any(data$time <= 1)) data$bp[max(which(data$time <= 1))] else 100
   expect_equal(unique(seen$at_1), at_1)
