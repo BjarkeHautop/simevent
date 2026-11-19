@@ -879,9 +879,11 @@ print.sim_process <- function(x, ...) {
 #'   name multiplies that process's hazard by the given non-negative number.
 #' @param cens Non-negative numeric. Multiplier on censoring hazards; `0`
 #'   turns censoring off. Default 1.
-#' @param max_cens Positive numeric. End of follow-up: anyone still followed is
-#'   censored then, with `event = "max_cens"`. Default `Inf`. Follow-up also
-#'   ends at the last `time` of any [sim_process()] `cumhaz` curve.
+#' @param max_cens Positive numeric, length 1 or `n`, or a function of
+#'   baseline covariates (by name) giving one per individual. End of
+#'   follow-up: anyone still followed is censored then, with
+#'   `event = "max_cens"`. Default `Inf`. Follow-up also ends at the last
+#'   `time` of any [sim_process()] `cumhaz` curve.
 #' @param max_events Integer. Maximum number of events per individual.
 #'   Default 50.
 #' @param time_step Numeric. Grid step on which [sim_effect()]s using `t`
@@ -946,9 +948,14 @@ simulate_events <- function(
   checkmate::assert_int(seed, null.ok = TRUE)
   checkmate::assert_list(intervene, names = "unique")
   checkmate::assert_number(cens, lower = 0, finite = TRUE)
-  checkmate::assert_number(max_cens, lower = 0)
-  if (max_cens == 0) {
-    stop("max_cens must be positive.")
+  if (!is.function(max_cens)) {
+    checkmate::assert_numeric(max_cens, lower = 0, any.missing = FALSE)
+    if (!length(max_cens) %in% c(1, n)) {
+      stop("max_cens must have length 1 or n (", n, ").")
+    }
+    if (any(max_cens == 0)) {
+      stop("max_cens must be positive.")
+    }
   }
   checkmate::assert_count(max_events, positive = TRUE)
   checkmate::assert_number(time_step, lower = 0, finite = TRUE)

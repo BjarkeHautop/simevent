@@ -778,6 +778,81 @@ test_that("simulate_events labels administrative censoring as max_cens", {
   expect_equal(levels(simulate_events(model, n = 5, seed = 1)$event), "death")
 })
 
+test_that("simulate_events takes a per-individual max_cens", {
+  # Vector: each individual ends follow-up at their own time, in every
+  # sampler (Weibull, cumhaz, effects using t).
+  ends <- rep(c(0.5, 1, 2), length.out = 300)
+  models <- list(
+    weibull = sim_model(death = sim_process("terminal", eta = 0.01, nu = 1)),
+    cumhaz = sim_model(
+      death = sim_process(
+        "terminal",
+        cumhaz = data.frame(time = c(1, 10), hazard = c(0.01, 0.1))
+      )
+    ),
+    td = sim_model(
+      death = sim_process("terminal", eta = 0.01, nu = 1),
+      effects = list(sim_effect(death ~ t > 100, coef = 1))
+    )
+  )
+  for (model in models) {
+    data <- simulate_events(model, n = 300, max_cens = ends, seed = 1)
+    expect_equal(nrow(data), 300)
+    expect_true(all(data$time <= ends[data$id]))
+    censored <- data$event == "max_cens"
+    expect_equal(data$time[censored], ends[data$id[censored]])
+    expect_gt(sum(censored), 250)
+  }
+
+  # Function of baseline covariates: staggered entry with a common calendar
+  # end of study.
+  model <- sim_model(
+    entry = sim_covariate(function(N) runif(N, 2000, 2020)),
+    censoring = sim_process("censoring", eta = 0.01, nu = 1),
+    death = sim_process("terminal", eta = 0.05, nu = 1)
+  )
+  data <- simulate_events(
+    model,
+    n = 500,
+    max_cens = function(entry) 2025 - entry,
+    seed = 2
+  )
+  expect_true(all(data$time <= 2025 - data$entry + 1e-12))
+  censored <- data$event == "max_cens"
+  expect_equal(data$time[censored], 2025 - data$entry[censored])
+  expect_gt(sum(censored), 100)
+
+  # Same as passing the values as a vector.
+  model_n <- sim_model(
+    entry = sim_covariate(function(N) runif(N, 2000, 2020)),
+    censoring = sim_process("censoring", eta = 0.01, nu = 1),
+    death = sim_process("terminal", eta = 0.05, nu = 1)
+  )
+  entry <- withr::with_seed(2, runif(500, 2000, 2020))
+  expect_equal(
+    data,
+    simulate_events(model_n, n = 500, max_cens = 2025 - entry, seed = 2)
+  )
+
+  # Validation.
+  expect_error(
+    simulate_events(model, n = 10, max_cens = c(1, 2)),
+    "length 1 or n"
+  )
+  expect_error(
+    simulate_events(model, n = 10, max_cens = c(1, rep(0, 9))),
+    "positive"
+  )
+  expect_error(
+    simulate_events(model, n = 10, max_cens = function(age) age),
+    "age"
+  )
+  expect_error(
+    simulate_events(model, n = 10, max_cens = function(entry) 1),
+    "max_cens"
+  )
+})
+
 test_that("sim_model rejects the reserved event labels as node names", {
   for (nm in c("event", "max_cens", "none")) {
     nodes <- list(

@@ -27,9 +27,11 @@ name multiplies that process's hazard by the given non-negative number.}
 \item{cens}{Non-negative numeric. Multiplier on censoring hazards; \code{0}
 turns censoring off. Default 1.}
 
-\item{max_cens}{Positive numeric. End of follow-up: anyone still followed is
-censored then, with \code{event = "max_cens"}. Default \code{Inf}. Follow-up also
-ends at the last \code{time} of any \code{\link[=sim_process]{sim_process()}} \code{cumhaz} curve.}
+\item{max_cens}{Positive numeric, length 1 or \code{n}, or a function of
+baseline covariates (by name) giving one per individual. End of
+follow-up: anyone still followed is censored then, with
+\code{event = "max_cens"}. Default \code{Inf}. Follow-up also ends at the last
+\code{time} of any \code{\link[=sim_process]{sim_process()}} \code{cumhaz} curve.}
 
 \item{max_events}{Integer. Maximum number of events per individual.
 Default 50.}

@@ -278,7 +278,7 @@
 # models with a cumhaz process: solves
 # sum_k rate[, k] * (H_k(t) - H_k(t_now)) = Exp(1) draw for t by bisection
 # on [t_now, max_cens], or returns the increment to max_cens if the draw
-# isn't reached before it.
+# isn't reached before it. max_cens is per individual, like t_now.
 .sim_sample_next_event_times_general <- function(
   t_now,
   phi_alive,
@@ -290,14 +290,14 @@
   n <- length(t_now)
   v <- -log(stats::runif(n))
   rate <- t(risk_alive) * rep(eta, each = n) * phi_alive
-  added <- .sim_cumhaz_matrix(baselines, rep(max_cens, n)) -
+  added <- .sim_cumhaz_matrix(baselines, max_cens) -
     .sim_cumhaz_matrix(baselines, t_now)
 
   increment <- max_cens - t_now
   ind <- which(rowSums(rate * added) >= v)
   increment[ind] <- .sim_bisect_cumhaz(
     t_now[ind],
-    rep(max_cens, length(ind)),
+    max_cens[ind],
     rate[ind, , drop = FALSE],
     baselines,
     v[ind]
@@ -379,9 +379,10 @@
 # integrated exactly. The cumulative hazard is accumulated step by step
 # (vectorized over individuals and over blocks of steps) until it crosses
 # each individual's Exp(1) draw, and the event time is then solved for
-# exactly within that step. Returns the new absolute event times (max_cens
-# for anyone not reaching an event before it) and the multipliers in force
-# at those times (for .sim_sample_event_types()).
+# exactly within that step. max_cens is per individual, like t_now. Returns
+# the new absolute event times (max_cens for anyone not reaching an event
+# before it) and the multipliers in force at those times (for
+# .sim_sample_event_types()).
 .sim_sample_next_event_times_td <- function(
   t_now,
   covariates,
@@ -402,7 +403,7 @@
   num_proc <- length(process_names)
   v <- -log(stats::runif(n))
 
-  event_time <- rep(max_cens, n)
+  event_time <- max_cens
   phi <- matrix(
     1,
     nrow = n,
@@ -422,8 +423,9 @@
     # next b grid points, capped at max_cens.
     grid <- outer(floor(left[searching] / time_step) + 1, 0:(b - 1), `+`)
     rights <- grid * time_step
-    capped <- rights > max_cens
-    rights[capped] <- max_cens
+    ends <- matrix(max_cens[searching], nrow = m, ncol = b)
+    capped <- rights > ends
+    rights[capped] <- ends[capped]
     lefts <- cbind(left[searching], rights[, -b, drop = FALSE])
 
     # Multipliers at every step midpoint, one row per (individual, step) in
@@ -455,7 +457,7 @@
       }
       pow_table <- grid_pts^nu[k]
       right_pow <- matrix(pow_table[grid - grid_min + 1], nrow = m)
-      right_pow[capped] <- max_cens^nu[k]
+      right_pow[capped] <- ends[capped]^nu[k]
       left_pow <- cbind(left[searching]^nu[k], right_pow[, -b, drop = FALSE])
       base_pts[, k] <- right_pow - left_pow
     }
@@ -488,7 +490,8 @@
     miss <- setdiff(seq_len(m), hit)
     left[searching[miss]] <- rights[miss, b]
     cum_haz[searching[miss]] <- cum_steps[miss, b]
-    searching <- searching[miss][left[searching[miss]] < max_cens]
+    searching <- searching[miss]
+    searching <- searching[left[searching] < max_cens[searching]]
 
     if (any(left[searching] > upper)) {
       stop(
@@ -524,8 +527,9 @@
 # Samples which process fires next for each alive individual, given their
 # updated times: vectorized event intensities across all alive individuals,
 # then sampleEventsCpp() draws one event type per individual. Anyone who has
-# reached max_cens gets "max_cens" instead of a process. Returns a character
-# vector of process names (names(eta)).
+# reached their max_cens (per individual, like t_alive) gets "max_cens"
+# instead of a process. Returns a character vector of process names
+# (names(eta)).
 .sim_sample_event_types <- function(
   t_alive,
   phi_alive,
@@ -596,6 +600,37 @@
   value
 }
 
+# Each individual's end of follow-up, from simulate_events()'s max_cens: a
+# number, a vector of length n, or a function of baseline covariates (by
+# name) and N.
+.sim_max_cens <- function(max_cens, covariates, n) {
+  if (is.function(max_cens)) {
+    arg_names <- names(formals(max_cens))
+    unknown <- setdiff(arg_names, c("N", names(covariates)))
+    if (length(unknown) > 0) {
+      stop(
+        "max_cens function argument(s) not covariates of the model: ",
+        paste(unknown, collapse = ", ")
+      )
+    }
+    max_cens <- do.call(
+      max_cens,
+      c(list(N = n), covariates)[arg_names]
+    )
+    checkmate::assert_numeric(
+      max_cens,
+      lower = 0,
+      any.missing = FALSE,
+      len = n,
+      .var.name = "max_cens(...)"
+    )
+  }
+  if (any(max_cens == 0)) {
+    stop("max_cens must be positive.")
+  }
+  rep_len(max_cens, n)
+}
+
 # Top-level driver, called by simulate_events(): draws baseline covariates,
 # then repeatedly samples a next-event time and type for everyone still
 # alive until all individuals have hit a censoring/terminal event.
@@ -646,14 +681,15 @@
   weibull_only <- !anyNA(nu)
   shared_nu <- weibull_only && all(nu[1] == nu)
   baselines <- .sim_baselines(model$processes)
-  max_cens <- min(max_cens, .sim_cumhaz_end(model$processes))
+  max_cens <- .sim_max_cens(max_cens, covariates, n)
+  max_cens <- pmin(max_cens, .sim_cumhaz_end(model$processes))
   # Effects only multiply hazards by exp(.) > 0, so follow-up can only end
   # if some censoring/terminal process has a positive baseline.
   ending_rate <- eta[types == "terminal"]
   if (cens > 0) {
     ending_rate <- c(ending_rate, eta[types == "censoring"])
   }
-  if (is.infinite(max_cens) && all(ending_rate == 0)) {
+  if (any(is.infinite(max_cens)) && all(ending_rate == 0)) {
     stop(
       "Follow-up never ends: every censoring/terminal process has a zero ",
       "hazard (eta = 0, after any intervene/cens). Give one a positive ",
@@ -714,7 +750,7 @@
         process_effects,
         process_names,
         history = .sim_history_cols(history, alive),
-        max_cens = max_cens,
+        max_cens = max_cens[alive],
         time_step = time_step
       )
       t_k[alive] <- draw$time
@@ -744,12 +780,12 @@
           risk_alive,
           eta,
           baselines,
-          max_cens
+          max_cens[alive]
         )
       }
       t_k[alive] <- t_k[alive] + w
     }
-    t_k[t_k > max_cens] <- max_cens
+    t_k <- pmin(t_k, max_cens)
     t_alive <- t_k[alive]
 
     events <- .sim_sample_event_types(
@@ -759,7 +795,7 @@
       eta,
       nu,
       baselines,
-      max_cens
+      max_cens[alive]
     )
 
     for (nm in process_names) {
@@ -820,7 +856,7 @@
 
   event <- NULL
   res <- data.table::rbindlist(res_list)
-  event_levels <- c(process_names, if (is.finite(max_cens)) "max_cens")
+  event_levels <- c(process_names, if (any(is.finite(max_cens))) "max_cens")
   res[, event := factor(event, levels = event_levels)]
   data.table::setkeyv(res, "id")
   res[]
