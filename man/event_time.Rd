@@ -14,7 +14,8 @@ the \code{abs(k)}-th latest (\code{-1} is the latest).}
 }
 \value{
 The event's time, or \code{0} if there are fewer than \code{abs(k)} events
-so far. Multiply by the event count, as in
+so far. In an effect into a \code{\link[=sim_mark]{sim_mark()}}, the event triggering its
+redraw doesn't count yet. Multiply by the event count, as in
 \code{operation * f(t - event_time(operation, 1))}, so the effect only applies
 once the event has happened.
 }

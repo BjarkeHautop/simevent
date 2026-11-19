@@ -34,10 +34,14 @@ Inside a \code{\link[=sim_effect]{sim_effect()}} formula, the baseline value is 
 What a new value depends on is given by \code{\link[=sim_effect]{sim_effect()}}s with the mark as
 \code{to}: at each update, their \code{coef * from} terms are summed into a linear
 predictor \code{lp} and passed to \code{draw}, e.g. as the mean of \code{\link[stats:rnorm]{stats::rnorm()}}.
-Effects are evaluated just after the triggering event, so they see process
-counts and event times including it, \code{t} as its time, and the mark's own
-value before the update. Marks updated by the same event are redrawn in
-the order they are defined.
+In these effects, \code{t} is the time of the triggering event. A mark or
+count that changes at that event, the mark itself included, can't be
+written by its plain name, e.g. \code{bp}, since it would be unclear whether
+its value before or after the event is meant. Instead, write e.g. \code{bp(event_time(visit, -1))} for its value at the
+previous visit (\code{\link[=event_time]{event_time()}} doesn't count the triggering event). For
+another mark redrawn at the same event, \code{bp(t)} is its value at this one,
+e.g. for a treatment decided from the blood pressure just measured. Likewise,
+\code{visit(t)} counts the current visit.
 }
 \examples{
 # Blood pressure measured at each visit, lowered by treatment and driving
@@ -53,7 +57,7 @@ model <- sim_model(
   treatment = sim_process("transient", eta = 0.05, nu = 1, limit = 1),
   stroke = sim_process("terminal", eta = 0.01, nu = 1.2),
   effects = list(
-    sim_effect(bp ~ bp - 130, coef = 0.8),
+    sim_effect(bp ~ bp(event_time(visit, -1)) - 130, coef = 0.8),
     sim_effect(bp ~ treatment, coef = -2),
     sim_effect(treatment ~ bp - 130, coef = 0.08),
     sim_effect(stroke ~ bp - 130, coef = 0.03),

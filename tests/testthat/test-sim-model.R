@@ -798,7 +798,7 @@ test_that("simulate_events handles long histories", {
     ),
     death = sim_process("terminal", eta = 0.01, nu = 1),
     effects = list(
-      sim_effect(nth ~ visit, 1),
+      sim_effect(nth ~ visit(t), 1),
       sim_effect(
         death ~ record(ifelse(visit >= 3, nth - nth(event_time(visit, -3)), 2)),
         0
@@ -1180,7 +1180,7 @@ test_that("simulate_events: event_time(proc, -k) is the k-th latest event", {
     other = sim_process("transient", eta = 1, nu = 1),
     death = sim_process("terminal", eta = 0.1, nu = 1),
     effects = list(
-      sim_effect(nth ~ visit, 1),
+      sim_effect(nth ~ visit(t), 1),
       sim_effect(
         other ~ (event_time(visit, -3) + 1000 * nth(event_time(visit, -3))),
         0

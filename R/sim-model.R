@@ -93,10 +93,14 @@ sim_derived <- function(fn) {
 #' What a new value depends on is given by [sim_effect()]s with the mark as
 #' `to`: at each update, their `coef * from` terms are summed into a linear
 #' predictor `lp` and passed to `draw`, e.g. as the mean of [stats::rnorm()].
-#' Effects are evaluated just after the triggering event, so they see process
-#' counts and event times including it, `t` as its time, and the mark's own
-#' value before the update. Marks updated by the same event are redrawn in
-#' the order they are defined.
+#' In these effects, `t` is the time of the triggering event. A mark or
+#' count that changes at that event, the mark itself included, can't be
+#' written by its plain name, e.g. `bp`, since it would be unclear whether
+#' its value before or after the event is meant. Instead, write e.g. `bp(event_time(visit, -1))` for its value at the
+#' previous visit ([event_time()] doesn't count the triggering event). For
+#' another mark redrawn at the same event, `bp(t)` is its value at this one,
+#' e.g. for a treatment decided from the blood pressure just measured. Likewise,
+#' `visit(t)` counts the current visit.
 #'
 #' @param init Function of `N` giving the initial values, as for
 #'   [sim_covariate()]. Covariates defined after the mark see its initial
@@ -123,7 +127,7 @@ sim_derived <- function(fn) {
 #'   treatment = sim_process("transient", eta = 0.05, nu = 1, limit = 1),
 #'   stroke = sim_process("terminal", eta = 0.01, nu = 1.2),
 #'   effects = list(
-#'     sim_effect(bp ~ bp - 130, coef = 0.8),
+#'     sim_effect(bp ~ bp(event_time(visit, -1)) - 130, coef = 0.8),
 #'     sim_effect(bp ~ treatment, coef = -2),
 #'     sim_effect(treatment ~ bp - 130, coef = 0.08),
 #'     sim_effect(stroke ~ bp - 130, coef = 0.03),
@@ -286,7 +290,9 @@ sim_process <- function(
 #'       event.}
 #'     \item{`<name>(s)`}{The value of covariate, mark or process count
 #'       `name` at time `s`, after any update at `s`, e.g. `bp(0)` for a
-#'       mark's baseline value or `bp(event_time(operation, 1))`.}
+#'       mark's baseline value or `bp(event_time(operation, 1))`. In an
+#'       effect into a [sim_mark()], `name(t)` includes the triggering event;
+#'       see [sim_mark()].}
 #'   }
 #' @param coef Numeric vector, one coefficient per term of `from`.
 #'
@@ -425,7 +431,8 @@ print.sim_effect <- function(x, ...) {
 #'   the `abs(k)`-th latest (`-1` is the latest).
 #'
 #' @return The event's time, or `0` if there are fewer than `abs(k)` events
-#'   so far. Multiply by the event count, as in
+#'   so far. In an effect into a [sim_mark()], the event triggering its
+#'   redraw doesn't count yet. Multiply by the event count, as in
 #'   `operation * f(t - event_time(operation, 1))`, so the effect only applies
 #'   once the event has happened.
 #' @seealso [sim_effect()]
@@ -659,7 +666,11 @@ sim_model <- function(..., effects = list()) {
         ": they end follow-up, so never precede another event."
       )
     }
+    if (eff$to %in% mark_names) {
+      .sim_check_mark_effect(eff, nodes[mark_names])
+    }
   }
+  .sim_mark_order(nodes[mark_names], effects)
 
   structure(
     list(
@@ -669,6 +680,149 @@ sim_model <- function(..., effects = list()) {
     ),
     class = "sim_model"
   )
+}
+
+# Stops if `eff`, an effect into a mark, uses a node as is that changes at
+# the events redrawing the mark, since it's then unclear whether it means
+# the value before or after the event: such nodes must be called as
+# functions of time instead.
+.sim_check_mark_effect <- function(eff, marks) {
+  update <- marks[[eff$to]]$update
+  plain <- .sim_plain_vars(eff$expr)
+  for (nm in plain) {
+    if (nm %in% update) {
+      stop(
+        "sim_effect() '",
+        eff$to,
+        " ~ ",
+        eff$from,
+        "' uses '",
+        nm,
+        "' as is, but it changes at the ",
+        nm,
+        " events that redraw ",
+        eff$to,
+        ". Write ",
+        nm,
+        "(t) for the count including the current event, or ",
+        nm,
+        "(t) - 1 for the count before it."
+      )
+    }
+    shared <- if (nm %in% names(marks)) {
+      intersect(marks[[nm]]$update, update)
+    }
+    if (length(shared) > 0) {
+      stop(
+        "sim_effect() '",
+        eff$to,
+        " ~ ",
+        eff$from,
+        "' uses '",
+        nm,
+        "' as is, but ",
+        nm,
+        " is redrawn at the same ",
+        shared[1],
+        " events as ",
+        eff$to,
+        ". Write ",
+        nm,
+        "(event_time(",
+        shared[1],
+        ", -1)) for its value at the previous ",
+        shared[1],
+        if (nm != eff$to) c(", or ", nm, "(t) for its value at this one"),
+        "."
+      )
+    }
+  }
+  if (eff$to %in% .sim_now_calls(eff$expr, names(marks))) {
+    stop(
+      "sim_effect() '",
+      eff$to,
+      " ~ ",
+      eff$from,
+      "' uses ",
+      eff$to,
+      "(t), the value being drawn. Write ",
+      eff$to,
+      "(event_time(",
+      update[1],
+      ", -1)) for its value at the previous ",
+      update[1],
+      "."
+    )
+  }
+}
+
+# Names of the variables `expr` uses as is, not inside event_time() (whose
+# process argument is a name, not its value).
+.sim_plain_vars <- function(expr) {
+  drop_event_time <- function(e) {
+    if (!is.call(e)) {
+      return(e)
+    }
+    if (identical(e[[1]], as.name("event_time"))) {
+      return(0)
+    }
+    for (i in seq_along(e)[-1]) {
+      e[i] <- list(drop_event_time(e[[i]]))
+    }
+    e
+  }
+  setdiff(all.vars(drop_event_time(expr)), "t")
+}
+
+# Names among `node_names` that `expr` calls at the current time, as in
+# bp(t).
+.sim_now_calls <- function(expr, node_names) {
+  calls <- Filter(
+    function(call) {
+      is.name(call[[1]]) &&
+        as.character(call[[1]]) %in% node_names &&
+        length(call) == 2 &&
+        identical(call[[2]], as.name("t"))
+    },
+    .sim_calls(expr)
+  )
+  unique(vapply(calls, function(call) as.character(call[[1]]), ""))
+}
+
+# The names of `marks` in the order to redraw them at an event: a mark whose
+# effects use another's value at the event, as in bp(t), is drawn after it,
+# if both are redrawn by a same process. Otherwise in definition order.
+# Stops on a cycle.
+.sim_mark_order <- function(marks, effects) {
+  deps <- lapply(stats::setNames(nm = names(marks)), function(nm) {
+    used <- unlist(lapply(effects, function(eff) {
+      if (identical(eff$to, nm)) .sim_now_calls(eff$expr, names(marks))
+    }))
+    Filter(
+      function(other) {
+        other != nm &&
+          length(intersect(marks[[other]]$update, marks[[nm]]$update)) > 0
+      },
+      unique(used)
+    )
+  })
+  order <- character()
+  while (length(order) < length(marks)) {
+    ready <- names(marks)[
+      !(names(marks) %in% order) &
+        vapply(deps, function(d) all(d %in% order), logical(1))
+    ]
+    if (length(ready) == 0) {
+      stop(
+        "sim_effect()s into sim_mark()s ",
+        paste(setdiff(names(marks), order), collapse = ", "),
+        " use each other's values at the same event, as in bp(t), in a ",
+        "cycle, so none can be drawn first."
+      )
+    }
+    order <- c(order, ready[1])
+  }
+  order
 }
 
 # Every call within `expr` (itself included), as a list of calls.

@@ -115,6 +115,8 @@
 # and the nodes as functions of time, so a call like bp(s) skips the value
 # `bp`. rep_times: number of time points per individual in
 # covariates/event_counts/t, which `history` results are repeated to match.
+# event_time() reads `event_history`, which for a mark's redraw excludes the
+# current event, while calls like bp(s) read `history`, which includes it.
 .sim_effect_env <- function(
   effects,
   covariates,
@@ -123,13 +125,14 @@
   t,
   history,
   rep_times = 1,
-  parent = globalenv()
+  parent = globalenv(),
+  event_history = history
 ) {
   funs <- new.env(parent = parent)
   n_points <- length(event_counts[[1]])
   funs$event_time <- function(proc, k) {
     rep(
-      .sim_event_time(history, deparse(substitute(proc)), k),
+      .sim_event_time(event_history, deparse(substitute(proc)), k),
       times = rep_times
     )
   }
@@ -163,7 +166,18 @@
           return(.sim_events_by(history, s, nm))
         }
         cols <- rep_len(seq_len(ncol(mark)), n_points)
-        mark[cbind(.sim_events_by(history, s) + 1, cols)]
+        value <- mark[cbind(.sim_events_by(history, s) + 1, cols)]
+        # NA: a mark redrawn at the current event but not yet drawn.
+        if (anyNA(value)) {
+          stop(
+            "sim_effect() expressions can't use ",
+            nm,
+            "(t) at an event where ",
+            nm,
+            " is redrawn but hasn't been drawn yet."
+          )
+        }
+        value
       }
     })
   }
@@ -207,7 +221,8 @@
   targets,
   t = NULL,
   history = NULL,
-  rep_times = 1
+  rep_times = 1,
+  event_history = history
 ) {
   n <- length(event_counts[[1]])
   lp <- matrix(
@@ -236,7 +251,8 @@
             t,
             history,
             rep_times,
-            parent = eff$env
+            parent = eff$env,
+            event_history = event_history
           )
         )
         i <- length(envs)
@@ -585,8 +601,9 @@
 }
 
 # New values of mark `nm` for individuals `rows`, from its sim_mark() draw
-# function given N and `lp`, the linear predictor of the effects into it at
-# the current state (`history` including the current event).
+# function given N and `lp`, the linear predictor of the effects into it.
+# `covariates` and `event_counts` are the values just before the current
+# event, and `history` includes it (with marks not yet redrawn at it NA).
 .sim_draw_mark <- function(
   nm,
   draw,
@@ -598,6 +615,11 @@
   t,
   history
 ) {
+  history <- .sim_history_cols(history, rows)
+  event_history <- history
+  if (!is.null(history)) {
+    event_history$n <- history$n - 1
+  }
   lp <- .sim_linear_predictors(
     effects,
     lapply(covariates, `[`, rows),
@@ -605,7 +627,8 @@
     process_names,
     targets = nm,
     t = t[rows],
-    history = .sim_history_cols(history, rows)
+    history = history,
+    event_history = event_history
   )[, nm]
   args <- list(N = length(rows), lp = lp)
   value <- do.call(draw, args[names(formals(draw))])
@@ -684,9 +707,13 @@
     names(covariates)[!.sim_hidden(names(covariates))],
     function(nm) if (is_mark[[nm]]) c(nm, paste0(nm, "_0")) else nm
   ))
-  # An intervened mark stays fixed, so isn't redrawn.
+  # An intervened mark stays fixed, so isn't redrawn. Marks redrawn at the
+  # same event are drawn in dependency order (see .sim_mark_order()).
   marks <- model$covariates[is_mark]
-  marks <- marks[setdiff(names(marks), names(intervene))]
+  marks <- marks[setdiff(
+    .sim_mark_order(marks, model$effects),
+    names(intervene)
+  )]
   # Effects into marks only enter their draws, not the hazards.
   into_process <- vapply(
     model$effects,
@@ -814,6 +841,10 @@
       max_cens[alive]
     )
 
+    # Effects into marks see the values just before this event; only calls
+    # like bp(t) see it, through `history`.
+    covariates_before <- covariates
+    event_counts_before <- event_counts
     for (nm in process_names) {
       hit <- alive[events == nm]
       event_counts[[nm]][hit] <- event_counts[[nm]][hit] + 1
@@ -824,7 +855,11 @@
       history$type[idx, alive] <- events
       history$n <- idx
       for (nm in timed_marks) {
-        history$marks[[nm]][idx + 1, alive] <- covariates[[nm]][alive]
+        value <- covariates[[nm]][alive]
+        if (nm %in% names(marks)) {
+          value[events %in% marks[[nm]]$update] <- NA
+        }
+        history$marks[[nm]][idx + 1, alive] <- value
       }
     }
 
@@ -836,8 +871,8 @@
           marks[[nm]]$draw,
           hit,
           mark_effects,
-          covariates,
-          event_counts,
+          covariates_before,
+          event_counts_before,
           process_names,
           t_k,
           history

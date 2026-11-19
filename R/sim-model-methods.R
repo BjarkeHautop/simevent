@@ -57,23 +57,6 @@ summary.sim_model <- function(object, ...) {
   )
   from <- vapply(object$effects, `[[`, character(1), "from")
   to <- vapply(object$effects, `[[`, character(1), "to")
-  # Unroll effects into a mark over its updates: its own value in `from` is
-  # the one before the update.
-  marks <- names(object$covariates)[vapply(
-    object$covariates,
-    inherits,
-    logical(1),
-    "sim_mark"
-  )]
-  into_mark <- to %in% marks
-  from[into_mark] <- vapply(
-    which(into_mark),
-    function(i) {
-      .sim_deparse(.sim_index_symbol(object$effects[[i]]$expr, to[i]))
-    },
-    character(1)
-  )
-  to[into_mark] <- paste0(to[into_mark], "[k+1]")
   effects <- data.frame(
     from = from,
     to = to,
@@ -95,24 +78,7 @@ print.summary.sim_model <- function(x, ...) {
   print(x$processes, row.names = FALSE)
   cat("\n<sim_model> effects\n")
   print(x$effects, row.names = FALSE)
-  if (any(endsWith(x$effects$to, "[k+1]"))) {
-    cat("\nmark[k]: value after the mark's k-th update (k = 0: init)\n")
-  }
   invisible(x)
-}
-
-# Expression `expr` with each use of the variable `name` replaced by
-# `name[k]`; calls to `name` as a function of time are left as they are.
-.sim_index_symbol <- function(expr, name) {
-  if (identical(expr, as.name(name))) {
-    return(call("[", expr, quote(k)))
-  }
-  if (is.call(expr)) {
-    for (i in seq_along(expr)[-1]) {
-      expr[[i]] <- .sim_index_symbol(expr[[i]], name)
-    }
-  }
-  expr
 }
 
 #' Update a `sim_model()`

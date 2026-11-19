@@ -17,7 +17,9 @@ processes (their number of events so far), which may also use:
 event.}
 \item{\verb{<name>(s)}}{The value of covariate, mark or process count
 \code{name} at time \code{s}, after any update at \code{s}, e.g. \code{bp(0)} for a
-mark's baseline value or \code{bp(event_time(operation, 1))}.}
+mark's baseline value or \code{bp(event_time(operation, 1))}. In an
+effect into a \code{\link[=sim_mark]{sim_mark()}}, \code{name(t)} includes the triggering event;
+see \code{\link[=sim_mark]{sim_mark()}}.}
 }}
 
 \item{coef}{Numeric vector, one coefficient per term of \code{from}.}
