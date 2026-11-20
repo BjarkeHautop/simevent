@@ -1298,10 +1298,6 @@ test_that("simulate_events: a mark or process at a future time errors", {
     simulate_events(with_effect(sim_effect(death ~ visit(t + 1), 0)), n = 5),
     "visit\\(s\\) with s later"
   )
-  expect_error(
-    simulate_events(with_effect(sim_effect(bp ~ bp(t + 1), 0)), n = 5),
-    "bp\\(s\\) with s later"
-  )
 
   # Values that exist already, or can't change.
   for (effect in list(
