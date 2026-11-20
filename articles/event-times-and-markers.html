@@ -255,7 +255,7 @@
 </tr>
 </tbody>
 </table>
-<p><code><a href="../reference/event_time.html">event_time()</a></code> doesn’t count the triggering event, so <code>event_time(visit, -1)</code> is the previous visit. For example, a treatment decided at the visit from the blood pressure just measured is <code>sim_effect(treated ~ bp(t) &gt; 140, coef = 3)</code>.</p>
+<p><code><a href="../reference/event_time.html">event_time()</a></code> doesn’t count the triggering event, so <code>event_time(visit, -1)</code> is the previous visit. For a marker updated by several processes, give them all, as in <code>bp(event_time(c(visit, lab), -1))</code> for its previous value and <code>-2</code> for the one before. For example, a treatment decided at the visit from the blood pressure just measured is <code>sim_effect(treated ~ bp(t) &gt; 140, coef = 3)</code>.</p>
 </div>
 </div>
 <p>The marker can also be used in <code><a href="../reference/sim_effect.html">sim_effect()</a></code> like any other covariate, and the hazards always use its current value. For its value at another time, call it as a function of time: <code>bp(0)</code> is the baseline value and <code>bp(event_time(visit, 1))</code> the value after the first visit. Since <code><a href="../reference/event_time.html">event_time()</a></code> is <code>0</code> before the event, the latter is also the baseline value until the first visit.</p>

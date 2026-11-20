@@ -54,7 +54,8 @@
 
 
 <dl><dt id="arg-proc">proc<a class="anchor" aria-label="anchor" href="#arg-proc"></a></dt>
-<dd><p>Name of a process in the model, unquoted.</p></dd>
+<dd><p>Name of a process in the model, unquoted, or several as
+<code>c(visit, lab)</code> to count the events of any of them.</p></dd>
 
 
 <dt id="arg-k">k<a class="anchor" aria-label="anchor" href="#arg-k"></a></dt>
@@ -97,6 +98,11 @@ once the event has happened.</p>
 <span class="r-in"><span>  coef <span class="op">=</span> <span class="fl">0.02</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_effect&gt; death ~ 0.02 * (operation * bp(event_time(operation, 1)))</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># For a bp mark updated at visits and lab tests, its value two updates</span></span></span>
+<span class="r-in"><span><span class="co"># before the current one</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="sim_effect.html">sim_effect</a></span><span class="op">(</span><span class="va">bp</span> <span class="op">~</span> <span class="fu">bp</span><span class="op">(</span><span class="fu">event_time</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">visit</span>, <span class="va">lab</span><span class="op">)</span>, <span class="op">-</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span>, coef <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> &lt;sim_effect&gt; bp ~ 0.2 * bp(event_time(c(visit, lab), -2))</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

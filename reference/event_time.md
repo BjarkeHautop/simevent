@@ -14,7 +14,8 @@ event_time(proc, k)
 
 - proc:
 
-  Name of a process in the model, unquoted.
+  Name of a process in the model, unquoted, or several as
+  `c(visit, lab)` to count the events of any of them.
 
 - k:
 
@@ -57,4 +58,9 @@ sim_effect(
   coef = 0.02
 )
 #> <sim_effect> death ~ 0.02 * (operation * bp(event_time(operation, 1)))
+
+# For a bp mark updated at visits and lab tests, its value two updates
+# before the current one
+sim_effect(bp ~ bp(event_time(c(visit, lab), -2)), coef = 0.2)
+#> <sim_effect> bp ~ 0.2 * bp(event_time(c(visit, lab), -2))
 ```

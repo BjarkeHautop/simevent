@@ -187,8 +187,10 @@ before or after the event is meant. Say which instead:
 
 [`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md)
 doesn’t count the triggering event, so `event_time(visit, -1)` is the
-previous visit. For example, a treatment decided at the visit from the
-blood pressure just measured is
+previous visit. For a marker updated by several processes, give them
+all, as in `bp(event_time(c(visit, lab), -1))` for its previous value
+and `-2` for the one before. For example, a treatment decided at the
+visit from the blood pressure just measured is
 `sim_effect(treated ~ bp(t) > 140, coef = 3)`.
 
 The marker can also be used in

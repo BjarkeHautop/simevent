@@ -100,11 +100,13 @@ predictor <code>lp</code> and passed to <code>draw</code>, e.g. as the mean of <
 In these effects, <code>t</code> is the time of the triggering event. A mark or
 count that changes at that event, the mark itself included, can't be
 written by its plain name, e.g. <code>bp</code>, since it would be unclear whether
-its value before or after the event is meant. Instead, write e.g. <code>bp(event_time(visit, -1))</code> for its value at the
-previous visit (<code><a href="event_time.html">event_time()</a></code> doesn't count the triggering event). For
-another mark redrawn at the same event, <code>bp(t)</code> is its value at this one,
-e.g. for a treatment decided from the blood pressure just measured. Likewise,
-<code>visit(t)</code> counts the current visit.</p>
+its value before or after the event is meant. Instead, write
+<code>bp(event_time(visit, -1))</code> for its value at the previous visit
+(<code><a href="event_time.html">event_time()</a></code> doesn't count the triggering event), or, for a mark
+updated by several processes, e.g. <code>bp(event_time(c(visit, lab), -1))</code>.
+For another mark redrawn at the same event, <code>bp(t)</code> is its value after
+it, e.g. for a treatment decided from the blood pressure just measured.
+Likewise, <code>visit(t)</code> counts the current visit.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

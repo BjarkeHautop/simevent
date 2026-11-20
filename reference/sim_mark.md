@@ -53,13 +53,14 @@ mean of [`stats::rnorm()`](https://rdrr.io/r/stats/Normal.html). In
 these effects, `t` is the time of the triggering event. A mark or count
 that changes at that event, the mark itself included, can't be written
 by its plain name, e.g. `bp`, since it would be unclear whether its
-value before or after the event is meant. Instead, write e.g.
+value before or after the event is meant. Instead, write
 `bp(event_time(visit, -1))` for its value at the previous visit
 ([`event_time()`](https://github.com/BjarkeHautop/simevent/reference/event_time.md)
-doesn't count the triggering event). For another mark redrawn at the
-same event, `bp(t)` is its value at this one, e.g. for a treatment
-decided from the blood pressure just measured. Likewise, `visit(t)`
-counts the current visit.
+doesn't count the triggering event), or, for a mark updated by several
+processes, e.g. `bp(event_time(c(visit, lab), -1))`. For another mark
+redrawn at the same event, `bp(t)` is its value after it, e.g. for a
+treatment decided from the blood pressure just measured. Likewise,
+`visit(t)` counts the current visit.
 
 ## See also
 
