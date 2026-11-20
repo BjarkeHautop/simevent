@@ -1,6 +1,6 @@
 Package: simevent
 Title: Simulation and Analysis of Event History Data
-Version: 0.1.1.9000
+Version: 0.1.1.9001
 Authors@R: c(
     person(given = "Michaela", family = "Lukacova", email = "michaela.lukacova@sund.ku.dk", role = c("aut", "cre")),
     person(given = "Bjarke", family = "Hautop Kristensen", email = "bjarke.kristensen@sund.ku.dk", role = "aut"),

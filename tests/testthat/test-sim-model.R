@@ -646,6 +646,37 @@ test_that("sim_model_from_fits handles transformed and interaction terms", {
   expect_s3_class(simulate_events(model, n = 50), "data.table")
 })
 
+test_that("sim_model_from_fits handles logical covariates and terms", {
+  withr::local_seed(1405)
+  observed_model <- sim_model(
+    L0 = sim_covariate(function(N) runif(N)),
+    censoring = sim_process("censoring", eta = 0.1, nu = 1.1),
+    death = sim_process("terminal", eta = 0.1, nu = 1.1),
+    relapse = sim_process("transient", eta = 0.5, nu = 1),
+    effects = list(sim_effect(death ~ (relapse >= 1), 0.7))
+  )
+  observed_data <- simulate_events(observed_model, n = 500)
+  observed_data$smoker <- observed_data$L0 > 0.5
+  observed_data <- format_interval_data(observed_data, proc_cols = "relapse")
+  fits <- list(
+    censoring = coxph(Surv(time, event == "censoring") ~ smoker, observed_data),
+    death = coxph(
+      Surv(tstart, tstop, event == "death") ~ I(relapse >= 1) + smoker * L0,
+      observed_data
+    ),
+    relapse = coxph(Surv(tstart, tstop, event == "relapse") ~ 1, observed_data)
+  )
+  types <- c(censoring = "censoring", death = "terminal", relapse = "transient")
+
+  model <- sim_model_from_fits(fits, observed_data, types)
+  froms <- vapply(model$effects, `[[`, character(1), "from")
+  expect_setequal(
+    froms,
+    c("smoker", "I(relapse >= 1)", "L0", "smoker * L0")
+  )
+  expect_s3_class(simulate_events(model, n = 50), "data.table")
+})
+
 test_that("sim_model_from_fits errors on a fit with too few events", {
   data <- sim_cr_data(100)
   types <- c(censoring = "censoring", cause1 = "terminal")

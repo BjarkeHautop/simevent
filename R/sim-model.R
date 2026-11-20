@@ -1232,11 +1232,21 @@ simulate_events <- function(
 
 # The sim_effect() `from` expression for a coxph() coefficient name: the
 # product of its interaction parts (split on ":"), each a node name or, for
-# a transformed term such as `I(age^2)`, that term's code.
-.sim_effect_from_coef <- function(coef_name, node_names) {
+# a transformed term such as `I(age^2)`, that term's code. A logical
+# variable's part is its name or code followed by "TRUE" (e.g. `smokerTRUE`
+# or `I(relapse >= 2)TRUE`), which is that variable itself: TRUE counts as 1
+# in the linear predictor. `term_vars` are the fit's variables as written in
+# its formula, to tell these apart from a name that ends in "TRUE".
+.sim_effect_from_coef <- function(coef_name, node_names, term_vars) {
   parts <- lapply(
     strsplit(coef_name, ":", fixed = TRUE)[[1]],
-    function(part) if (part %in% node_names) as.name(part) else str2lang(part)
+    function(part) {
+      logical_var <- sub("TRUE$", "", part)
+      if (!part %in% c(node_names, term_vars) && logical_var %in% term_vars) {
+        part <- logical_var
+      }
+      if (part %in% node_names) as.name(part) else str2lang(part)
+    }
   )
   Reduce(function(x, y) call("*", x, y), parts)
 }
@@ -1401,9 +1411,10 @@ sim_model_from_fits <- function(fits, data, types, limits = numeric()) {
     cf <- cf[!is.na(cf)]
     # Evaluated where the fit's formula was written, like the fit's own terms.
     env <- environment(stats::terms(fit))
+    term_vars <- rownames(attr(stats::terms(fit), "factors"))
     Map(
       function(coef_name, coef) {
-        from <- .sim_effect_from_coef(coef_name, node_names)
+        from <- .sim_effect_from_coef(coef_name, node_names, term_vars)
         sim_effect(
           stats::as.formula(call("~", as.name(proc), from), env = env),
           coef
