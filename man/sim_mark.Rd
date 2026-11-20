@@ -37,11 +37,13 @@ predictor \code{lp} and passed to \code{draw}, e.g. as the mean of \code{\link[s
 In these effects, \code{t} is the time of the triggering event. A mark or
 count that changes at that event, the mark itself included, can't be
 written by its plain name, e.g. \code{bp}, since it would be unclear whether
-its value before or after the event is meant. Instead, write e.g. \code{bp(event_time(visit, -1))} for its value at the
-previous visit (\code{\link[=event_time]{event_time()}} doesn't count the triggering event). For
-another mark redrawn at the same event, \code{bp(t)} is its value at this one,
-e.g. for a treatment decided from the blood pressure just measured. Likewise,
-\code{visit(t)} counts the current visit.
+its value before or after the event is meant. Instead, write
+\code{bp(event_time(visit, -1))} for its value at the previous visit
+(\code{\link[=event_time]{event_time()}} doesn't count the triggering event), or, for a mark
+updated by several processes, e.g. \code{bp(event_time(c(visit, lab), -1))}.
+For another mark redrawn at the same event, \code{bp(t)} is its value after
+it, e.g. for a treatment decided from the blood pressure just measured.
+Likewise, \code{visit(t)} counts the current visit.
 }
 \examples{
 # Blood pressure measured at each visit, lowered by treatment and driving

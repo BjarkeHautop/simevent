@@ -79,10 +79,12 @@
   )
 }
 
-# The time of process `proc`'s k-th event so far per individual, counting
-# back from the latest if k < 0, or 0 where there are fewer than abs(k).
+# The time of the k-th event so far of any of processes `proc` per
+# individual, counting back from the latest if k < 0, or 0 where there are
+# fewer than abs(k).
 .sim_event_time <- function(history, proc, k) {
-  hit <- history$type[seq_len(history$n), , drop = FALSE] == proc
+  type <- history$type[seq_len(history$n), , drop = FALSE]
+  hit <- matrix(type %in% proc, nrow(type), ncol(type))
   vapply(
     seq_len(ncol(history$time)),
     function(j) {
@@ -132,7 +134,7 @@
   n_points <- length(event_counts[[1]])
   funs$event_time <- function(proc, k) {
     rep(
-      .sim_event_time(event_history, deparse(substitute(proc)), k),
+      .sim_event_time(event_history, .sim_proc_names(substitute(proc)), k),
       times = rep_times
     )
   }

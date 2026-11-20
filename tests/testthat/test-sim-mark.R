@@ -177,19 +177,19 @@ test_that("sim_model rejects ambiguous uses in effects into a mark", {
   }
   expect_error(
     with_effects(sim_effect(a ~ a, coef = 1)),
-    "a\\(event_time\\(visit, -1\\)\\) for its value at the previous visit\\."
+    "Write a\\(event_time\\(visit, -1\\)\\) for its value before the event\\.$"
   )
   expect_error(
     with_effects(sim_effect(a ~ b, coef = 1)),
-    "or b\\(t\\) for its value at this one"
+    "b\\(event_time\\(visit, -1\\)\\) for its value before the event, or b\\(t\\)"
   )
   expect_error(
     with_effects(sim_effect(a ~ visit, coef = 1)),
-    "visit\\(t\\) - 1"
+    "visit\\(t\\) - 1 for the count before the event, or visit\\(t\\) after"
   )
   expect_error(
     with_effects(sim_effect(a ~ a(t), coef = 1)),
-    "the value being drawn"
+    "the value being drawn. Write a\\(event_time\\(visit, -1\\)\\)"
   )
   expect_error(
     with_effects(
@@ -202,6 +202,79 @@ test_that("sim_model rejects ambiguous uses in effects into a mark", {
   expect_s3_class(
     with_effects(sim_effect(a ~ event_time(visit, -1), coef = 1)),
     "sim_model"
+  )
+})
+
+test_that("a mark updated by several processes can use its earlier values", {
+  model <- sim_model(
+    m = sim_mark(
+      init = function(N) rep(0, N),
+      update = c("visit", "lab"),
+      draw = function(N, lp) lp + 0 * N
+    ),
+    visit = sim_process("transient", eta = 1, nu = 1),
+    lab = sim_process("transient", eta = 1, nu = 1),
+    death = sim_process("terminal", eta = 0.2, nu = 1),
+    effects = list(
+      sim_effect(
+        m ~ (m(event_time(c(visit, lab), -1)) + 1) +
+          m(event_time(c(visit, lab), -2)),
+        coef = c(1, 1000)
+      )
+    )
+  )
+  expect_error(
+    sim_model(
+      m = sim_mark(function(N) rnorm(N), c("visit", "lab"), function(N, lp) lp),
+      visit = sim_process("transient", eta = 1, nu = 1),
+      lab = sim_process("transient", eta = 1, nu = 1),
+      death = sim_process("terminal", eta = 0.2, nu = 1),
+      effects = list(sim_effect(m ~ m, coef = 1))
+    ),
+    "Write m\\(event_time\\(c\\(visit, lab\\), -1\\)\\)"
+  )
+  data <- simulate_events(model, n = 50, max_cens = 5, seed = 1)
+  expect_gt(sum(data$event == "lab"), 0)
+  # Each update adds 1 to the previous value plus 1000 times the one before.
+  data[,
+    `:=`(
+      lag1 = data.table::shift(m, fill = 0),
+      lag2 = data.table::shift(m, 2, fill = 0)
+    ),
+    by = id
+  ]
+  updated <- data$event %in% c("visit", "lab")
+  expect_equal(
+    data$m[updated],
+    data$lag1[updated] + 1 + 1000 * data$lag2[updated]
+  )
+})
+
+test_that("event_time() takes a c() of process names only", {
+  base <- list(
+    visit = sim_process("transient", eta = 1, nu = 1, limit = 1),
+    lab = sim_process("transient", eta = 1, nu = 1, limit = 1),
+    death = sim_process("terminal", eta = 0.2, nu = 1)
+  )
+  with_effects <- function(...) {
+    do.call(sim_model, c(base, list(effects = list(...))))
+  }
+  expect_error(
+    with_effects(sim_effect(death ~ event_time(c(visit, "lab"), 1), 1)),
+    "a process name or c\\(\\) of them"
+  )
+  expect_error(
+    with_effects(sim_effect(death ~ event_time(c(visit, age), 1), 1)),
+    "not found in model"
+  )
+  # Two processes with limit 1 have at most 2 events between them.
+  expect_s3_class(
+    with_effects(sim_effect(death ~ event_time(c(visit, lab), 2), 1)),
+    "sim_model"
+  )
+  expect_error(
+    with_effects(sim_effect(death ~ event_time(c(visit, lab), 3), 1)),
+    "beyond the process's limit"
   )
 })
 

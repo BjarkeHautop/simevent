@@ -7,7 +7,8 @@
 event_time(proc, k)
 }
 \arguments{
-\item{proc}{Name of a process in the model, unquoted.}
+\item{proc}{Name of a process in the model, unquoted, or several as
+\code{c(visit, lab)} to count the events of any of them.}
 
 \item{k}{Whole number other than \code{0}: the \code{k}-th event, or if negative,
 the \code{abs(k)}-th latest (\code{-1} is the latest).}
@@ -40,6 +41,10 @@ sim_effect(
   death ~ operation * bp(event_time(operation, 1)),
   coef = 0.02
 )
+
+# For a bp mark updated at visits and lab tests, its value two updates
+# before the current one
+sim_effect(bp ~ bp(event_time(c(visit, lab), -2)), coef = 0.2)
 }
 \seealso{
 \code{\link[=sim_effect]{sim_effect()}}

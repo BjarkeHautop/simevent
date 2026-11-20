@@ -96,11 +96,13 @@ sim_derived <- function(fn) {
 #' In these effects, `t` is the time of the triggering event. A mark or
 #' count that changes at that event, the mark itself included, can't be
 #' written by its plain name, e.g. `bp`, since it would be unclear whether
-#' its value before or after the event is meant. Instead, write e.g. `bp(event_time(visit, -1))` for its value at the
-#' previous visit ([event_time()] doesn't count the triggering event). For
-#' another mark redrawn at the same event, `bp(t)` is its value at this one,
-#' e.g. for a treatment decided from the blood pressure just measured. Likewise,
-#' `visit(t)` counts the current visit.
+#' its value before or after the event is meant. Instead, write
+#' `bp(event_time(visit, -1))` for its value at the previous visit
+#' ([event_time()] doesn't count the triggering event), or, for a mark
+#' updated by several processes, e.g. `bp(event_time(c(visit, lab), -1))`.
+#' For another mark redrawn at the same event, `bp(t)` is its value after
+#' it, e.g. for a treatment decided from the blood pressure just measured.
+#' Likewise, `visit(t)` counts the current visit.
 #'
 #' @param init Function of `N` giving the initial values, as for
 #'   [sim_covariate()]. Covariates defined after the mark see its initial
@@ -426,7 +428,8 @@ print.sim_effect <- function(x, ...) {
 #'
 #' For use only inside a [sim_effect()] formula.
 #'
-#' @param proc Name of a process in the model, unquoted.
+#' @param proc Name of a process in the model, unquoted, or several as
+#'   `c(visit, lab)` to count the events of any of them.
 #' @param k Whole number other than `0`: the `k`-th event, or if negative,
 #'   the `abs(k)`-th latest (`-1` is the latest).
 #'
@@ -454,6 +457,10 @@ print.sim_effect <- function(x, ...) {
 #'   death ~ operation * bp(event_time(operation, 1)),
 #'   coef = 0.02
 #' )
+#'
+#' # For a bp mark updated at visits and lab tests, its value two updates
+#' # before the current one
+#' sim_effect(bp ~ bp(event_time(c(visit, lab), -2)), coef = 0.2)
 #' @export
 event_time <- function(proc, k) {
   stop("event_time() only works inside a sim_effect() formula.")
@@ -626,7 +633,7 @@ sim_model <- function(..., effects = list()) {
       )
     }
     history <- .sim_event_time_calls(eff$expr, eff$from)
-    not_process <- setdiff(history$proc, process_names)
+    not_process <- setdiff(unlist(history$proc), process_names)
     if (length(not_process) > 0) {
       stop(
         "sim_effect() expression '",
@@ -636,8 +643,14 @@ sim_model <- function(..., effects = list()) {
       )
     }
     limit <- vapply(
-      nodes[history$proc],
-      function(node) if (node$type == "transient") node$limit else 1,
+      history$proc,
+      function(procs) {
+        sum(vapply(
+          nodes[procs],
+          function(node) if (node$type == "transient") node$limit else 1,
+          numeric(1)
+        ))
+      },
       numeric(1)
     )
     unreachable <- history$text[abs(history$k) > limit]
@@ -688,54 +701,42 @@ sim_model <- function(..., effects = list()) {
 # functions of time instead.
 .sim_check_mark_effect <- function(eff, marks) {
   update <- marks[[eff$to]]$update
+  # A mark's value just before the event, i.e. after its latest update.
+  before <- function(nm) {
+    paste0(nm, "(event_time(", .sim_procs_text(marks[[nm]]$update), ", -1))")
+  }
   plain <- .sim_plain_vars(eff$expr)
   for (nm in plain) {
-    if (nm %in% update) {
-      stop(
-        "sim_effect() '",
-        eff$to,
-        " ~ ",
-        eff$from,
-        "' uses '",
-        nm,
-        "' as is, but it changes at the ",
-        nm,
-        " events that redraw ",
-        eff$to,
-        ". Write ",
-        nm,
-        "(t) for the count including the current event, or ",
-        nm,
-        "(t) - 1 for the count before it."
-      )
+    event <- if (nm %in% update) {
+      nm
+    } else if (nm %in% names(marks)) {
+      intersect(marks[[nm]]$update, update)[1]
     }
-    shared <- if (nm %in% names(marks)) {
-      intersect(marks[[nm]]$update, update)
+    if (is.null(event) || is.na(event)) {
+      next
     }
-    if (length(shared) > 0) {
-      stop(
-        "sim_effect() '",
-        eff$to,
-        " ~ ",
-        eff$from,
-        "' uses '",
-        nm,
-        "' as is, but ",
-        nm,
-        " is redrawn at the same ",
-        shared[1],
-        " events as ",
-        eff$to,
-        ". Write ",
-        nm,
-        "(event_time(",
-        shared[1],
-        ", -1)) for its value at the previous ",
-        shared[1],
-        if (nm != eff$to) c(", or ", nm, "(t) for its value at this one"),
-        "."
-      )
+    fix <- if (nm %in% update) {
+      c(nm, "(t) - 1 for the count before the event, or ", nm, "(t) after it")
+    } else if (nm == eff$to) {
+      c(before(nm), " for its value before the event")
+    } else {
+      c(before(nm), " for its value before the event, or ", nm, "(t) after it")
     }
+    stop(
+      "sim_effect() '",
+      eff$to,
+      " ~ ",
+      eff$from,
+      "' uses '",
+      nm,
+      "' as is, but it changes at the ",
+      event,
+      " events that redraw ",
+      eff$to,
+      ". Write ",
+      fix,
+      "."
+    )
   }
   if (eff$to %in% .sim_now_calls(eff$expr, names(marks))) {
     stop(
@@ -746,14 +747,35 @@ sim_model <- function(..., effects = list()) {
       "' uses ",
       eff$to,
       "(t), the value being drawn. Write ",
-      eff$to,
-      "(event_time(",
-      update[1],
-      ", -1)) for its value at the previous ",
-      update[1],
-      "."
+      before(eff$to),
+      " for its value before the event."
     )
   }
+}
+
+# Processes `procs` as written as event_time()'s first argument.
+.sim_procs_text <- function(procs) {
+  if (length(procs) == 1) {
+    return(procs)
+  }
+  paste0("c(", paste(procs, collapse = ", "), ")")
+}
+
+# The process names in event_time()'s unevaluated first argument, a name or
+# c() of names, or NULL if it's neither.
+.sim_proc_names <- function(expr) {
+  if (is.name(expr)) {
+    return(as.character(expr))
+  }
+  if (
+    is.call(expr) &&
+      identical(expr[[1]], as.name("c")) &&
+      length(expr) > 1 &&
+      all(vapply(as.list(expr)[-1], is.name, logical(1)))
+  ) {
+    return(vapply(as.list(expr)[-1], as.character, ""))
+  }
+  NULL
 }
 
 # Names of the variables `expr` uses as is, not inside event_time() (whose
@@ -859,9 +881,10 @@ sim_model <- function(..., effects = list()) {
   rows <- lapply(calls, function(written) {
     call <- tryCatch(match.call(template, written), error = function(e) NULL)
     k <- if (!is.null(call)) .sim_literal_number(call$k)
+    proc <- if (!is.null(call)) .sim_proc_names(call$proc)
     if (
       is.null(call) ||
-        !is.name(call$proc) ||
+        is.null(proc) ||
         is.null(k) ||
         k != round(k) ||
         k == 0
@@ -869,18 +892,18 @@ sim_model <- function(..., effects = list()) {
       stop(
         "sim_effect() expression '",
         from,
-        "' must call event_time() as event_time(<process>, <k>), with k a ",
-        "whole number other than 0 written out, e.g. event_time(visit, -1)."
+        "' must call event_time() as event_time(<process>, <k>), with ",
+        "<process> a process name or c() of them and k a whole number other ",
+        "than 0 written out, e.g. event_time(visit, -1)."
       )
     }
-    data.frame(
-      text = .sim_deparse(written),
-      proc = as.character(call$proc),
-      k = k
-    )
+    list(text = .sim_deparse(written), proc = proc, k = k)
   })
-  empty <- data.frame(text = character(), proc = character(), k = numeric())
-  do.call(rbind, c(list(empty), rows))
+  list(
+    text = vapply(rows, `[[`, "", "text"),
+    proc = lapply(rows, `[[`, "proc"),
+    k = vapply(rows, `[[`, numeric(1), "k")
+  )
 }
 
 # The value of a number written out in an expression (`2`, `-1`), or NULL.
